@@ -12,7 +12,7 @@ A lightweight desktop wrapper for [OpenROAD Flow Scripts](https://github.com/The
 ## Quick Start
 
 ```bash
-cd "/Users/mihirmithani/Downloads/OpenRoad GUI"
+cd "/Users/User/Downloads/OpenRoad GUI"
 
 # Optional: use the project venv
 python3 -m venv .venv
@@ -26,7 +26,7 @@ python main.py
 
 1. **Settings → Paths**
    - **OpenROAD Root**: path to your ORFS checkout, e.g.
-     `/Users/mihirmithani/Documents/Codex/2026-06-02/i-want-you-to-setup-openroad/OpenROAD-flow-scripts`
+     `/Users/User/Documents/OpenROAD-flow-scripts`
    - **KLayout binary**: e.g.
      `/Applications/KLayout/klayout.app/Contents/MacOS/klayout`
 
