@@ -1,4 +1,4 @@
-# OpenROAD Flow GUI
+# OpenROAD Flow GUI - By Mihir Mithani.
 
 A lightweight desktop wrapper for [OpenROAD Flow Scripts](https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts) (ORFS). It automates project setup, file templating, environment sourcing, and one-click execution of the RTL-to-GDSII pipeline.
 
