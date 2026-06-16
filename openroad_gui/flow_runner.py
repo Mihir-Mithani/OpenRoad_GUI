@@ -13,6 +13,7 @@ from openroad_gui.config import AppConfig
 LogCallback = Callable[[str, str], None]  # (stream, line)
 DoneCallback = Callable[[int, str], None]  # (exit_code, stage_name)
 
+
 class FlowStage(Enum):
     SYNTH = ("synth", "Synthesis (Yosys)")
     FLOORPLAN = ("floorplan", "Floorplan / Macro Placement")
