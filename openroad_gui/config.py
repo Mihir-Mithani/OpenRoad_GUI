@@ -8,10 +8,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-DEFAULT_ORFS_ROOT = (
-    "/Users/mihirmithani/Documents/Codex/2026-06-02/"
-    "i-want-you-to-setup-openroad/OpenROAD-flow-scripts"
-)
+DEFAULT_ORFS_ROOT = ""
 DEFAULT_KLAYOUT_CMD = "/Applications/KLayout/klayout.app/Contents/MacOS/klayout"
 CONFIG_DIR = Path.home() / ".config" / "openroad-gui"
 CONFIG_FILE = CONFIG_DIR / "config.json"
@@ -57,6 +54,10 @@ class AppConfig:
         rel = self.results_dir.relative_to(self.flow_dir)
         return f"{rel.as_posix()}/base/6_final.gds"
 
+    @property
+    def logs_dir(self) -> Path:
+        return CONFIG_DIR / "logs"
+
 
     def update_from_design_config(self, config_path: str | Path) -> None:
         """Parse config.mk to refresh platform and design name."""
@@ -83,6 +84,12 @@ class AppConfig:
 
     def validate(self) -> list[str]:
         errors: list[str] = []
+        if not self.orfs_root:
+            errors.append(
+                "OpenROAD root path is not set. "
+                "Go to Settings \u2192 Paths to configure it."
+            )
+            return errors
         if not Path(self.orfs_root).is_dir():
             errors.append(f"OpenROAD root not found: {self.orfs_root}")
         elif not self.flow_dir.is_dir():

@@ -105,9 +105,31 @@ def create_design(
     *,
     include_testbench: bool = True,
     clock_period: float = 1.0,
+    overwrite: bool = False,
 ) -> Path:
-    """Create a new design directory with starter files."""
+    """Create a new design directory with starter files.
+
+    Raises FileExistsError if any target file already exists and overwrite is False.
+    """
     design_dir = designs_dir / platform / design_name
+
+    target_files = [
+        design_dir / f"{design_name}.v",
+        design_dir / f"{design_name}.sdc",
+        design_dir / "config.mk",
+        design_dir / "config.json",
+    ]
+    if include_testbench:
+        target_files.append(design_dir / f"{design_name}.tb")
+
+    if not overwrite:
+        existing = [p for p in target_files if p.exists()]
+        if existing:
+            names = ", ".join(p.name for p in existing)
+            raise FileExistsError(
+                f"Files already exist in {design_dir}: {names}"
+            )
+
     design_dir.mkdir(parents=True, exist_ok=True)
 
     verilog_path = design_dir / f"{design_name}.v"
@@ -143,8 +165,13 @@ def write_template_file(
     template_type: str,
     module_name: str,
     platform: str = "asap7",
+    *,
+    overwrite: bool = False,
 ) -> Path:
-    """Write a single template file into an existing directory."""
+    """Write a single template file into an existing directory.
+
+    Raises FileExistsError if the target file already exists and overwrite is False.
+    """
     target_dir.mkdir(parents=True, exist_ok=True)
 
     writers = {
@@ -168,5 +195,9 @@ def write_template_file(
 
     filename, content = writers[template_type]()
     path = target_dir / filename
+
+    if not overwrite and path.exists():
+        raise FileExistsError(f"File already exists: {path}")
+
     path.write_text(content, encoding="utf-8")
     return path

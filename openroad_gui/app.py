@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import platform
 import subprocess
 import threading
 import tkinter as tk
@@ -12,7 +13,7 @@ from tkinter import filedialog, messagebox, ttk
 from openroad_gui import __version__
 from openroad_gui.config import AppConfig, load_config, save_config
 from openroad_gui.flow_runner import FULL_PIPELINE, FlowRunner, FlowStage
-from openroad_gui.viewers import OPENROAD_GUI_STAGES, OpenROADGuiStage, ViewerService
+from openroad_gui.viewers import OPENROAD_GUI_STAGES, OpenROADGuiStage, ViewerService, cleanup_stale_previews
 from openroad_gui.widgets.flow_panel import FlowPanel
 from openroad_gui.widgets.log_viewer import LogViewer
 from openroad_gui.widgets.preview_panel import PreviewPanel
@@ -35,6 +36,9 @@ class OpenRoadGUI(tk.Tk):
         self._build_menu()
         self._build_layout()
         self._apply_config()
+
+        # Cleanup stale GDS preview temp files from previous sessions.
+        cleanup_stale_previews()
 
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
@@ -252,8 +256,11 @@ class OpenRoadGUI(tk.Tk):
             return
         path = str(self._selected_file)
         try:
-            if os.uname().sysname == "Darwin":
+            system = platform.system()
+            if system == "Darwin":
                 subprocess.Popen(["open", path])
+            elif system == "Windows":
+                os.startfile(path)
             else:
                 subprocess.Popen(["xdg-open", path])
         except OSError as exc:
@@ -307,7 +314,12 @@ class OpenRoadGUI(tk.Tk):
     def _open_or_gui_stage(self, stage: OpenROADGuiStage) -> None:
         if not self._validate_before_run():
             return
-        ok, message = self.viewers.launch_openroad_gui(stage.make_target)
+            
+        def _on_error(err_msg: str) -> None:
+            self.after(0, lambda: self.log_viewer.log_error(err_msg + "\n"))
+            self.after(0, lambda: self.flow_panel.set_status("Ready"))
+
+        ok, message = self.viewers.launch_openroad_gui(stage.make_target, on_error=_on_error)
         if ok:
             self.log_viewer.log_info(message + "\n")
             self.flow_panel.set_status(stage.label)
@@ -323,7 +335,11 @@ class OpenRoadGUI(tk.Tk):
             return
         if not self._validate_before_run():
             return
-        ok, message = self.viewers.launch_openroad_gui(target)
+
+        def _on_error(err_msg: str) -> None:
+            self.after(0, lambda: self.log_viewer.log_error(err_msg + "\n"))
+
+        ok, message = self.viewers.launch_openroad_gui(target, on_error=_on_error)
         if ok:
             self.log_viewer.log_info(f"{message} — {path.name}\n")
         else:
@@ -380,6 +396,7 @@ class OpenRoadGUI(tk.Tk):
             if exit_code == 0:
                 self.flow_panel.set_status(f"{label} — done")
                 self.log_viewer.log_info(f"--- {label} finished successfully ---\n")
+                self.preview_panel.refresh_qor(self.app_config)
                 if label in ("GDSII Generation", "Full Pipeline"):
                     gds = self.viewers.default_gds_path()
                     if gds.is_file():

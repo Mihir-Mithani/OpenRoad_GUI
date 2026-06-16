@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import os
+import shlex
+import signal
 import subprocess
 import threading
+import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
@@ -12,6 +16,11 @@ from openroad_gui.config import AppConfig
 
 LogCallback = Callable[[str, str], None]  # (stream, line)
 DoneCallback = Callable[[int, str], None]  # (exit_code, stage_name)
+
+
+def _quote(value: object) -> str:
+    """Shell-escape a value for safe embedding in a bash command string."""
+    return shlex.quote(str(value))
 
 
 class FlowStage(Enum):
@@ -56,26 +65,28 @@ class FlowRunner:
 
     def build_command(self, stage: FlowStage) -> str:
         cfg = self.config
-        design_config = cfg.design_config
-        flow_dir = cfg.flow_dir
-        env_script = cfg.env_script
+        design_config = _quote(cfg.design_config)
+        flow_dir = _quote(cfg.flow_dir)
+        env_script = _quote(cfg.env_script)
+        klayout_cmd = _quote(cfg.klayout_cmd)
 
         if stage == FlowStage.GDS:
-            make_target = cfg.gds_target()
+            make_target = _quote(cfg.gds_target())
         else:
-            make_target = stage.make_target
+            make_target = _quote(stage.make_target)
 
         extra_exports = "\n".join(
-            f'export {key}="{value}"' for key, value in cfg.extra_env.items()
+            f'export {_quote(key)}={_quote(value)}'
+            for key, value in cfg.extra_env.items()
         )
-        klayout_export = f'export KLAYOUT_CMD="{cfg.klayout_cmd}"'
+        klayout_export = f'export KLAYOUT_CMD={klayout_cmd}'
 
         return (
             f'set -e\n'
-            f'source "{env_script}"\n'
+            f'source {env_script}\n'
             f'{klayout_export}\n'
             f'{extra_exports}\n'
-            f'cd "{flow_dir}"\n'
+            f'cd {flow_dir}\n'
             f'echo ">>> Running: make DESIGN_CONFIG={design_config} {make_target}"\n'
             f'make DESIGN_CONFIG={design_config} {make_target}\n'
         )
@@ -120,7 +131,10 @@ class FlowRunner:
     def stop(self) -> None:
         self._stop_requested = True
         if self._process and self._process.poll() is None:
-            self._process.terminate()
+            try:
+                os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
+            except (OSError, ProcessLookupError):
+                self._process.terminate()
 
     def _execute(
         self,
@@ -160,6 +174,26 @@ class FlowRunner:
         on_done(0, "Full Pipeline")
 
     def _run_shell(self, command: str, on_log: LogCallback) -> int:
+        logs_dir = self.config.logs_dir
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        log_file_path = logs_dir / f"{self.config.design_name}_{timestamp}.log"
+
+        try:
+            log_fh = log_file_path.open("a", encoding="utf-8")
+        except OSError as exc:
+            on_log("stderr", f"Could not open log file {log_file_path}: {exc}\n")
+            log_fh = None
+
+        def _write_log(stream: str, text: str) -> None:
+            on_log(stream, text)
+            if log_fh:
+                try:
+                    log_fh.write(text)
+                    log_fh.flush()
+                except OSError:
+                    pass
+
         try:
             self._process = subprocess.Popen(
                 ["/bin/bash", "-lc", command],
@@ -167,9 +201,12 @@ class FlowRunner:
                 stderr=subprocess.PIPE,
                 text=True,
                 bufsize=1,
+                start_new_session=True,
             )
         except OSError as exc:
-            on_log("stderr", f"Failed to start process: {exc}\n")
+            _write_log("stderr", f"Failed to start process: {exc}\n")
+            if log_fh:
+                log_fh.close()
             return 1
 
         assert self._process.stdout is not None
@@ -179,7 +216,7 @@ class FlowRunner:
             for line in iter(pipe.readline, ""):
                 if self._stop_requested:
                     break
-                on_log(stream_name, line)
+                _write_log(stream_name, line)
 
         stdout_thread = threading.Thread(
             target=drain, args=("stdout", self._process.stdout), daemon=True
@@ -192,4 +229,7 @@ class FlowRunner:
         stdout_thread.join()
         stderr_thread.join()
 
-        return self._process.wait()
+        exit_code = self._process.wait()
+        if log_fh:
+            log_fh.close()
+        return exit_code

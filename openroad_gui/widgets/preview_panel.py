@@ -6,6 +6,8 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import scrolledtext, ttk
 
+from openroad_gui.widgets.qor_panel import QoRPanel
+
 
 class PreviewPanel(ttk.LabelFrame):
     def __init__(self, master: tk.Misc, **kwargs) -> None:
@@ -20,8 +22,10 @@ class PreviewPanel(ttk.LabelFrame):
 
         self.text_tab = ttk.Frame(self.notebook)
         self.image_tab = ttk.Frame(self.notebook)
+        self.qor_tab = QoRPanel(self.notebook)
         self.notebook.add(self.text_tab, text="Text")
         self.notebook.add(self.image_tab, text="Layout")
+        self.notebook.add(self.qor_tab, text="QoR Metrics")
 
         self.text = scrolledtext.ScrolledText(
             self.text_tab,
@@ -84,3 +88,7 @@ class PreviewPanel(ttk.LabelFrame):
 
     def _on_image_configure(self, _event: tk.Event) -> None:
         self.image_canvas.configure(scrollregion=self.image_canvas.bbox(tk.ALL))
+
+    def refresh_qor(self, config) -> None:
+        """Forward refresh to the nested QoR panel."""
+        self.qor_tab.refresh(config)

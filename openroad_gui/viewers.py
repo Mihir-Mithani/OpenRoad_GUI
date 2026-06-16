@@ -2,13 +2,23 @@
 
 from __future__ import annotations
 
+import hashlib
+import shlex
 import subprocess
 import tempfile
+import threading
+import time
 from enum import Enum
 from pathlib import Path
+from typing import Callable
 
 from openroad_gui.config import AppConfig
 from openroad_gui.gds_info import GdsInfo, parse_gds
+
+
+def _quote(value: object) -> str:
+    """Shell-escape a value for safe embedding in a bash command string."""
+    return shlex.quote(str(value))
 
 _KLAYOUT_EXPORT_SCRIPT = """\
 gds = $gds
@@ -69,9 +79,24 @@ class ViewerService:
         if not path.is_file():
             return None, f"GDS file not found: {path}"
 
-        script_path = Path(tempfile.gettempdir()) / "openroad_gui_klayout_export.rb"
+        # Build a unique suffix from the GDS file's identity to avoid
+        # collisions between same-named designs on different platforms.
+        stat = path.stat()
+        identity = f"{path}:{stat.st_mtime_ns}:{stat.st_size}"
+        uid = hashlib.sha256(identity.encode()).hexdigest()[:12]
+
+        script_fd = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".rb", prefix="orfs_preview_"
+        )
+        script_path = Path(script_fd.name)
+        script_fd.close()
         script_path.write_text(_KLAYOUT_EXPORT_SCRIPT, encoding="utf-8")
-        png_path = Path(tempfile.gettempdir()) / f"openroad_gui_{path.stem}_preview.png"
+
+        png_fd = tempfile.NamedTemporaryFile(
+            delete=False, suffix=f"_{uid}.png", prefix="orfs_preview_"
+        )
+        png_path = Path(png_fd.name)
+        png_fd.close()
 
         try:
             result = subprocess.run(
@@ -119,20 +144,30 @@ class ViewerService:
 
     def build_openroad_gui_command(self, make_target: str) -> str:
         cfg = self.config
+        env_script = _quote(cfg.env_script)
+        flow_dir = _quote(cfg.flow_dir)
+        design_config = _quote(cfg.design_config)
+        klayout_cmd = _quote(cfg.klayout_cmd)
+        quoted_target = _quote(make_target)
         extra_exports = "\n".join(
-            f'export {key}="{value}"' for key, value in cfg.extra_env.items()
+            f'export {_quote(key)}={_quote(value)}'
+            for key, value in cfg.extra_env.items()
         )
-        klayout_export = f'export KLAYOUT_CMD="{cfg.klayout_cmd}"'
+        klayout_export = f'export KLAYOUT_CMD={klayout_cmd}'
         return (
-            f'source "{cfg.env_script}"\n'
+            f'source {env_script}\n'
             f"{klayout_export}\n"
             f"{extra_exports}\n"
-            f'cd "{cfg.flow_dir}"\n'
-            f'echo ">>> Launching: make DESIGN_CONFIG={cfg.design_config} {make_target}"\n'
-            f"make DESIGN_CONFIG={cfg.design_config} {make_target}\n"
+            f'cd {flow_dir}\n'
+            f'echo ">>> Launching: make DESIGN_CONFIG={design_config} {quoted_target}"\n'
+            f"make DESIGN_CONFIG={design_config} {quoted_target}\n"
         )
 
-    def launch_openroad_gui(self, make_target: str) -> tuple[bool, str]:
+    def launch_openroad_gui(
+        self,
+        make_target: str,
+        on_error: Callable[[str], None] | None = None,
+    ) -> tuple[bool, str]:
         errors = self.config.validate()
         if errors:
             return False, "\n".join(errors)
@@ -141,7 +176,7 @@ class ViewerService:
 
         command = self.build_openroad_gui_command(make_target)
         try:
-            subprocess.Popen(
+            proc = subprocess.Popen(
                 ["/bin/bash", "-lc", command],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
@@ -149,7 +184,36 @@ class ViewerService:
             )
         except OSError as exc:
             return False, str(exc)
+
+        # Monitor for immediate launch failure in a background thread.
+        def _monitor() -> None:
+            try:
+                proc.wait(timeout=2.0)
+            except subprocess.TimeoutExpired:
+                return  # Still running after 2 s — assume success.
+            if proc.returncode != 0 and on_error:
+                stderr_output = ""
+                if proc.stderr:
+                    stderr_output = proc.stderr.read()
+                on_error(
+                    f"OpenROAD GUI ({make_target}) exited immediately "
+                    f"(code {proc.returncode}).\n{stderr_output}"
+                )
+
+        threading.Thread(target=_monitor, daemon=True).start()
         return True, f"Launched OpenROAD GUI ({make_target})"
 
     def default_gds_path(self) -> Path:
         return self.config.results_dir / "base" / "6_final.gds"
+
+
+def cleanup_stale_previews(max_age_seconds: int = 3600) -> None:
+    """Remove stale orfs_preview_* temp files older than *max_age_seconds*."""
+    tmp = Path(tempfile.gettempdir())
+    cutoff = time.time() - max_age_seconds
+    for f in tmp.glob("orfs_preview_*"):
+        try:
+            if f.stat().st_mtime < cutoff:
+                f.unlink()
+        except OSError:
+            pass

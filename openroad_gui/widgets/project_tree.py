@@ -61,6 +61,7 @@ class ProjectTree(ttk.Frame):
         self.tree.bind("<<TreeviewSelect>>", self._on_tree_select)
         self.tree.bind("<Double-1>", self._on_double_click)
         self.tree.bind("<Button-3>", self._show_context_menu)
+        self.tree.bind("<<TreeviewOpen>>", self._on_expand)
 
         actions = ttk.Frame(self)
         actions.pack(fill=tk.X, padx=4, pady=4)
@@ -130,7 +131,7 @@ class ProjectTree(ttk.Frame):
             self._path_map[results_id] = self.active_results_dir
             self._populate_results(results_id, self.active_results_dir)
 
-        self._populate(root_id, self.root_path, depth=0, skip_results=True)
+            self._populate(root_id, self.root_path, skip_results=True)
 
     def _populate_results(self, parent_id: str, directory: Path) -> None:
         try:
@@ -150,12 +151,7 @@ class ProjectTree(ttk.Frame):
                 node_id = self.tree.insert(parent_id, tk.END, text=entry.name)
                 self._path_map[node_id] = entry
 
-    def _populate(
-        self, parent_id: str, directory: Path, depth: int, *, skip_results: bool = False
-    ) -> None:
-        if depth > 6:
-            return
-
+    def _populate(self, parent_id: str, directory: Path, *, skip_results: bool = False) -> None:
         try:
             entries = sorted(
                 directory.iterdir(),
@@ -174,11 +170,25 @@ class ProjectTree(ttk.Frame):
                     continue
 
             label = entry.name + ("/" if entry.is_dir() else "")
-            node_id = self.tree.insert(parent_id, tk.END, text=label, open=depth < 2)
+            # We don't automatically open anything here except the root
+            node_id = self.tree.insert(parent_id, tk.END, text=label, open=False)
             self._path_map[node_id] = entry
 
             if entry.is_dir():
-                self._populate(node_id, entry, depth + 1, skip_results=skip_results)
+                # Add a dummy child so the expand arrow appears
+                self.tree.insert(node_id, tk.END, text="__placeholder__")
+
+    def _on_expand(self, event: tk.Event) -> None:
+        item = self.tree.focus()
+        if not item:
+            return
+
+        children = self.tree.get_children(item)
+        if len(children) == 1 and self.tree.item(children[0], "text") == "__placeholder__":
+            self.tree.delete(children[0])
+            path = self._path_map.get(item)
+            if path and path.is_dir():
+                self._populate(item, path)
 
     def get_selected_path(self) -> Path | None:
         selection = self.tree.selection()
@@ -260,6 +270,19 @@ class ProjectTree(ttk.Frame):
         platform, design_name = dialog.result
         try:
             config_path = create_design(designs_dir, platform, design_name)
+        except FileExistsError as exc:
+            if not messagebox.askyesno(
+                "Design already exists",
+                f"{exc}\n\nOverwrite existing files?",
+            ):
+                return
+            try:
+                config_path = create_design(
+                    designs_dir, platform, design_name, overwrite=True
+                )
+            except OSError as exc2:
+                messagebox.showerror("Create failed", str(exc2))
+                return
         except OSError as exc:
             messagebox.showerror("Create failed", str(exc))
             return
@@ -290,6 +313,19 @@ class ProjectTree(ttk.Frame):
         platform = target.parent.name if target.parent.name in PLATFORMS else "asap7"
         try:
             path = write_template_file(target, template_type, module_name, platform)
+        except FileExistsError as exc:
+            if not messagebox.askyesno(
+                "File already exists",
+                f"{exc}\n\nOverwrite?",
+            ):
+                return
+            try:
+                path = write_template_file(
+                    target, template_type, module_name, platform, overwrite=True
+                )
+            except (OSError, ValueError) as exc2:
+                messagebox.showerror("Template failed", str(exc2))
+                return
         except (OSError, ValueError) as exc:
             messagebox.showerror("Template failed", str(exc))
             return

@@ -130,6 +130,8 @@ class FlowPanel(ttk.LabelFrame):
         self.stop_btn.configure(state=tk.NORMAL if running else tk.DISABLED)
         for btn in self._stage_buttons.values():
             btn.configure(state=state)
+        for btn in self._gui_buttons.values():
+            btn.configure(state=state)
         self.status_var.set("Running…" if running else "Ready")
 
     def set_status(self, message: str) -> None:
