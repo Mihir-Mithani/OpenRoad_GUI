@@ -251,6 +251,25 @@ class OpenRoadGUI(tk.Tk):
         if not self._selected_file or not self._selected_file.is_file():
             return
         path = str(self._selected_file)
+
+        # Try Vim variants in order of preference
+        vim_commands = [
+            ["gvim", "--remote-tab-silent", path],  # GVim (GUI)
+            ["mvim", "--remote-tab-silent", path],  # MacVim (GUI)
+            ["vim", path],                           # Terminal vim
+        ]
+
+        for cmd in vim_commands:
+            try:
+                # Check if command exists
+                subprocess.run(["which", cmd[0]], check=True, capture_output=True)
+                # Found it — launch and return
+                subprocess.Popen(cmd)
+                return
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                continue  # Try next editor
+
+        # Fallback: system default editor
         try:
             if os.uname().sysname == "Darwin":
                 subprocess.Popen(["open", path])
@@ -419,5 +438,10 @@ class OpenRoadGUI(tk.Tk):
 
 
 def run() -> None:
+    """Launch the OpenROAD Flow GUI application.
+
+    Creates the main window and starts the Tkinter event loop.
+    This is the primary entry point for the GUI application.
+    """
     app = OpenRoadGUI()
     app.mainloop()
