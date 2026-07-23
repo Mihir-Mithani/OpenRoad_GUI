@@ -259,6 +259,7 @@ class OpenRoadGUI(tk.Tk):
             ["vim", path],                           # Terminal vim
         ]
 
+
         for cmd in vim_commands:
             try:
                 # Check if command exists
