@@ -115,16 +115,24 @@ class OpenRoadGUI(tk.Tk):
         )
         self.flow_panel.pack(fill=tk.X, padx=4, pady=4)
 
-        self.preview_panel = PreviewPanel(right)
-        self.preview_panel.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
-        self.preview_panel.add_action("Open in Editor", self._open_in_editor)
-        self.preview_panel.add_action("Use as Active config.mk", self._use_as_config)
-        self.preview_panel.add_action("View GDS in KLayout", self._view_selected_gds)
-        self.preview_panel.add_action("Preview Layout", self._preview_selected_gds)
-        self.preview_panel.add_action("OpenROAD GUI", self._open_or_gui_for_selected)
+        # Action buttons frame (fixed, not in paned window)
+        action_frame = ttk.Frame(right)
+        action_frame.pack(fill=tk.X, padx=4, pady=(0, 4))
+        ttk.Button(action_frame, text="Open in Editor", command=self._open_in_editor).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(action_frame, text="Use as Active config.mk", command=self._use_as_config).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(action_frame, text="View GDS in KLayout", command=self._view_selected_gds).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(action_frame, text="Preview Layout", command=self._preview_selected_gds).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(action_frame, text="OpenROAD GUI", command=self._open_or_gui_for_selected).pack(side=tk.LEFT)
 
-        self.log_viewer = LogViewer(self)
-        self.log_viewer.pack(fill=tk.BOTH, expand=False, padx=6, pady=(0, 6))
+        # Vertical paned window for preview and log viewer
+        right_paned = ttk.PanedWindow(right, orient=tk.VERTICAL)
+        right_paned.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+        self.preview_panel = PreviewPanel(right_paned)
+        right_paned.add(self.preview_panel, weight=3)
+
+        self.log_viewer = LogViewer(right_paned)
+        right_paned.add(self.log_viewer, weight=1)
 
         self._selected_file: Path | None = None
 

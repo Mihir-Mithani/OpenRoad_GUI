@@ -29,6 +29,8 @@ class FlowPanel(ttk.LabelFrame):
         self.on_view_gds = on_view_gds
         self._stage_buttons: dict[FlowStage, ttk.Button] = {}
         self._gui_buttons: dict[OpenROADGuiStage, ttk.Button] = {}
+        self._stage_progress: dict[FlowStage, ttk.Progressbar] = {}
+        self._current_stage: FlowStage | None = None
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -61,17 +63,30 @@ class FlowPanel(ttk.LabelFrame):
             FlowStage.GDS,
         ]
 
+        # 2 rows, 3 columns
         for idx, stage in enumerate(stage_order):
+            row = idx // 3
+            col = idx % 3
+            row_frame = ttk.Frame(stages_frame)
+            row_frame.grid(row=row, column=col, padx=4, pady=4, sticky=tk.EW)
+
             btn = ttk.Button(
-                stages_frame,
+                row_frame,
                 text=stage.label,
                 command=lambda s=stage: self.on_run_stage(s),
                 width=22,
             )
-            btn.grid(row=idx // 3, column=idx % 3, padx=4, pady=4, sticky=tk.EW)
+            btn.pack(side=tk.LEFT)
             self._stage_buttons[stage] = btn
 
-        for col in range(3):
+            # Progress bar for this stage (hidden by default)
+            progress = ttk.Progressbar(
+                row_frame,
+                mode="indeterminate",
+                length=180,
+            )
+            self._stage_progress[stage] = progress
+
             stages_frame.columnconfigure(col, weight=1)
 
         gui_frame = ttk.LabelFrame(self, text="OpenROAD GUI Viewer", padding=4)
@@ -134,3 +149,27 @@ class FlowPanel(ttk.LabelFrame):
 
     def set_status(self, message: str) -> None:
         self.status_var.set(message)
+
+    def start_stage_progress(self, stage: FlowStage) -> None:
+        """Show and start indeterminate progress bar for a stage."""
+        self._current_stage = stage
+        progress = self._stage_progress.get(stage)
+        if progress:
+            progress.pack(side=tk.LEFT, padx=(8, 0), fill=tk.X, expand=True)
+            progress.start(10)  # ms per step
+
+    def stop_stage_progress(self, stage: FlowStage, success: bool = True) -> None:
+        """Stop and hide progress bar for a stage."""
+        progress = self._stage_progress.get(stage)
+        if progress:
+            progress.stop()
+            progress.pack_forget()
+        # Optionally update button appearance
+        btn = self._stage_buttons.get(stage)
+        if btn:
+            btn.configure(text=f"✓ {stage.label}" if success else f"✗ {stage.label}")
+
+    def reset_stage_buttons(self) -> None:
+        """Reset all stage buttons to original labels."""
+        for stage, btn in self._stage_buttons.items():
+            btn.configure(text=stage.label)
