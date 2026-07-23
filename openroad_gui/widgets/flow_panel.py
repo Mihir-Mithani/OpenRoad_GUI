@@ -2,12 +2,62 @@
 
 from __future__ import annotations
 
+import sys
 import tkinter as tk
-from tkinter import ttk
-from typing import Callable
+from tkinter import messagebox, ttk
+from typing import Callable, Optional
 
+from openroad_gui.config import AppConfig
 from openroad_gui.flow_runner import FULL_PIPELINE, FlowStage
 from openroad_gui.viewers import OPENROAD_GUI_STAGES, OpenROADGuiStage
+
+
+class ToolTip:
+    """Simple tooltip for tkinter widgets."""
+
+    def __init__(self, widget: tk.Widget, text: str, delay: int = 500) -> None:
+        self.widget = widget
+        self.text = text
+        self.delay = delay
+        self.tip_window: Optional[tk.Toplevel] = None
+        self.after_id: Optional[str] = None
+        widget.bind("<Enter>", self._on_enter)
+        widget.bind("<Leave>", self._on_leave)
+        widget.bind("<ButtonPress>", self._on_leave)
+
+    def _on_enter(self, _event: tk.Event) -> None:
+        self.after_id = self.widget.after(self.delay, self._show_tip)
+
+    def _on_leave(self, _event: tk.Event) -> None:
+        if self.after_id:
+            self.widget.after_cancel(self.after_id)
+            self.after_id = None
+        self._hide_tip()
+
+    def _show_tip(self) -> None:
+        if self.tip_window:
+            return
+        x = self.widget.winfo_rootx() + 20
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
+        self.tip_window = tk.Toplevel(self.widget)
+        self.tip_window.wm_overrideredirect(True)
+        self.tip_window.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(
+            self.tip_window,
+            text=self.text,
+            background="#ffffe0",
+            relief=tk.SOLID,
+            borderwidth=1,
+            font=("TkDefaultFont", 9),
+            padx=6,
+            pady=3,
+        )
+        label.pack()
+
+    def _hide_tip(self) -> None:
+        if self.tip_window:
+            self.tip_window.destroy()
+            self.tip_window = None
 
 
 class FlowPanel(ttk.LabelFrame):
@@ -19,6 +69,7 @@ class FlowPanel(ttk.LabelFrame):
         on_stop: Callable[[], None],
         on_open_gui: Callable[[OpenROADGuiStage], None],
         on_view_gds: Callable[[], None],
+        get_config: Callable[[], Optional[AppConfig]] = None,
         **kwargs,
     ) -> None:
         super().__init__(master, text="Flow Execution", padding=8, **kwargs)
@@ -27,6 +78,7 @@ class FlowPanel(ttk.LabelFrame):
         self.on_stop = on_stop
         self.on_open_gui = on_open_gui
         self.on_view_gds = on_view_gds
+        self.get_config = get_config
         self._stage_buttons: dict[FlowStage, ttk.Button] = {}
         self._gui_buttons: dict[OpenROADGuiStage, ttk.Button] = {}
         self._stage_progress: dict[FlowStage, ttk.Progressbar] = {}
@@ -63,6 +115,25 @@ class FlowPanel(ttk.LabelFrame):
             FlowStage.GDS,
         ]
 
+        # Tooltip texts for flow stages
+        stage_tooltips = {
+            FlowStage.SYNTH: "Run logic synthesis with Yosys\nConverts RTL to gate-level netlist",
+            FlowStage.FLOORPLAN: "Floorplan and macro placement\nDefines die/core area, places macros and I/O pins",
+            FlowStage.PLACE: "Standard cell placement\nPlaces and optimizes standard cells",
+            FlowStage.CTS: "Clock Tree Synthesis\nBuilds clock distribution network",
+            FlowStage.ROUTE: "Detailed routing & DRC\nRoutes signals and fixes design rule violations",
+            FlowStage.GDS: "GDSII stream-out\nGenerates final GDSII for fabrication",
+        }
+
+        gui_tooltips = {
+            OpenROADGuiStage.SYNTH: "Open OpenROAD GUI at synthesis stage\nView synthesized netlist and reports",
+            OpenROADGuiStage.FLOORPLAN: "Open OpenROAD GUI at floorplan stage\nInspect macro placement and power grid",
+            OpenROADGuiStage.PLACE: "Open OpenROAD GUI at placement stage\nView cell placement and congestion",
+            OpenROADGuiStage.CTS: "Open OpenROAD GUI at CTS stage\nInspect clock tree and skew reports",
+            OpenROADGuiStage.ROUTE: "Open OpenROAD GUI at routing stage\nView routing layers and DRC violations",
+            OpenROADGuiStage.FINAL: "Open OpenROAD GUI at final stage\nFull design view with sign-off checks",
+        }
+
         # 2 rows, 3 columns
         for idx, stage in enumerate(stage_order):
             row = idx // 3
@@ -78,6 +149,9 @@ class FlowPanel(ttk.LabelFrame):
             )
             btn.pack(side=tk.LEFT)
             self._stage_buttons[stage] = btn
+
+            # Add tooltip
+            ToolTip(btn, stage_tooltips.get(stage, stage.label))
 
             # Progress bar for this stage (hidden by default)
             progress = ttk.Progressbar(
@@ -101,6 +175,9 @@ class FlowPanel(ttk.LabelFrame):
             )
             btn.grid(row=idx // 3, column=idx % 3, padx=4, pady=4, sticky=tk.EW)
             self._gui_buttons[stage] = btn
+
+            # Add tooltip
+            ToolTip(btn, gui_tooltips.get(stage, stage.label))
 
         for col in range(3):
             gui_frame.columnconfigure(col, weight=1)
@@ -129,8 +206,38 @@ class FlowPanel(ttk.LabelFrame):
             command=self.on_view_gds,
         ).pack(side=tk.LEFT)
 
+        ttk.Button(
+            actions,
+            text="Open Reports Folder",
+            command=self._open_reports_folder,
+        ).pack(side=tk.LEFT, padx=(8, 0))
+
         self.status_var = tk.StringVar(value="Ready")
         ttk.Label(actions, textvariable=self.status_var).pack(side=tk.RIGHT)
+
+    def _open_reports_folder(self) -> None:
+        """Open the reports directory for the active design."""
+        config = self.get_config() if self.get_config else None
+        if not config:
+            messagebox.showinfo("No Configuration", "No active design configuration available.")
+            return
+
+        reports_dir = config.flow_dir / "reports" / config.platform / config.design_name
+        if not reports_dir.is_dir():
+            messagebox.showinfo("Reports Not Found", f"Reports directory does not exist yet:\n{reports_dir}\n\nRun a flow stage first to generate reports.")
+            return
+
+        import subprocess
+        import sys
+        try:
+            if sys.platform == "darwin":
+                subprocess.Popen(["open", str(reports_dir)])
+            elif sys.platform == "win32":
+                subprocess.Popen(["explorer", str(reports_dir)])
+            else:
+                subprocess.Popen(["xdg-open", str(reports_dir)])
+        except OSError as exc:
+            messagebox.showerror("Open Failed", f"Could not open reports folder:\n{exc}")
 
     def set_design_info(
         self, design_name: str, platform: str, design_config: str

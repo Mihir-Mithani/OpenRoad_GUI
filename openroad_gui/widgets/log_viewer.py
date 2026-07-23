@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import tkinter as tk
-from tkinter import scrolledtext, ttk
+from tkinter import filedialog, scrolledtext, ttk
 
 
 class LogViewer(ttk.Frame):
@@ -17,6 +17,9 @@ class LogViewer(ttk.Frame):
 
         ttk.Label(toolbar, text="Flow Log", font=("", 11, "bold")).pack(side=tk.LEFT)
         ttk.Button(toolbar, text="Clear", command=self.clear, width=8).pack(
+            side=tk.RIGHT, padx=2
+        )
+        ttk.Button(toolbar, text="Export Log...", command=self._export_log, width=10).pack(
             side=tk.RIGHT, padx=2
         )
 
@@ -57,3 +60,24 @@ class LogViewer(ttk.Frame):
         self.text.configure(state=tk.NORMAL)
         self.text.delete("1.0", tk.END)
         self.text.configure(state=tk.DISABLED)
+
+    def get_text(self) -> str:
+        """Get all text content from the log viewer."""
+        return self.text.get("1.0", tk.END)
+
+    def _export_log(self) -> None:
+        """Export the log content to a file."""
+        content = self.get_text()
+        if not content.strip():
+            return
+        path = filedialog.asksaveasfilename(
+            title="Export Log",
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+        )
+        if path:
+            try:
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(content)
+            except OSError:
+                pass  # Silently ignore export errors

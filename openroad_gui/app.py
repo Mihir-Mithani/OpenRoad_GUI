@@ -112,6 +112,7 @@ class OpenRoadGUI(tk.Tk):
             on_stop=self._stop_flow,
             on_open_gui=self._open_or_gui_stage,
             on_view_gds=self._view_default_gds,
+            get_config=lambda: self.app_config,
         )
         self.flow_panel.pack(fill=tk.X, padx=4, pady=4)
 
@@ -122,7 +123,9 @@ class OpenRoadGUI(tk.Tk):
         ttk.Button(action_frame, text="Use as Active config.mk", command=self._use_as_config).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(action_frame, text="View GDS in KLayout", command=self._view_selected_gds).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(action_frame, text="Preview Layout", command=self._preview_selected_gds).pack(side=tk.LEFT, padx=(0, 8))
-        ttk.Button(action_frame, text="OpenROAD GUI", command=self._open_or_gui_for_selected).pack(side=tk.LEFT)
+        ttk.Button(action_frame, text="OpenROAD GUI", command=self._open_or_gui_for_selected).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(action_frame, text="Open Reports Folder", command=self._open_reports_folder).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(action_frame, text="Export Log...", command=self._export_log).pack(side=tk.LEFT)
 
         # Vertical paned window for preview and log viewer
         right_paned = ttk.PanedWindow(right, orient=tk.VERTICAL)
@@ -444,6 +447,41 @@ class OpenRoadGUI(tk.Tk):
                 return
             self.runner.stop()
         self.destroy()
+
+    def _open_reports_folder(self) -> None:
+        """Open the reports directory for the active design."""
+        reports_dir = self.app_config.results_dir / "reports"
+        if not reports_dir.is_dir():
+            messagebox.showinfo("No Reports", "Reports directory not found. Run a flow stage first.")
+            return
+        try:
+            import os
+            if os.uname().sysname == "Darwin":
+                subprocess.Popen(["open", str(reports_dir)])
+            else:
+                subprocess.Popen(["xdg-open", str(reports_dir)])
+        except OSError as exc:
+            messagebox.showerror("Open failed", str(exc))
+
+    def _export_log(self) -> None:
+        """Export the current log to a file."""
+        from tkinter import filedialog
+        content = self.log_viewer.get_text()
+        if not content.strip():
+            messagebox.showinfo("Empty Log", "No log content to export.")
+            return
+        path = filedialog.asksaveasfilename(
+            title="Export Log",
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            initialfile=f"{self.app_config.design_name}_flow_log.txt",
+        )
+        if path:
+            try:
+                Path(path).write_text(content, encoding="utf-8")
+                self.log_viewer.log_info(f"Log exported to {path}\n")
+            except OSError as exc:
+                messagebox.showerror("Export failed", str(exc))
 
 
 def run() -> None:
