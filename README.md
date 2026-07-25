@@ -1,18 +1,40 @@
-# OpenROAD Flow GUI - By Mihir Mithani.
+# OpenROAD Flow GUI - By Mihir Mithani
 
 A lightweight desktop wrapper for [OpenROAD Flow Scripts](https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts) (ORFS). It automates project setup, file templating, environment sourcing, and one-click execution of the RTL-to-GDSII pipeline.
 
+**Pure Python 3.10+ stdlib (tkinter) — no external dependencies.**
+
+---
+
+## Version Comparison
+
+| Feature | Version 1 (v1.0.0) | Version 2 (v2.0.0 — current) |
+|---------|-------------------|------------------------------|
+| **Layout** | Fixed stack: Flow → Preview → Log | **Resizable vertical panes** — drag divider between preview & log |
+| **Action Buttons** | Inside Preview tab (moves with resize) | **Fixed toolbar** above panes — always accessible |
+| **Stage Grid** | 3 rows × 2 columns | **2 rows × 3 columns** — more compact |
+| **Tooltips** | None | **On all 12 buttons** — hover for stage descriptions |
+| **Progress Feedback** | Status label only | **Per-stage indeterminate progress bars** + ✓/✗ button states |
+| **Log Export** | No | **Yes** — "Export Log..." saves full colored log to `.txt` |
+| **Reports Access** | Manual navigation | **"Open Reports Folder"** button opens `reports/<pdk>/<design>/` |
+| **Log Toolbar** | Clear only | **Clear + Export Log...** |
+| **Architecture** | Single-threaded flow + UI | Background thread for flow; UI never freezes |
+
+---
+
 ## Requirements
 
-- Python 3.10+ with **tkinter** (included with most Python installs on macOS)
+- Python 3.10+ with **tkinter** (included with most Python installs on macOS/Windows/Linux)
 - A working ORFS installation with `use-openroad.sh`
 - `make`, `bash`, Yosys, and OpenROAD on your PATH (via the ORFS env script)
-- KLayout (for GDS export) — set `KLAYOUT_CMD` in Settings
+- KLayout (for GDS export/preview) — set path in **Settings → Paths**
+
+---
 
 ## Quick Start
 
 ```bash
-cd "/Users/User/Downloads/OpenRoad GUI"
+cd "/Users/mihirmithani/Downloads/OpenRoad GUI"
 
 # Optional: use the project venv
 python3 -m venv .venv
@@ -20,23 +42,29 @@ source .venv/bin/activate
 
 # Launch the GUI
 python main.py
+# or
+python -m openroad_gui
 ```
+
+---
 
 ## First-Time Setup
 
 1. **Settings → Paths**
-   - **OpenROAD Root**: path to your ORFS checkout, e.g.
+   - **OpenROAD Root**: path to your ORFS checkout, e.g.  
      `/Users/User/Documents/OpenROAD-flow-scripts`
-   - **KLayout binary**: e.g.
+   - **KLayout binary**: e.g.  
      `/Applications/KLayout/klayout.app/Contents/MacOS/klayout`
 
 2. **Settings → Active Design**
-   - Set platform (`asap7`), design name (`alu4`), and `config.mk` path
+   - Set platform (`asap7`, `sky130hd`, `gf180`, etc.), design name (`alu4`), and `config.mk` path
    - Or click any `config.mk` in the project tree to activate it
 
 3. **Create a new design** (optional)
    - Click **New Design** in the sidebar
    - Choose PDK and name — starter `*.v`, `*.sdc`, `config.mk`, and `*.tb` files are created
+
+---
 
 ## Running the Flow
 
@@ -52,23 +80,29 @@ python main.py
 
 The app automatically runs `source use-openroad.sh` before each `make` invocation. Logs stream live into the bottom panel.
 
+---
+
 ## Project Layout
 
 ```
 OpenRoad GUI/
 ├── main.py                      # Entry point
 ├── openroad_gui/
-│   ├── app.py                   # Main window
+│   ├── app.py                   # Main window + layout
 │   ├── config.py                # Saved settings (~/.config/openroad-gui/config.json)
-│   ├── flow_runner.py           # Subprocess flow execution
+│   ├── flow_runner.py           # Subprocess flow execution (threaded)
 │   ├── templates.py             # RTL/SDC/config templates
+│   ├── viewers.py               # KLayout, OpenROAD GUI, GDS preview
+│   ├── gds_info.py              # Stdlib-only GDSII parser
 │   └── widgets/
 │       ├── project_tree.py      # Workspace tree + new design
-│       ├── flow_panel.py        # Stage buttons
-│       ├── log_viewer.py        # Terminal output
+│       ├── flow_panel.py        # Stage buttons, tooltips, progress bars
+│       ├── log_viewer.py        # Terminal output + export
 │       └── settings_dialog.py   # Paths & environment
-└── requirements.txt
+└── tests/                       # 90 unit tests (pytest)
 ```
+
+---
 
 ## Context Menu (right-click a design folder)
 
@@ -77,10 +111,12 @@ OpenRoad GUI/
 - New SDC (`.sdc`)
 - New `config.mk` / `config.json`
 
+---
+
 ## Viewing Results
 
 ### GDS files
-- Active design results appear under **results (&lt;design&gt;)** in the project tree.
+- Active design results appear under **results (<design>)** in the project tree.
 - **Double-click** a `.gds` file to open it in KLayout.
 - **Right-click** a `.gds` file for *View in KLayout* or *Preview Layout*.
 - The **Layout** tab shows an in-app PNG preview (rendered via KLayout batch mode).
@@ -92,11 +128,28 @@ OpenRoad GUI/
 - **Right-click** any `.odb` checkpoint → *View in OpenROAD GUI*.
 - Equivalent to `make DESIGN_CONFIG=... gui_route`, `gui_final`, etc.
 
+---
+
+## New in Version 2 — Quick Reference
+
+| Action | Where |
+|--------|-------|
+| Resize preview vs. log | Drag the horizontal divider between Layout tab and Log panel |
+| Open reports folder | **Open Reports Folder** button in fixed toolbar (or FlowPanel) |
+| Export full log | **Export Log...** button in Log panel toolbar or fixed toolbar |
+| See what a stage does | Hover any stage button (Synthesis, Floorplan, etc.) |
+| Know when a stage finishes | Progress spinner on running stage; button turns ✓ (success) or ✗ (fail) |
+
+---
+
 ## Tips
 
 - Right-click a design directory to add individual template files.
 - Extra env vars (e.g. `KLAYOUT_CMD`) can be set in **Settings → Environment**.
 - Config is stored at `~/.config/openroad-gui/config.json`.
+- All 90 unit tests pass: `python -m pytest tests/ -v`
+
+---
 
 ## Example: 4-bit ALU (asap7)
 
@@ -106,3 +159,14 @@ With the default paths pointing at your ORFS install:
 2. Click `config.mk` to activate it.
 3. Click **Run Full RTL-to-GDSII Pipeline** or run stages individually.
 4. GDS output: `flow/results/asap7/alu4/base/6_final.gds`
+
+---
+
+## Version History
+
+- **v2.0.0** (current) — Resizable panes, fixed toolbar, tooltips, progress bars, log export, 2×3 grid
+- **v1.0.0** — Initial release: flow execution, GDS preview, OpenROAD GUI launch, design templating
+
+---
+
+Built because I wanted it for myself. Rough edges remain — issues, suggestions, and PRs welcome.
