@@ -125,7 +125,8 @@ class OpenRoadGUI(tk.Tk):
         ttk.Button(action_frame, text="Preview Layout", command=self._preview_selected_gds).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(action_frame, text="OpenROAD GUI", command=self._open_or_gui_for_selected).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(action_frame, text="Open Reports Folder", command=self._open_reports_folder).pack(side=tk.LEFT, padx=(0, 8))
-        ttk.Button(action_frame, text="Export Log...", command=self._export_log).pack(side=tk.LEFT)
+        ttk.Button(action_frame, text="Export Log...", command=self._export_log).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(action_frame, text="Open Terminal Here", command=self._open_terminal_here).pack(side=tk.LEFT)
 
         # Vertical paned window for preview and log viewer
         right_paned = ttk.PanedWindow(right, orient=tk.VERTICAL)
@@ -482,6 +483,29 @@ class OpenRoadGUI(tk.Tk):
                 self.log_viewer.log_info(f"Log exported to {path}\n")
             except OSError as exc:
                 messagebox.showerror("Export failed", str(exc))
+
+    def _open_terminal_here(self) -> None:
+        """Open system terminal at the active design's flow directory."""
+        cwd = self.app_config.flow_dir
+        if not cwd.is_dir():
+            messagebox.showinfo("No Flow Dir", "Flow directory not found.")
+            return
+        try:
+            import os
+            if os.uname().sysname == "Darwin":
+                script = f'tell application "Terminal" to do script "cd {cwd} && clear"'
+                subprocess.Popen(["osascript", "-e", script])
+            elif os.uname().sysname == "Windows":
+                subprocess.Popen(["cmd", "/k", f"cd /d {cwd}"])
+            else:
+                for term in ["gnome-terminal", "konsole", "xfce4-terminal", "xterm", "tilix", "alacritty", "kitty"]:
+                    try:
+                        subprocess.Popen([term, "--working-directory", str(cwd)])
+                        break
+                    except FileNotFoundError:
+                        continue
+        except OSError as exc:
+            messagebox.showerror("Open failed", str(exc))
 
 
 def run() -> None:
