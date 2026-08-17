@@ -112,6 +112,7 @@ class OpenRoadGUI(tk.Tk):
             on_stop=self._stop_flow,
             on_open_gui=self._open_or_gui_stage,
             on_view_gds=self._view_default_gds,
+            on_make_clean=self._make_clean,
             get_config=lambda: self.app_config,
         )
         self.flow_panel.pack(fill=tk.X, padx=4, pady=4)
@@ -403,6 +404,96 @@ class OpenRoadGUI(tk.Tk):
         self.runner.stop()
         self.log_viewer.log_error("Stop requested…")
 
+    def _make_clean(self) -> None:
+        if not self._validate_before_run():
+            return
+
+        self.flow_panel.set_running(True)
+        self.log_viewer.log_info("\n--- Running make clean ---\n")
+
+        def on_log(stream: str, line: str) -> None:
+            self.after(0, lambda: self.log_viewer.append(stream, line))
+
+        def on_done(exit_code: int, label: str) -> None:
+            def update() -> None:
+                self.flow_panel.set_running(False)
+                if exit_code == 0:
+                    self.flow_panel.set_status("Make Clean — done")
+                    self.log_viewer.log_info("--- Make Clean finished successfully ---\n")
+                else:
+                    self.flow_panel.set_status(f"Make Clean — failed ({exit_code})")
+                    self.log_viewer.log_error(f"--- Make Clean failed (exit {exit_code}) ---\n")
+
+            self.after(0, update)
+
+        # Run make clean in the flow directory
+        cfg = self.app_config
+        design_config = cfg.design_config
+        flow_dir = cfg.flow_dir
+        env_script = cfg.env_script
+
+        # Get selected clean target from dropdown
+        clean_target = self.flow_panel.clean_var.get()
+
+        extra_exports = "\n".join(
+            f'export {key}="{value}"' for key, value in cfg.extra_env.items()
+        )
+        klayout_export = f'export KLAYOUT_CMD="{cfg.klayout_cmd}"'
+
+        command = (
+            f'set -e\n'
+            f'source "{env_script}"\n'
+            f'{klayout_export}\n'
+            f'{extra_exports}\n'
+            f'cd "{flow_dir}"\n'
+            f'echo ">>> Running: make DESIGN_CONFIG={design_config} {clean_target}"\n'
+            f'make DESIGN_CONFIG={design_config} {clean_target}\n'
+        )
+
+        import threading
+        thread = threading.Thread(
+            target=self._run_clean_thread,
+            args=(command, on_log, on_done),
+            daemon=True,
+        )
+        thread.start()
+
+    def _run_clean_thread(self, command: str, on_log, on_done) -> None:
+        import subprocess
+        try:
+            process = subprocess.Popen(
+                ["/bin/bash", "-lc", command],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+            )
+        except OSError as exc:
+            on_log("stderr", f"Failed to start process: {exc}\n")
+            on_done(1, "Make Clean")
+            return
+
+        assert process.stdout is not None
+        assert process.stderr is not None
+
+        def drain(stream_name: str, pipe) -> None:
+            for line in iter(pipe.readline, ""):
+                on_log(stream_name, line)
+
+        stdout_thread = threading.Thread(
+            target=drain, args=("stdout", process.stdout), daemon=True
+        )
+        stderr_thread = threading.Thread(
+            target=drain, args=("stderr", process.stderr), daemon=True
+        )
+        stdout_thread.start()
+        stderr_thread.start()
+        stdout_thread.join()
+        stderr_thread.join()
+
+        exit_code = process.wait()
+        on_done(exit_code, "Make Clean")
+
     def _on_log_line(self, stream: str, line: str) -> None:
         self.after(0, lambda: self.log_viewer.append(stream, line))
 
@@ -451,7 +542,8 @@ class OpenRoadGUI(tk.Tk):
 
     def _open_reports_folder(self) -> None:
         """Open the reports directory for the active design."""
-        reports_dir = self.app_config.results_dir / "reports"
+        # Reports are under flow/reports/<platform>/<design>/base/ (ORFS convention)
+        reports_dir = self.app_config.flow_dir / "reports" / self.app_config.platform / self.app_config.design_name / "base"
         if not reports_dir.is_dir():
             messagebox.showinfo("No Reports", "Reports directory not found. Run a flow stage first.")
             return

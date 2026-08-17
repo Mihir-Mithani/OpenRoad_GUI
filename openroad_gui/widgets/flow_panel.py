@@ -69,6 +69,7 @@ class FlowPanel(ttk.LabelFrame):
         on_stop: Callable[[], None],
         on_open_gui: Callable[[OpenROADGuiStage], None],
         on_view_gds: Callable[[], None],
+        on_make_clean: Callable[[], None],
         get_config: Callable[[], Optional[AppConfig]] = None,
         **kwargs,
     ) -> None:
@@ -78,6 +79,7 @@ class FlowPanel(ttk.LabelFrame):
         self.on_stop = on_stop
         self.on_open_gui = on_open_gui
         self.on_view_gds = on_view_gds
+        self.on_make_clean = on_make_clean
         self.get_config = get_config
         self._stage_buttons: dict[FlowStage, ttk.Button] = {}
         self._gui_buttons: dict[OpenROADGuiStage, ttk.Button] = {}
@@ -212,6 +214,27 @@ class FlowPanel(ttk.LabelFrame):
             command=self._open_reports_folder,
         ).pack(side=tk.LEFT, padx=(8, 0))
 
+        # Make Clean dropdown - executes on selection
+        self.clean_var = tk.StringVar(value="clean_all")
+        clean_options = [
+            "clean_all",
+            "clean_synth",
+            "clean_floorplan",
+            "clean_place",
+            "clean_cts",
+            "clean_route",
+            "clean_finish",
+        ]
+        self.clean_combo = ttk.Combobox(
+            actions,
+            textvariable=self.clean_var,
+            values=clean_options,
+            state="readonly",
+            width=14,
+        )
+        self.clean_combo.pack(side=tk.LEFT, padx=(8, 0))
+        self.clean_combo.bind("<<ComboboxSelected>>", lambda e: self.on_make_clean())
+
         self.status_var = tk.StringVar(value="Ready")
         ttk.Label(actions, textvariable=self.status_var).pack(side=tk.RIGHT)
 
@@ -222,7 +245,8 @@ class FlowPanel(ttk.LabelFrame):
             messagebox.showinfo("No Configuration", "No active design configuration available.")
             return
 
-        reports_dir = config.flow_dir / "reports" / config.platform / config.design_name
+        # Reports are under flow/reports/<platform>/<design>/base/ (ORFS convention)
+        reports_dir = config.flow_dir / "reports" / config.platform / config.design_name / "base"
         if not reports_dir.is_dir():
             messagebox.showinfo("Reports Not Found", f"Reports directory does not exist yet:\n{reports_dir}\n\nRun a flow stage first to generate reports.")
             return
