@@ -99,7 +99,7 @@ OpenRoad GUI/
 │       ├── flow_panel.py        # Stage buttons, tooltips, progress bars
 │       ├── log_viewer.py        # Terminal output + export
 │       └── settings_dialog.py   # Paths & environment
-└── tests/                       # 90 unit tests (pytest)
+└── tests/                       # 91 unit tests (pytest)
 ```
 
 ---
@@ -147,7 +147,7 @@ OpenRoad GUI/
 - Right-click a design directory to add individual template files.
 - Extra env vars (e.g. `KLAYOUT_CMD`) can be set in **Settings → Environment**.
 - Config is stored at `~/.config/openroad-gui/config.json`.
-- All 90 unit tests pass: `python -m pytest tests/ -v`
+- All 91 unit tests pass: `python -m pytest tests/ -v`
 
 ---
 
