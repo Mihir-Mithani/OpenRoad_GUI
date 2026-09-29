@@ -7,12 +7,43 @@ import os
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
+import shutil
 
-DEFAULT_ORFS_ROOT = (
-    "/Users/mihirmithani/Documents/Codex/2026-06-02/"
-    "i-want-you-to-setup-openroad/OpenROAD-flow-scripts"
-)
-DEFAULT_KLAYOUT_CMD = "/Applications/KLayout/klayout.app/Contents/MacOS/klayout"
+def _default_orfs_root() -> str:
+    """Find ORFS using environment variables or a conventional location."""
+    configured_root = (
+        os.environ.get("ORFS_ROOT")
+        or os.environ.get("OPENROAD_FLOW_SCRIPTS")
+    )
+
+    if configured_root:
+        return str(Path(configured_root).expanduser())
+
+    candidate = Path.home() / "OpenROAD-flow-scripts"
+    if (candidate / "flow").is_dir():
+        return str(candidate)
+
+    return ""
+
+
+def _default_klayout_cmd() -> str:
+    """Find KLayout without assuming an operating system or install path."""
+    executable = shutil.which("klayout")
+    if executable:
+        return executable
+
+    # Common macOS application bundle location.
+    macos_candidate = Path(
+        "/Applications/KLayout/klayout.app/Contents/MacOS/klayout"
+    )
+    if macos_candidate.is_file():
+        return str(macos_candidate)
+
+    return ""
+
+
+DEFAULT_ORFS_ROOT = _default_orfs_root()
+DEFAULT_KLAYOUT_CMD = _default_klayout_cmd()
 CONFIG_DIR = Path.home() / ".config" / "openroad-gui"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
@@ -81,16 +112,27 @@ class AppConfig:
         except ValueError:
             return str(path)
 
+
     def validate(self) -> list[str]:
         errors: list[str] = []
-        if not Path(self.orfs_root).is_dir():
-            errors.append(f"OpenROAD root not found: {self.orfs_root}")
-        elif not self.flow_dir.is_dir():
-            errors.append(f"flow/ directory missing under {self.orfs_root}")
-        elif not self.env_script.is_file():
-            errors.append(f"use-openroad.sh not found at {self.env_script}")
-        return errors
+        root = self.orfs_root.strip()
 
+        if not root:
+            errors.append("OpenROAD root is not configured")
+            return errors
+
+        root_path = Path(root).expanduser()
+
+        if not root_path.is_dir():
+            errors.append(f"OpenROAD root not found: {root}")
+        elif not (root_path / "flow").is_dir():
+            errors.append(f"flow/ directory missing under {root}")
+        elif not (root_path / "use-openroad.sh").is_file():
+            errors.append(
+                f"use-openroad.sh not found at {root_path / 'use-openroad.sh'}"
+            )
+
+        return errors
 
 def load_config() -> AppConfig:
     if not CONFIG_FILE.exists():
