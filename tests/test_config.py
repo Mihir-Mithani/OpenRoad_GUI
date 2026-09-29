@@ -9,16 +9,22 @@ from unittest.mock import patch
 
 import pytest
 
-from openroad_gui.config import AppConfig, load_config, save_config, PLATFORMS
-
+from openroad_gui.config import (
+    AppConfig,
+    DEFAULT_ORFS_ROOT,
+    DEFAULT_KLAYOUT_CMD,
+    load_config,
+    save_config,
+    PLATFORMS,
+)
 
 class TestAppConfig:
     """Tests for AppConfig dataclass."""
 
     def test_default_values(self) -> None:
         config = AppConfig()
-        assert config.orfs_root == "/Users/mihirmithani/Documents/Codex/2026-06-02/i-want-you-to-setup-openroad/OpenROAD-flow-scripts"
-        assert config.klayout_cmd == "/Applications/KLayout/klayout.app/Contents/MacOS/klayout"
+        assert config.orfs_root == DEFAULT_ORFS_ROOT
+        assert config.klayout_cmd == DEFAULT_KLAYOUT_CMD
         assert config.design_config == "./designs/asap7/alu4/config.mk"
         assert config.platform == "asap7"
         assert config.design_name == "alu4"
@@ -159,6 +165,12 @@ class TestAppConfig:
             config = AppConfig(orfs_root=str(orfs))
             errors = config.validate()
             assert any("use-openroad.sh not found" in e for e in errors)
+
+    def test_validate_empty_orfs_root(self) -> None:
+        config = AppConfig(orfs_root="")
+        errors = config.validate()
+        assert errors == ["OpenROAD root is not configured"]
+
 
 
 class TestConfigWithTempDir:

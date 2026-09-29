@@ -33,38 +33,38 @@ A lightweight desktop wrapper for [OpenROAD Flow Scripts](https://github.com/The
 
 ## Quick Start
 
-```bash
-cd "/Users/mihirmithani/Downloads/OpenRoad GUI"
+Clone the repository and launch the application:
 
-# Optional: use the project venv
+```bash
+git clone https://github.com/Mihir-Mithani/OpenRoad_GUI.git
+cd OpenRoad_GUI
+
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Launch the GUI
-python main.py
-# or
-python -m openroad_gui
+python3 main.py
 ```
+
+If you already have the required Python environment, you can launch the application directly with `python3 main.py`.
 
 ---
 
 ## First-Time Setup
 
 1. **Settings → Paths**
-   - **OpenROAD Root**: path to your ORFS checkout, e.g.  
-     `/Users/User/Documents/OpenROAD-flow-scripts`
-   - **KLayout binary**: e.g.  
-     `/Applications/KLayout/klayout.app/Contents/MacOS/klayout`
+
+    * **OpenROAD Root:** Select your local OpenROAD Flow Scripts (ORFS) checkout.
+    * **KLayout binary:** Select the KLayout executable if you want to use GDS viewing and preview features. The application can discover KLayout automatically when it is available on your PATH.
 
 2. **Settings → Active Design**
-   - Set platform (`asap7`, `sky130hd`, `gf180`, etc.), design name (`alu4`), and `config.mk` path
-   - Or click any `config.mk` in the project tree to activate it
 
-3. **Create a new design** (optional)
-   - Click **New Design** in the sidebar
-   - Choose PDK and name — starter `*.v`, `*.sdc`, `config.mk`, and `*.tb` files are created
+    * Select the platform, design name, and `config.mk` file.
+    * Alternatively, click a `config.mk` file in the project tree to activate it.
 
----
+3. **Create a new design (optional)**
+
+    * Click **New Design** in the sidebar.
+    * Choose the PDK and design name to generate starter files.
 
 ## Running the Flow
 
@@ -99,7 +99,7 @@ OpenRoad GUI/
 │       ├── flow_panel.py        # Stage buttons, tooltips, progress bars
 │       ├── log_viewer.py        # Terminal output + export
 │       └── settings_dialog.py   # Paths & environment
-└── tests/                       # 90 unit tests (pytest)
+└── tests/                       # 91 unit tests (pytest)
 ```
 
 ---
@@ -147,7 +147,7 @@ OpenRoad GUI/
 - Right-click a design directory to add individual template files.
 - Extra env vars (e.g. `KLAYOUT_CMD`) can be set in **Settings → Environment**.
 - Config is stored at `~/.config/openroad-gui/config.json`.
-- All 90 unit tests pass: `python -m pytest tests/ -v`
+- All 91 unit tests pass: `python -m pytest tests/ -v`
 
 ---
 
@@ -159,6 +159,14 @@ With the default paths pointing at your ORFS install:
 2. Click `config.mk` to activate it.
 3. Click **Run Full RTL-to-GDSII Pipeline** or run stages individually.
 4. GDS output: `flow/results/asap7/alu4/base/6_final.gds`
+
+---
+
+## License
+
+OpenRoad_GUI is licensed under the BSD 3-Clause License. See the [LICENSE](LICENSE) file for the complete license text.
+
+OpenRoad_GUI uses OpenROAD Flow Scripts (ORFS) and other external tools as dependencies. Those projects and their individual components remain subject to their respective licenses.
 
 ---
 
