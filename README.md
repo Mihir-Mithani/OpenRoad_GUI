@@ -162,6 +162,14 @@ With the default paths pointing at your ORFS install:
 
 ---
 
+## License
+
+OpenRoad_GUI is licensed under the BSD 3-Clause License. See the [LICENSE](LICENSE) file for the complete license text.
+
+OpenRoad_GUI uses OpenROAD Flow Scripts (ORFS) and other external tools as dependencies. Those projects and their individual components remain subject to their respective licenses.
+
+---
+
 ## Version History
 
 - **v2.0.0** (current) — Resizable panes, fixed toolbar, tooltips, progress bars, log export, 2×3 grid
