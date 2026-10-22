@@ -162,34 +162,55 @@ def _parse_report_content(content: str) -> Dict[str, Any]:
     """Parse a single report file for metrics."""
     metrics = {}
 
+    # Support multiple formats for WNS/TNS (with colon or "max" keyword)
     patterns = {
-        "wns_ns": r"WNS\s*:\s*([-\d.]+)",
-        "tns_ns": r"TNS\s*:\s*([-\d.]+)",
-        "area_um2": r"Area\s*:\s*([\d.]+)",
-        "power_mw": r"Power\s*:\s*([\d.]+)",
-        "drc_violations": r"DRC.*?(\d+)\s*violations?",
-        "congestion_pct": r"Congestion.*?(\d+(?:\.\d+)?)\s*%",
-        "max_congestion": r"Max congestion.*?(\d+(?:\.\d+)?)\s*%",
-        "wirelength": r"Wirelength\s*:\s*([\d.]+)",
-        "via_count": r"Via count\s*:\s*(\d+)",
+        "wns_ns": [
+            r"WNS\s*:\s*([-\d.]+)",
+            r"wns\s+max\s+([-\d.]+)",
+            r"Worst Negative Slack\s*:\s*([-\d.]+)",
+        ],
+        "tns_ns": [
+            r"TNS\s*:\s*([-\d.]+)",
+            r"tns\s+max\s+([-\d.]+)",
+            r"Total Negative Slack\s*:\s*([-\d.]+)",
+        ],
+        "area_um2": [
+            r"Area\s*:\s*([\d.]+)",
+            r"Total area\s*:\s*([\d.]+)",
+        ],
+        "power_mw": [
+            r"Power\s*:\s*([\d.]+)",
+            r"Total power\s*:\s*([\d.]+)",
+        ],
+        "drc_violations": [
+            r"DRC.*?(\d+)\s*violations?",
+            r"(\d+)\s*DRC violations?",
+        ],
+        "congestion_pct": [
+            r"Congestion.*?(\d+(?:\.\d+)?)\s*%",
+            r"Congestion:\s*([\d.]+)%",
+        ],
+        "max_congestion": [
+            r"Max congestion.*?(\d+(?:\.\d+)?)\s*%",
+        ],
+        "wirelength": [
+            r"Wirelength\s*:\s*([\d.]+)",
+        ],
+        "via_count": [
+            r"Via count\s*:\s*(\d+)",
+        ],
     }
 
-    for key, pattern in {
-        "wns_ns": r"WNS\s*:\s*([-\d.]+)",
-        "tns_ns": r"TNS\s*:\s*([-\d.]+)",
-        "area_um2": r"Area\s*:\s*([\d.]+)",
-        "power_mw": r"Power\s*:\s*([\d.]+)",
-        "drc_violations": r"DRC.*?(\d+)\s*violations?",
-        "congestion_pct": r"Congestion.*?(\d+(?:\.\d+)?)\s*%",
-        "max_congestion": r"Max congestion.*?(\d+(?:\.\d+)?)\s*%",
-    }.items():
-        match = re.search(pattern, content, re.IGNORECASE)
-        if match:
-            try:
-                val = match.group(1)
-                metrics[key] = float(val) if "." in val else int(val)
-            except (ValueError, IndexError):
-                pass
+    for key, pattern_list in patterns.items():
+        for pattern in pattern_list:
+            match = re.search(pattern, content, re.IGNORECASE)
+            if match:
+                try:
+                    val = match.group(1)
+                    metrics[key] = float(val) if "." in val else int(val)
+                    break
+                except (ValueError, IndexError):
+                    pass
 
     return metrics
 

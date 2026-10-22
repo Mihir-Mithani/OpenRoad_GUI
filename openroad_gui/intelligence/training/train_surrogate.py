@@ -20,7 +20,6 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.inspection import permutation_importance
-import xgboost as xgb
 import lightgbm as lgb
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -48,6 +47,7 @@ LOG_DIR = Path("/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intellig
 
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # Feature columns
@@ -88,7 +88,6 @@ def load_data():
         'design_name_config', 'platform_config'
     ] if c in df.columns]
 
-    X = df_pd = df.to_pandas()
     X = df_pd.drop(columns=[c for c in DROP_COLS if c in df_pd.columns], errors='ignore')
 
     y_targets = {
@@ -367,7 +366,7 @@ def main():
         results[short_name]['lgb'] = {'rmse': rmse, 'mae': mae, 'r2': r2}
 
     # Save results
-    with open(LOG_DIR / 'surrogate_results.json', 'w') as f:
+    with open(f'/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/logs/surrogate_results.json', 'w') as f:
         json.dump(results, f, indent=2)
 
     print("\n" + "=" * 60)

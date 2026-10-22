@@ -14,7 +14,7 @@ PROJECT_ROOT = Path("/Users/mihirmithani/Downloads/OpenRoad GUI")
 
 def run_training(script_name, description):
     """Run a training script and return success status"""
-    script_path = Path("/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training") / script_name
+    script_path = PROJECT_ROOT / "openroad_gui" / "intelligence" / "training" / script_name
 
     print(f"\n{'='*60}")
     print(f"STARTING: {description}")
@@ -29,7 +29,7 @@ def run_training(script_name, description):
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=3600  # 1 hour timeout per model
+            timeout=3600,  # 1 hour timeout per model
         )
 
         elapsed = time.time() - start_time
@@ -71,8 +71,8 @@ def main():
 
     # Training pipeline
     pipeline = [
-        ("train_failure_predictor.py", "Failure Predictor (XGBoost + LightGBM)"),
-        ("train_surrogate.py", "Surrogate Models (XGBoost Regression)"),
+        ("train_failure_predictor.py", "Failure Predictor (LightGBM)"),
+        ("train_surrogate.py", "Surrogate Models (LightGBM Regression)"),
         ("train_flow_optimizer.py", "Flow Optimizer (PPO RL)"),
     ]
 
@@ -100,9 +100,9 @@ def main():
 
     # Summary
     print("\n📁 Model artifacts saved to:")
-    print(f"  {Path('/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/models/saved')}")
-    print(f"  {Path('/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/checkpoints')}")
-    print(f"  {Path('/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/logs')}")
+    print(f"  /Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/models/saved")
+    print(f"  /Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/checkpoints")
+    print(f"  /Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/logs")
 
 if __name__ == '__main__':
     main()

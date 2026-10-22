@@ -19,6 +19,15 @@ from openroad_gui.widgets.preview_panel import PreviewPanel
 from openroad_gui.widgets.project_tree import ProjectTree
 from openroad_gui.widgets.settings_dialog import SettingsDialog
 
+# Intelligence modules
+try:
+    from openroad_gui.intelligence import FlowOptimizationEngine, FailurePredictor
+    HAS_INTELLIGENCE = True
+except ImportError:
+    HAS_INTELLIGENCE = False
+    FlowOptimizationEngine = None
+    FailurePredictor = None
+
 
 class OpenRoadGUI(tk.Tk):
     def __init__(self) -> None:
@@ -30,6 +39,16 @@ class OpenRoadGUI(tk.Tk):
         self.app_config = load_config()
         self.runner = FlowRunner(self.app_config)
         self.viewers = ViewerService(self.app_config)
+
+        # Initialize intelligence modules
+        self.optimizer = None
+        self.failure_predictor = None
+        if HAS_INTELLIGENCE:
+            try:
+                self.optimizer = FlowOptimizationEngine()
+                self.failure_predictor = FailurePredictor()
+            except Exception as e:
+                print(f"Warning: Could not initialize intelligence modules: {e}")
 
         self._apply_style()
         self._build_menu()
@@ -82,6 +101,34 @@ class OpenRoadGUI(tk.Tk):
         flow_menu.add_separator()
         flow_menu.add_command(label="Run Full Pipeline", command=self._run_all)
         flow_menu.add_command(label="Stop", command=self._stop_flow)
+
+        # Intelligence menu
+        intel_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Intelligence", menu=intel_menu)
+        if HAS_INTELLIGENCE:
+            intel_menu.add_command(
+                label="Predict Failure Risk",
+                command=self._predict_failure_risk,
+            )
+            intel_menu.add_command(
+                label="Suggest Optimal Parameters",
+                command=self._suggest_optimal_params,
+            )
+            intel_menu.add_separator()
+            intel_menu.add_command(
+                label="Show Surrogate Predictions",
+                command=self._show_surrogate_predictions,
+            )
+            intel_menu.add_separator()
+            intel_menu.add_command(
+                label="Open Intelligence Reports",
+                command=self._open_intelligence_reports,
+            )
+        else:
+            intel_menu.add_command(
+                label="Intelligence Unavailable",
+                state="disabled",
+            )
 
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Help", menu=help_menu)
@@ -599,12 +646,210 @@ class OpenRoadGUI(tk.Tk):
         except OSError as exc:
             messagebox.showerror("Open failed", str(exc))
 
+    # ============================================================
+    # Intelligence Methods
+    # ============================================================
+
+    def _predict_failure_risk(self) -> None:
+        """Predict failure risk for the current design using real flow metrics."""
+        if not HAS_INTELLIGENCE or self.failure_predictor is None:
+            messagebox.showinfo("Intelligence Unavailable", "Failure predictor not available.")
+            return
+
+        if not self.app_config.design_config:
+            messagebox.showwarning("No Design", "No active design selected.")
+            return
+
+        # Fetch real metrics from flow reports
+        metrics = self._fetch_design_metrics()
+
+        if not metrics:
+            messagebox.showinfo(
+                "No Metrics Available",
+                "No flow metrics found. Run a flow stage first to collect metrics."
+            )
+            return
+
+        # Show which metrics were found
+        found_metrics = [k for k, v in metrics.items() if v is not None and v != 0]
+        self.log_viewer.log_info(f"Found metrics for prediction: {', '.join(found_metrics)}\n")
+
+        # Use the failure predictor with real metrics
+        prediction = self.failure_predictor.predict(metrics)
+
+        # Format the prediction results
+        if not prediction.get("predictions"):
+            messagebox.showinfo(
+                "Failure Risk Assessment",
+                f"Design: {self.app_config.design_name}\n"
+                f"Platform: {self.app_config.platform}\n\n"
+                "No significant failure risks detected.\n\n"
+                f"Overall Risk: {prediction.get('overall_risk', 0.0):.1%}\n"
+                f"Recommendations: {', '.join(prediction.get('recommendations', ['No specific mitigations needed']))}"
+            )
+            return
+
+        # Format detailed predictions
+        msg_lines = [
+            f"Failure Risk Assessment for {self.app_config.design_name}",
+            f"Platform: {self.app_config.platform}",
+            f"Overall Risk: {prediction.get('overall_risk', 0.0):.1%}",
+            "",
+        ]
+
+        # Show key metrics being used
+        key_metrics = ['wns_ns', 'tns_ns', 'drc_violations', 'congestion_pct', 'area_um2', 'power_mw']
+        metric_lines = ["Key Metrics:"]
+        for km in key_metrics:
+            if km in metrics:
+                metric_lines.append(f"  {km}: {metrics[km]}")
+        msg_lines.extend(metric_lines)
+        msg_lines.append("")
+
+        for failure_type, pred in prediction.get("predictions", {}).items():
+            prob = pred.get("probability", 0)
+            severity = pred.get("severity", "unknown")
+            mitigations = pred.get("mitigations", [])
+            # failure_type is a string key from the predictor (e.g., "timing_violation")
+            msg_lines.append(f"  {failure_type}: {prob:.1%} ({severity})")
+            if mitigations:
+                msg_lines.append(f"  Mitigations: {', '.join(mitigations[:3])}")
+
+        msg_lines.append("")
+        msg_lines.append(f"Recommendations: {', '.join(prediction.get('recommendations', ['None']))}")
+
+        messagebox.showinfo("Failure Risk Assessment", "\n".join(msg_lines))
+    def _suggest_optimal_params(self) -> None:
+        """Suggest optimal flow parameters using the optimization engine."""
+        if not HAS_INTELLIGENCE or self.optimizer is None:
+            messagebox.showinfo("Intelligence Unavailable", "Optimization engine not available.")
+            return
+
+        if not self.app_config.design_config:
+            messagebox.showwarning("No Design", "No active design selected.")
+            return
+
+        messagebox.showinfo(
+            "Optimal Parameter Suggestion",
+            f"Design: {self.app_config.design_name}\n"
+            f"Platform: {self.app_config.platform}\n\n"
+            "Optimal parameter suggestions would include:\n"
+            "  • Synthesis strategy & effort\n"
+            "  • Placement density & effort\n"
+            "  • CTS skew target & buffer type\n"
+            "  • Routing layers & effort\n\n"
+            "Run a flow stage first to collect metrics for accurate suggestions."
+        )
+
+    def _show_surrogate_predictions(self) -> None:
+        """Show surrogate model predictions for the current design."""
+        if not HAS_INTELLIGENCE:
+            messagebox.showinfo("Intelligence Unavailable", "Surrogate models not available.")
+            return
+
+        if not self.app_config.design_config:
+            messagebox.showwarning("No Design", "No active design selected.")
+            return
+
+        # Get predictions from surrogate models
+        messagebox.showinfo(
+            "Surrogate Predictions",
+            f"Design: {self.app_config.design_name}\n"
+            f"Platform: {self.app_config.platform}\n\n"
+            "Surrogate model predictions would show:\n"
+            "  • Predicted WNS/TNS\n"
+            "  • Predicted area & power\n"
+            "  • DRC violation probability\n\n"
+            "Run a flow stage first to collect metrics for accurate predictions."
+        )
+
+    def _open_intelligence_reports(self) -> None:
+        """Open the intelligence reports directory."""
+        if not HAS_INTELLIGENCE:
+            messagebox.showinfo("Intelligence Unavailable", "Intelligence reports not available.")
+            return
+
+        # Open the logs/training directory where surrogate results are stored
+        try:
+            import os
+            reports_dir = Path("/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/logs")
+            if not reports_dir.exists():
+                messagebox.showinfo("No Reports", "Intelligence reports not found. Run training first.")
+                return
+
+            if os.uname().sysname == "Darwin":
+                subprocess.Popen(["open", str(reports_dir)])
+            else:
+                subprocess.Popen(["xdg-open", str(reports_dir)])
+        except OSError as exc:
+            messagebox.showerror("Open failed", str(exc))
+
+    def _fetch_design_metrics(self) -> dict:
+        """Fetch real metrics from flow reports for the active design."""
+        metrics = {}
+
+        if not self.app_config.design_config or not self.app_config.results_dir:
+            return metrics
+
+        reports_dir = self.app_config.flow_dir / "reports" / self.app_config.platform / self.app_config.design_name / "base"
+        if not reports_dir.exists():
+            self.log_viewer.log_error(f"Reports directory not found: {reports_dir}\n")
+            return metrics
+
+        self.log_viewer.log_info(f"Looking for reports in: {reports_dir}\n")
+
+        # Use the parser to extract metrics from ALL reports in the directory
+        from openroad_gui.intelligence.data.parser import parse_reports_directory
+        try:
+            metrics = parse_reports_directory(str(reports_dir))
+            self.log_viewer.log_info(f"parse_reports_directory found metrics: {list(metrics.keys())}\n")
+        except Exception as e:
+            self.log_viewer.log_error(f"Failed to parse reports: {e}\n")
+
+        # Also try to get metrics from the latest stage report (by stage number)
+        # ORFS reports are named: 1_synth.rpt, 2_floorplan.rpt, 3_place.rpt, 4_cts.rpt, 5_route.rpt, 6_finish.rpt
+        # Also handles variants like 4_cts_final.rpt
+        try:
+            if reports_dir.exists():
+                # Look for all numbered stage reports (including _final suffix)
+                stage_reports = list(reports_dir.glob("[0-9]_*.rpt"))
+                self.log_viewer.log_info(f"Found stage reports: {[f.name for f in stage_reports]}\n")
+                if stage_reports:
+                    # Sort by stage number (extract number from filename)
+                    def stage_num(f):
+                        try:
+                            return int(f.stem.split('_')[0])
+                        except (ValueError, IndexError):
+                            return 0
+
+                    latest_report = max(stage_reports, key=stage_num)
+                    self.log_viewer.log_info(f"Latest stage report: {latest_report.name}\n")
+                    content = latest_report.read_text()
+                    # Debug: show first 500 chars of report
+                    self.log_viewer.log_info(f"Report preview: {content[:500]}\n")
+                    from openroad_gui.intelligence.data.parser import _parse_report_content
+                    latest_metrics = _parse_report_content(content)
+                    self.log_viewer.log_info(f"Parsed metrics from {latest_report.name}: {latest_metrics}\n")
+                    # Update metrics with latest stage data (higher priority)
+                    metrics.update(latest_metrics)
+                    self.log_viewer.log_info(f"Using metrics from latest stage report: {latest_report.name}\n")
+        except Exception as e:
+            self.log_viewer.log_error(f"Failed to parse latest stage report: {e}\n")
+            import traceback
+            self.log_viewer.log_error(traceback.format_exc() + "\n")
+
+        # Final check - if still empty, list all files in reports dir
+        if not metrics:
+            try:
+                all_files = list(reports_dir.glob("*"))
+                self.log_viewer.log_info(f"All files in reports dir: {[f.name for f in all_files]}\n")
+            except Exception:
+                pass
+
+        return metrics
+
 
 def run() -> None:
-    """Launch the OpenROAD Flow GUI application.
-
-    Creates the main window and starts the Tkinter event loop.
-    This is the primary entry point for the GUI application.
-    """
+    """Entry point for the application."""
     app = OpenRoadGUI()
     app.mainloop()
