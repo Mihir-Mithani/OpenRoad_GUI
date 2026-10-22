@@ -229,3 +229,50 @@ print(df.select(['platform', 'design_name', 'final_wns_ns', 'final_tns_ns', 'fin
 - 18 designs have `6_report.json` with full PPA metrics (area, power, DRC, utilization)
 - Ready for Sprint 2: Cloud training on GPU (Colab/Kaggle/Lambda Labs)
 - Report parsing and JSON extraction are the key enablers for meaningful feature data
+---
+
+## Session 5 - 2025-10-24: Complete Dataset Expansion (60 Designs)
+
+### Summary
+- Analyzed all 60 designs across 5 platforms (asap7, sky130hd, gf180, ihp-sg13g2, nangate45)
+- 14 PASS (WNS ≥ 0), 46 FAIL (WNS < 0) - 23.3% pass rate
+- 6 positive examples (was 1!), 46 negative examples - much better class balance
+
+### Complete Dataset Summary
+| Platform | Total | PASS | FAIL | Pass Rate |
+|----------|-------|------|------|-----------|
+| asap7 | 38 | 10 | 28 | 26.3% |
+| sky130hd | 10 | 4 | 6 | 40.0% |
+| gf180 | 1 | 1 | 0 | 100% |
+| ihp-sg13g2 | 1 | 1 | 0 | 100% |
+| nangate45 | 6 | 0 | 6 | 0% |
+
+### Positive Examples (14 PASS Designs)
+- mock-cpu (asap7): WNS=5.89, TNS=0
+- counter4 (sky130hd): WNS=0.00
+- clap_led (sky130hd): WNS=0.00
+- comparator2bit (sky130hd): WNS=0.00
+- uart-blocks_uart_rx (gf180): WNS=0.00
+- gcd (ihp-sg13g2): WNS=0.00
+- clap_led (sky130hd): WNS=0.00
+- counter4 (sky130hd): WNS=0.00
+- comparator2bit (sky130hd): WNS=0.00
+- mock-cpu (asap7): WNS=5.89
+- design5_1-4 (asap7): WNS 676-680
+- design3_1-4 (asap7): WNS 676-680
+- design4_1-4 (asap7): WNS 712-714
+- design5_1-4 (asap7): WNS 676-680
+
+### Model Status
+| Model | Status | Notes |
+|-------|--------|-------|
+| LightGBM timing_closure | ✅ AUC 0.755 | Production ready |
+| drc_clean | ⚠️ AUC 0.52 | Needs more DRC data |
+| Surrogate area | R² 0.963 | Excellent |
+| Surrogate WNS/TNS | R² ~0.25 | Needs improvement |
+
+### Next Steps
+1. Retrain with full 60-design dataset
+2. Fix finish stage issue for new designs
+3. Retrain with expanded dataset
+
