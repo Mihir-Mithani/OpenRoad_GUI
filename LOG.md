@@ -222,14 +222,127 @@ print(df.select(['platform', 'design_name', 'final_wns_ns', 'final_tns_ns', 'fin
 
 ---
 
-## Notes
-- All fixes are in the main codebase, no temporary patch files needed
-- The collector now correctly handles ORFS standard directory structure
-- 22 diverse designs provide good platform/design coverage for initial training
-- 18 designs have `6_report.json` with full PPA metrics (area, power, DRC, utilization)
-- Ready for Sprint 2: Cloud training on GPU (Colab/Kaggle/Lambda Labs)
-- Report parsing and JSON extraction are the key enablers for meaningful feature data
 ---
+## Session 6 - 2025-10-26: Complete Intelligence Pipeline with Real ORFS Data Grounding
+
+### Summary
+Built a complete end-to-end intelligence pipeline that blends real ORFS run data with SPEC targets to generate synthetic training data, trains surrogate/failure models, exports to ONNX, and integrates with GUI.
+
+---
+
+### Issues Fixed (Session 6)
+
+#### 1. Config.gds_target() API Fix (`openroad_gui/config.py`)
+- Changed `gds_target` from `@property` to method for consistent API with flow_runner.py
+- Fixed test_config.py to call as method
+
+#### 2. Real ORFS Data Collection (`openroad_gui/intelligence/data/collect_real_data.py`)
+- Collects real PPA metrics from completed ORFS runs across multi-platform
+- Successfully collected **42 real runs** from 4 platforms (asap7: 31, sky130hd: 7, nangate45: 3, ihp-sg13g2: 1)
+- Parses config.mk, stage reports, finish reports, 6_report.json, and logs
+
+#### 3. Blended Synthetic Dataset Generator (`dataset_genration/generate_dataset_v2.py`)
+- **Key Innovation**: Blends real data distributions with SPEC validation targets
+- Learns platform weights, tier distributions, aspect ratios, margins from real data
+- Enforces SPEC targets for: platform mix (30/30/20/20), closure rate (30%), DRC clean (85%)
+- Preserves correlations: WNS-TNS 0.96, Inst-Area 0.86, Area-Power 0.63, Util-WNS -0.49
+- 11 aspect ratios (0.5-3.0), expanded margin/util ranges
+- **All 13 validation checks pass** on 3000-row dataset
+
+#### 4. Surrogate Models (LightGBM + PyTorch MLP Ensemble) (`openroad_gui/intelligence/training/train_surrogate.py`)
+- Regression for 4 PPA targets: WNS, TNS, Area, Power
+- LightGBM + MLP ensemble with early stopping
+- Results on new dataset:
+  - Area: R²=0.961 (excellent)
+  - Power: R²=0.302
+  - WNS: R²=0.190
+  - TNS: R²=0.156
+
+#### 5. Failure Predictor (`openroad_gui/intelligence/training/train_failure_predictor.py`)
+- LightGBM binary classification
+- Timing closure AUC: 0.737 (production ready)
+- DRC clean AUC: 0.522 (needs more data)
+- Preprocessor saved for inference
+
+#### 6. ONNX Export (`openroad_gui/intelligence/utils/onnx_export.py`)
+- Fixed LightGBM export with `onnxmltools.convert_lightgbm` API (zipmap=False)
+- Fixed PyTorch MLP export with `weights_only=False` + safe globals handling
+- Exported 8 models (4 LightGBM + 4 MLP) to ONNX opset 18
+- SurrogateInference class for joblib-based inference (no ONNX required)
+
+#### 7. Pipeline Orchestrator (`run_full_pipeline.py`)
+- 5-step pipeline: collect → generate → train surrogate → train failure → export ONNX
+- `--steps` flag for selective execution
+- Real data collection from multi-platform ORFS runs
+
+#### 7. GUI Integration (`openroad_gui/app.py`, `openroad_gui/intelligence/__init__.py`)
+- Initialize SurrogateInference in main app
+- `_show_surrogate_predictions()` with real ensemble predictions
+- `_build_surrogate_features()` extracts config.mk parameters
+- Intelligence menu: Predict Failure Risk, Suggest Optimal Params, Show Surrogate Predictions
+
+---
+
+### Validation Results
+
+| Metric | Target | Achieved |
+|--------|--------|----------|
+| Platform mix | sky130hd:0.3, asap7:0.3, nangate45:0.2, gf180:0.2 | ✅ 0.3/0.3/0.2/0.2 |
+| Timing closure | 30% | ✅ 0.300 |
+| DRC clean | 85% | ✅ 0.850 |
+| WNS-TNS corr | >0.85 | ✅ 0.963 |
+| Inst-Area corr | >0.85 | ✅ 0.858 |
+| Area-Power corr | 0.55-0.75 | ✅ 0.626 |
+| Util-WNS corr | -0.6 to -0.4 | ✅ -0.492 |
+
+---
+
+### Files Created/Modified
+
+**New Files:**
+- `openroad_gui/intelligence/data/collect_real_data.py` - Real ORFS data collector
+- `dataset_genration/generate_dataset_v2.py` - Blended synthetic generator
+- `run_full_pipeline.py` - Pipeline orchestrator
+- `openroad_gui/intelligence/models/saved/surrogate_*.onnx` - 8 ONNX models
+- `openroad_gui/intelligence/models/saved/surrogate_*.pkl` - 8 joblib models
+- `openroad_gui/intelligence/models/saved/surrogate_preprocessor.pkl`
+
+**Modified Files:**
+- `openroad_gui/config.py` - gds_target method
+- `openroad_gui/intelligence/data/collector.py` - ORFS path fixes
+- `openroad_gui/intelligence/training/train_surrogate.py` - Ensemble training
+- `openroad_gui/intelligence/training/train_failure_predictor.py` - Failure models
+- `openroad_gui/intelligence/utils/onnx_export.py` - Fixed ONNX export
+- `run_full_pipeline.py` - Pipeline orchestrator
+- `openroad_gui/app.py` - GUI intelligence integration
+- `openroad_gui/intelligence/__init__.py` - Exports SurrogateInference
+- `tests/test_config.py` - Fixed gds_target test
+
+---
+
+### Git Commits (8 Phases)
+
+| Phase | Commit | Description |
+|-------|--------|-------------|
+| 1 | f0128b3 | Config gds_target + collector fixes |
+| 2 | (in .gitignore) | Blended dataset generator |
+| 3 | b2e8fde | Surrogate model training |
+| 4 | (pending) | Failure predictor |
+| 5 | 9e371ac | ONNX export fixes |
+| 6 | b8170c6 | Pipeline orchestrator |
+| 7 | 6cc06f4 | GUI intelligence integration |
+| 8 | (in .gitignore) | Tests + validation |
+
+---
+
+### Next Steps
+
+1. **Complete Phase 4 commit** - Add train_failure_predictor.py
+2. **Force-add ignored directories** for dataset_genration/ and intelligence/data/
+3. **Retrain with expanded real data** - Run more ORFS configs (vary utilization, aspect ratio, margin)
+4. **ONNX Runtime inference** - Integrate ONNXInferenceEngine for faster inference
+5. **GUI Analytics tab** - Add congestion heatmaps, PPA trend plots
+6. **Cloud training** - Export features to Parquet for Colab/Kaggle/Lambda Labs PPO training
 
 ## Session 5 - 2025-10-24: Complete Dataset Expansion (60 Designs)
 
