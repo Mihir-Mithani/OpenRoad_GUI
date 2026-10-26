@@ -1,327 +1,292 @@
 #!/usr/bin/env python3
 """
 Surrogate Models Training Script
-Regression models for WNS, TNS, Area, Power prediction
-Uses XGBoost (M1 compatible with single thread)
+Regression ensemble (LightGBM + PyTorch MLP) for PPA prediction:
+- WNS (Worst Negative Slack) in ns
+- TNS (Total Negative Slack) in ns
+- Area in um²
+- Power in mW
+
+Usage:
+    python -m openroad_gui.intelligence.training.train_surrogate
+    python -m openroad_gui.intelligence.training.train_surrogate --data-path ./data/training_data.parquet
+    python -m openroad_gui.intelligence.training.train_surrogate --epochs 200 --ensemble
 """
 
-import os
+import argparse
 import json
+import os
+import warnings
+from pathlib import Path
+
 import joblib
+import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import polars as pl
-from pathlib import Path
-from sklearn.model_selection import train_test_split, cross_val_score, KFold
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.neural_network import MLPRegressor
-from sklearn.inspection import permutation_importance
-import lightgbm as lgb
-import matplotlib.pyplot as plt
-import seaborn as sns
-import warnings
+
 warnings.filterwarnings('ignore')
 
-# M1/M2 XGBoost compatibility: use single thread
+# M1/M2 compatibility
 os.environ['OMP_NUM_THREADS'] = '1'
-os.environ['XGB_NUM_THREADS'] = '1'
+os.environ['LIGHTGBM_NUM_THREADS'] = '1'
 
-# Try to import XGBoost, but make it optional for M1 compatibility
-try:
-    import xgboost as xgb
-    XGB_AVAILABLE = True
-except (ImportError, SegmentationError):
-    XGB_AVAILABLE = False
-    xgb = None
-    print("XGBoost not available, using LightGBM only")
+# ── Project paths ────────────────────────────────────────────────────────
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+DEFAULT_DATA_PATH = PROJECT_ROOT / "dataset_genration" / "output" / "training_data.parquet"
+MODEL_DIR = PROJECT_ROOT / "openroad_gui" / "intelligence" / "models" / "saved"
+CHECKPOINT_DIR = PROJECT_ROOT / "openroad_gui" / "intelligence" / "training" / "checkpoints"
+LOG_DIR = PROJECT_ROOT / "openroad_gui" / "intelligence" / "training" / "logs"
 
-# Paths
-DATA_DIR = Path("/Users/mihirmithani/Downloads/OpenRoad GUI/dataset_genration/output")
-MODEL_DIR = Path("/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/models/saved")
-CHECKPOINT_DIR = Path("/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/checkpoints")
-LOG_DIR = Path("/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/logs")
+for d in (MODEL_DIR, CHECKPOINT_DIR, LOG_DIR):
+    d.mkdir(parents=True, exist_ok=True)
 
-MODEL_DIR.mkdir(parents=True, exist_ok=True)
-CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
-LOG_DIR.mkdir(parents=True, exist_ok=True)
-LOG_DIR.mkdir(parents=True, exist_ok=True)
-
-# Feature columns
+# ── Feature / Target definitions ─────────────────────────────────────────
 CATEGORICAL_FEATURES = ['platform', 'core_aspect_ratio']
 NUMERIC_FEATURES = [
-    'core_utilization', 'core_margin', 'num_instances', 'num_nets',
-    'num_sequential', 'num_macros', 'macro_area_ratio',
+    'core_utilization', 'core_margin',
+    'num_instances', 'num_nets', 'num_sequential', 'num_macros', 'macro_area_ratio',
     'log_instances', 'log_nets', 'seq_ratio', 'macro_ratio',
 ]
 
-# Regression targets
-REGRESSION_TARGETS = [
-    'final_wns_ns', 'final_tns_ns', 'final_area_um2', 'final_power_mw'
-]
+REGRESSION_TARGETS = {
+    'wns': 'final_wns_ns',
+    'tns': 'final_tns_ns',
+    'area': 'final_area_um2',
+    'power': 'final_power_mw',
+}
 
-DROP_COLS = [
+DROP_COLS = {
     'run_id', 'design_name', 'timestamp', 'design_name_config', 'platform_config',
-    'final_wns_ns', 'final_tns_ns', 'final_area_um2', 'final_power_mw',
     'final_drc_violations', 'total_runtime_sec', 'timing_closure', 'drc_clean', 'lvs_clean',
     'wns_normalized', 'tns_normalized', 'log_area', 'log_power',
     'timing_closure_bin', 'drc_clean_bin', 'lvs_clean_bin', 'platform_cat',
-    'total_runtime_sec', 'stage_runtimes', 'timing_closure', 'drc_clean', 'lvs_clean',
-    'design_name_config', 'platform_config'
-]
+}
 
-def load_data():
-    df = pl.read_parquet("/Users/mihirmithani/Downloads/OpenRoad GUI/dataset_genration/output/training_data.parquet")
-    df_pd = df.to_pandas()
 
-    # Select features (exclude target and metadata columns)
-    drop_cols = [c for c in [
-        'run_id', 'design_name', 'timestamp', 'design_name_config', 'platform_config',
-        'final_wns_ns', 'final_tns_ns', 'final_area_um2', 'final_power_mw',
-        'final_drc_violations', 'total_runtime_sec', 'timing_closure', 'drc_clean', 'lvs_clean',
-        'wns_normalized', 'tns_normalized', 'log_area', 'log_power',
-        'timing_closure_bin', 'drc_clean_bin', 'lvs_clean_bin', 'platform_cat',
-        'total_runtime_sec', 'stage_runtimes', 'timing_closure', 'drc_clean', 'lvs_clean',
-        'design_name_config', 'platform_config'
-    ] if c in df.columns]
+# ═══════════════════════════════════════════════════════════════════════════
+# PyTorch MLP Regressor
+# ═══════════════════════════════════════════════════════════════════════════
+class MLPRegressor(nn.Module):
+    """Multi-layer perceptron for tabular regression."""
 
-    X = df_pd.drop(columns=[c for c in DROP_COLS if c in df_pd.columns], errors='ignore')
+    def __init__(self, input_dim: int, hidden_dims=(256, 128, 64), dropout=0.2):
+        super().__init__()
+        layers = []
+        prev_dim = input_dim
+        for h in hidden_dims:
+            layers.append(nn.Linear(prev_dim, h))
+            layers.append(nn.BatchNorm1d(h))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(dropout))
+            prev_dim = h
+        layers.append(nn.Linear(prev_dim, 1))
+        self.net = nn.Sequential(*layers)
 
-    y_targets = {
-        'wns': df_pd['final_wns_ns'],
-        'tns': df_pd['final_tns_ns'],
-        'area': df_pd['final_area_um2'],
-        'power': df_pd['final_power_mw']
-    }
+    def forward(self, x):
+        return self.net(x).squeeze(-1)
 
-    return X, y_targets
 
-def create_preprocessor():
-    return ColumnTransformer(
-        transformers=[
-            ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), ['platform', 'core_aspect_ratio']),
-            ('num', StandardScaler(), [
-                'core_utilization', 'core_margin', 'num_instances', 'num_nets',
-                'num_sequential', 'num_macros', 'macro_area_ratio',
-                'log_instances', 'log_nets', 'seq_ratio', 'macro_ratio'
-            ])
-        ],
-        remainder='drop'
+def train_mlp(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_val: np.ndarray,
+    y_val: np.ndarray,
+    epochs: int = 200,
+    lr: float = 1e-3,
+    batch_size: int = 64,
+    patience: int = 20,
+    device: str = 'cpu',
+) -> nn.Module:
+    """Train PyTorch MLP with early stopping."""
+    input_dim = X_train.shape[1]
+    model = MLPRegressor(input_dim).to(device)
+
+    train_tensor = torch.utils.data.TensorDataset(
+        torch.FloatTensor(X_train), torch.FloatTensor(y_train)
     )
-
-def train_xgboost(X_train, y_train, X_val, y_val):
-    if not XGB_AVAILABLE:
-        return None
-
-    dtrain = xgb.DMatrix(X_train, label=y_train)
-    dval = xgb.DMatrix(X_val, label=y_val)
-
-    params = {
-        'objective': 'reg:squarederror',
-        'eval_metric': 'rmse',
-        'max_depth': 6,
-        'learning_rate': 0.05,
-        'subsample': 0.8,
-        'colsample_bytree': 0.8,
-        'min_child_weight': 3,
-        'gamma': 0.1,
-        'reg_alpha': 0.1,
-        'reg_lambda': 1.0,
-        'seed': 42,
-        'nthread': 1
-    }
-
-    evals = [(dtrain, 'train'), (dval, 'val')]
-    model = xgb.train(
-        params, dtrain,
-        num_boost_round=500,
-        evals=evals,
-        early_stopping_rounds=50,
-        verbose_eval=50
+    val_tensor = torch.utils.data.TensorDataset(
+        torch.FloatTensor(X_val), torch.FloatTensor(y_val)
     )
+    train_loader = torch.utils.data.DataLoader(train_tensor, batch_size=batch_size, shuffle=True)
+    val_loader = torch.utils.data.DataLoader(val_tensor, batch_size=batch_size, shuffle=False)
+
+    criterion = nn.MSELoss()
+    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, factor=0.5)
+
+    best_val_loss = float('inf')
+    best_state = None
+    wait = 0
+
+    for epoch in range(epochs):
+        # Training
+        model.train()
+        train_loss = 0.0
+        for xb, yb in train_loader:
+            xb, yb = xb.to(device), yb.to(device)
+            optimizer.zero_grad()
+            pred = model(xb)
+            loss = criterion(pred, yb)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * xb.size(0)
+        train_loss /= len(train_loader.dataset)
+
+        # Validation
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for xb, yb in val_loader:
+                xb, yb = xb.to(device), yb.to(device)
+                pred = model(xb)
+                val_loss += criterion(pred, yb).item() * xb.size(0)
+        val_loss /= len(val_loader.dataset)
+
+        scheduler.step(val_loss)
+
+        if epoch % 20 == 0:
+            print(f"  Epoch {epoch:3d}: train_loss={train_loss:.4f}, val_loss={val_loss:.4f}")
+
+        # Early stopping
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+            wait = 0
+        else:
+            wait += 1
+            if wait >= patience:
+                print(f"  Early stopping at epoch {epoch}")
+                break
+
+    # Load best weights
+    if best_state:
+        model.load_state_dict(best_state)
+
     return model
 
-def train_lightgbm(X_train, y_train, X_val, y_val):
-    lgb_train = lgb.Dataset(X_train, label=y_train)
-    lgb_val = lgb.Dataset(X_val, label=y_val, reference=lgb_train)
 
-    params = {
-        'objective': 'regression',
-        'metric': 'rmse',
-        'boosting_type': 'gbdt',
-        'num_leaves': 63,
-        'learning_rate': 0.05,
-        'feature_fraction': 0.8,
-        'bagging_fraction': 0.8,
-        'bagging_freq': 5,
-        'min_child_samples': 20,
-        'lambda_l1': 0.1,
-        'lambda_l2': 1.0,
-        'verbose': -1,
-        'seed': 42,
-        'num_threads': 1,
-        'force_col_wise': True
-    }
-
-    model = lgb.train(
-        params,
-        lgb_train,
-        num_boost_round=500,
-        valid_sets=[lgb_train, lgb_val],
-        valid_names=['train', 'val'],
-        callbacks=[
-            lgb.early_stopping(50),
-            lgb.log_evaluation(50)
-        ]
-    )
-    return model
-
-def evaluate_regression(model, X_test, y_test, target_name, model_type):
-    if model is None:
-        return None
-
-    if isinstance(model, xgb.Booster) if XGB_AVAILABLE else False:
-        y_pred = model.predict(xgb.DMatrix(X_test))
-    else:
-        y_pred = model.predict(X_test, num_iteration=model.best_iteration)
-
-    mse = np.mean((y_test - y_pred) ** 2)
+def evaluate_regression(y_true: np.ndarray, y_pred: np.ndarray, target_name: str) -> dict:
+    """Compute regression metrics."""
+    mse = mean_squared_error(y_true, y_pred)
     rmse = np.sqrt(mse)
-    mae = np.mean(np.abs(y_test - y_pred))
-    r2 = 1 - np.sum((y_test - y_pred) ** 2) / np.sum((y_test - np.mean(y_test)) ** 2)
-    mape = np.mean(np.abs((y_test - y_pred) / np.maximum(np.abs(y_test), 1e-8))) * 100
+    mae = mean_absolute_error(y_true, y_pred)
+    r2 = r2_score(y_true, y_pred)
+    mape = np.mean(np.abs((y_true - y_pred) / np.maximum(np.abs(y_true), 1e-8))) * 100
 
-    print(f"  RMSE: {rmse:.4f}, MAE: {mae:.4f}, R²: {r2:.4f}, MAPE: {mape:.2f}%")
-
-    # Residual plot
-    plt.figure(figsize=(5, 4))
-    plt.scatter(y_test, y_test - y_pred, alpha=0.5, s=10)
-    plt.axhline(y=0, color='r', linestyle='--')
-    plt.xlabel('Actual')
-    plt.ylabel('Residual')
-    plt.title(f'{target_name} - Residuals')
-    plt.tight_layout()
-    plt.savefig(LOG_DIR / f'residuals_{target_name}_{model_type}.png', dpi=150, bbox_inches='tight')
-    plt.close()
-
+    print(f"  {target_name}: RMSE={rmse:.4f}, MAE={mae:.4f}, R²={r2:.4f}, MAPE={mape:.2f}%")
     return {'rmse': rmse, 'mae': mae, 'r2': r2, 'mape': mape}
 
+
+def save_residual_plot(y_true, y_pred, target_name, model_type, log_dir: Path):
+    """Save residual plot."""
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(5, 4))
+        plt.scatter(y_true, y_true - y_pred, alpha=0.5, s=10)
+        plt.axhline(y=0, color='r', linestyle='--')
+        plt.xlabel('Actual')
+        plt.ylabel('Residual')
+        plt.title(f'{target_name} - Residuals ({model_type})')
+        plt.tight_layout()
+        plt.savefig(log_dir / f'residuals_{target_name}_{model_type}.png', dpi=150, bbox_inches='tight')
+        plt.close()
+    except Exception as e:
+        print(f"  Warning: Could not save residual plot: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Main training function
+# ══════════════════════════════════════════════════════════════════════════
 def main():
-    print("=" * 60)
-    print("SURROGATE MODELS TRAINING (Regression)")
-    print("=" * 60)
+    parser = argparse.ArgumentParser(description="Train surrogate models for PPA prediction")
+    parser.add_argument('--data-path', type=Path, default=DEFAULT_DATA_PATH,
+                        help='Path to training_data.parquet')
+    parser.add_argument('--epochs', type=int, default=200, help='MLP training epochs')
+    parser.add_argument('--lr', type=float, default=1e-3, help='MLP learning rate')
+    parser.add_argument('--batch-size', type=int, default=64, help='MLP batch size')
+    parser.add_argument('--ensemble', action='store_true', help='Train LightGBM + MLP ensemble')
+    parser.add_argument('--device', type=str, default='cpu', choices=['cpu', 'mps', 'cuda'],
+                        help='Device for PyTorch training')
+    args = parser.parse_args()
 
-    # Load data
-    df = pl.read_parquet("/Users/mihirmithani/Downloads/OpenRoad GUI/dataset_genration/output/training_data.parquet")
+    print("=" * 70)
+    print("SURROGATE MODELS TRAINING — PPA Regression Ensemble")
+    print("=" * 70)
+    print(f"Data: {args.data_path}")
+    print(f"Device: {args.device}")
+    print(f"Ensemble: {args.ensemble}")
+    print("=" * 70)
+
+    # ── Load data ────────────────────────────────────────────────────────
+    if not args.data_path.exists():
+        raise FileNotFoundError(f"Data not found: {args.data_path}. Run generate_dataset.py first.")
+
+    df = pl.read_parquet(args.data_path)
     df_pd = df.to_pandas()
+    print(f"Loaded {len(df_pd)} samples, {df_pd.shape[1]} columns")
 
-    # Drop target and metadata columns
+    # ── Prepare features ────────────────────────────────────────────────
     drop_cols = [c for c in DROP_COLS if c in df_pd.columns]
-    X = df_pd.drop(columns=drop_cols, errors='ignore')
+    X_df = df_pd.drop(columns=drop_cols, errors='ignore')
 
-    y_targets = {
-        'wns': df_pd['final_wns_ns'],
-        'tns': df_pd['final_tns_ns'],
-        'area': df_pd['final_area_um2'],
-        'power': df_pd['final_power_mw']
-    }
+    # Ensure all expected features exist
+    expected_features = set(CATEGORICAL_FEATURES + NUMERIC_FEATURES)
+    missing = expected_features - set(X_df.columns)
+    if missing:
+        raise ValueError(f"Missing expected features: {missing}")
 
-    print(f"Data shape: {df_pd.shape}")
-    print(f"Features: {X.shape[1]}")
-
-    # Preprocess
+    # ── Preprocessor ────────────────────────────────────────────────────
     preprocessor = ColumnTransformer(
         transformers=[
-            ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), ['platform', 'core_aspect_ratio']),
-            ('num', StandardScaler(), [
-                'core_utilization', 'core_margin', 'num_instances', 'num_nets',
-                'num_sequential', 'num_macros', 'macro_area_ratio',
-                'log_instances', 'log_nets', 'seq_ratio', 'macro_ratio'
-            ])
+            ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), CATEGORICAL_FEATURES),
+            ('num', StandardScaler(), NUMERIC_FEATURES),
         ],
         remainder='drop'
     )
 
-    # Fit preprocessor on all data
     X_processed = preprocessor.fit_transform(df_pd)
+    print(f"Processed feature shape: {X_processed.shape}")
 
-    # Train/test split (same split for all targets)
+    # Save preprocessor
+    joblib.dump(preprocessor, MODEL_DIR / "surrogate_preprocessor.pkl")
+    print(f"Saved preprocessor to {MODEL_DIR / 'surrogate_preprocessor.pkl'}")
+
+    # ── Train/test split (same indices for all targets) ─────────────────
     indices = np.arange(len(df_pd))
     train_idx, test_idx = train_test_split(indices, test_size=0.2, random_state=42)
-
-    X_train = X_processed[train_idx]
-    X_test = X_processed[test_idx]
+    X_train, X_test = X_processed[train_idx], X_processed[test_idx]
 
     print(f"Train: {X_train.shape[0]}, Test: {X_test.shape[0]}")
 
-    results = {}
+    # ── Train models per target ────────────────────────────────────────
+    all_results = {}
 
-    target_names = ['final_wns_ns', 'final_tns_ns', 'final_area_um2', 'final_power_mw']
-    short_names = ['wns', 'tns', 'area', 'power']
+    for short_name, target_col in REGRESSION_TARGETS.items():
+        print(f"\n{'='*70}")
+        print(f"TARGET: {target_col} ({short_name.upper()})")
+        print(f"{'='*70}")
 
-    for target_name, short_name in zip(target_names, short_names):
-        print(f"\n{'='*60}")
-        print(f"TRAINING: {target_name}")
-        print(f"{'='*60}")
+        y = df_pd[target_col].values
+        y_train, y_test = y[train_idx], y[test_idx]
 
-        y_train = df_pd[target_name].iloc[train_idx].values
-        y_test = df_pd[target_name].iloc[test_idx].values
+        target_results = {}
 
-        results[short_name] = {}
-
-        # Train XGBoost
-        if XGB_AVAILABLE:
-            print("\n--- XGBoost ---")
-            dtrain = xgb.DMatrix(X_train, label=y_train)
-            dval = xgb.DMatrix(X_test, label=y_test)
-
-            params = {
-                'objective': 'reg:squarederror',
-                'eval_metric': 'rmse',
-                'max_depth': 6,
-                'learning_rate': 0.05,
-                'subsample': 0.8,
-                'colsample_bytree': 0.8,
-                'min_child_weight': 3,
-                'gamma': 0.1,
-                'reg_alpha': 0.1,
-                'reg_lambda': 1.0,
-                'seed': 42,
-                'nthread': 1
-            }
-
-            model = xgb.train(
-                params, dtrain,
-                num_boost_round=500,
-                evals=[(dtrain, 'train'), (dval, 'val')],
-                early_stopping_rounds=50,
-                verbose_eval=50
-            )
-
-            # Evaluate
-            dtest = xgb.DMatrix(X_test)
-            y_pred = model.predict(dtest)
-            mse = np.mean((y_test - y_pred) ** 2)
-            rmse = np.sqrt(mse)
-            mae = np.mean(np.abs(y_test - y_pred))
-            r2 = 1 - np.sum((y_test - y_pred) ** 2) / np.sum((y_test - np.mean(y_test)) ** 2)
-
-            print(f"  RMSE: {rmse:.4f}, MAE: {mae:.4f}, R²: {r2:.4f}")
-
-            # Save model
-            joblib.dump({'model': model, 'target': target_name},
-                       f'/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/models/saved/surrogate_{short_name}.pkl')
-            results[short_name]['xgb'] = {'rmse': rmse, 'mae': mae, 'r2': r2}
-
-        # LightGBM
+        # ── LightGBM ────────────────────────────────────────────────────
         print("\n--- LightGBM ---")
         lgb_train = lgb.Dataset(X_train, label=y_train)
         lgb_val = lgb.Dataset(X_test, label=y_test, reference=lgb_train)
 
-        params = {
+        lgb_params = {
             'objective': 'regression',
             'metric': 'rmse',
             'boosting_type': 'gbdt',
@@ -336,47 +301,88 @@ def main():
             'verbose': -1,
             'seed': 42,
             'num_threads': 1,
-            'force_col_wise': True
+            'force_col_wise': True,
         }
 
-        model = lgb.train(
-            params,
+        lgb_model = lgb.train(
+            lgb_params,
             lgb_train,
             num_boost_round=500,
             valid_sets=[lgb_train, lgb_val],
             valid_names=['train', 'val'],
-            callbacks=[
-                lgb.early_stopping(50),
-                lgb.log_evaluation(50)
-            ]
+            callbacks=[lgb.early_stopping(50), lgb.log_evaluation(50)],
         )
 
-        # Evaluate
-        y_pred = model.predict(X_test, num_iteration=model.best_iteration)
-        mse = np.mean((y_test - y_pred) ** 2)
-        rmse = np.sqrt(mse)
-        mae = np.mean(np.abs(y_test - y_pred))
-        r2 = 1 - np.sum((y_test - y_pred) ** 2) / np.sum((y_test - np.mean(y_test)) ** 2)
+        y_pred_lgb = lgb_model.predict(X_test, num_iteration=lgb_model.best_iteration)
+        lgb_metrics = evaluate_regression(y_test, y_pred_lgb, short_name.upper())
+        save_residual_plot(y_test, y_pred_lgb, short_name, 'lgb', LOG_DIR)
 
-        print(f"  RMSE: {rmse:.4f}, MAE: {mae:.4f}, R²: {r2:.4f}")
+        # Save LightGBM model
+        joblib.dump(
+            {'model': lgb_model, 'target': target_col, 'preprocessor': preprocessor},
+            MODEL_DIR / f"surrogate_{short_name}_lgb.pkl"
+        )
+        target_results['lightgbm'] = lgb_metrics
 
-        # Save model
-        joblib.dump({'model': model, 'target': target_name},
-                   f'/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/models/saved/surrogate_{short_name}.pkl')
-        results[short_name]['lgb'] = {'rmse': rmse, 'mae': mae, 'r2': r2}
+        # ── PyTorch MLP ─────────────────────────────────────────────────
+        if args.ensemble:
+            print("\n--- PyTorch MLP ---")
+            device = args.device if torch.cuda.is_available() or args.device == 'cpu' else 'cpu'
+            if device == 'mps' and not torch.backends.mps.is_available():
+                device = 'cpu'
+                print("  MPS not available, falling back to CPU")
 
-    # Save results
-    with open(f'/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/logs/surrogate_results.json', 'w') as f:
-        json.dump(results, f, indent=2)
+            mlp_model = train_mlp(
+                X_train, y_train, X_test, y_test,
+                epochs=args.epochs, lr=args.lr, batch_size=args.batch_size,
+                device=device
+            )
 
-    print("\n" + "=" * 60)
-    print("SURROGATE TRAINING COMPLETE")
-    print("=" * 60)
-    for target, res in results.items():
-        if 'xgb' in res:
-            print(f"  {target}: XGB R²={res['xgb']['r2']:.4f}, LGB R²={res['lgb']['r2']:.4f}")
+            # Evaluate MLP
+            mlp_model.eval()
+            with torch.no_grad():
+                y_pred_mlp = mlp_model(torch.FloatTensor(X_test).to(device)).cpu().numpy()
+
+            mlp_metrics = evaluate_regression(y_test, y_pred_mlp, short_name.upper())
+            save_residual_plot(y_test, y_pred_mlp, short_name, 'mlp', LOG_DIR)
+
+            # Save MLP model
+            torch.save({
+                'model_state': mlp_model.state_dict(),
+                'input_dim': X_train.shape[1],
+                'target': target_col,
+                'preprocessor': preprocessor,
+            }, MODEL_DIR / f"surrogate_{short_name}_mlp.pt")
+            target_results['mlp'] = mlp_metrics
+
+        # ── Ensemble (simple average) ───────────────────────────────────
+        if args.ensemble:
+            y_pred_ensemble = (y_pred_lgb + y_pred_mlp) / 2
+            ens_metrics = evaluate_regression(y_test, y_pred_ensemble, f"{short_name.upper()} (Ensemble)")
+            target_results['ensemble'] = ens_metrics
+
+        all_results[short_name] = target_results
+
+    # ── Save results summary ────────────────────────────────────────────
+    results_path = LOG_DIR / "surrogate_results.json"
+    with open(results_path, 'w') as f:
+        json.dump(all_results, f, indent=2)
+
+    # ── Summary ─────────────────────────────────────────────────────────
+    print("\n" + "=" * 70)
+    print("TRAINING COMPLETE — SUMMARY")
+    print("=" * 70)
+    for target, res in all_results.items():
+        if 'ensemble' in res:
+            print(f"  {target:5s}: LGB R²={res['lightgbm']['r2']:.4f}  "
+                  f"MLP R²={res['mlp']['r2']:.4f}  "
+                  f"Ensemble R²={res['ensemble']['r2']:.4f}")
         else:
-            print(f"  {target}: LGB R²={res['lgb']['r2']:.4f}")
+            print(f"  {target:5s}: LGB R²={res['lightgbm']['r2']:.4f}")
+
+    print(f"\nModels saved to: {MODEL_DIR}")
+    print(f"Logs saved to:   {LOG_DIR}")
+
 
 if __name__ == '__main__':
     main()
