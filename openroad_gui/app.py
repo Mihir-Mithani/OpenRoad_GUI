@@ -9,6 +9,8 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+import numpy as np
+
 from openroad_gui import __version__
 from openroad_gui.config import AppConfig, load_config, save_config
 from openroad_gui.flow_runner import FULL_PIPELINE, FlowRunner, FlowStage
@@ -21,12 +23,13 @@ from openroad_gui.widgets.settings_dialog import SettingsDialog
 
 # Intelligence modules
 try:
-    from openroad_gui.intelligence import FlowOptimizationEngine, FailurePredictor
+    from openroad_gui.intelligence import FlowOptimizationEngine, FailurePredictor, SurrogateInference
     HAS_INTELLIGENCE = True
 except ImportError:
     HAS_INTELLIGENCE = False
     FlowOptimizationEngine = None
     FailurePredictor = None
+    SurrogateInference = None
 
 
 class OpenRoadGUI(tk.Tk):
@@ -43,10 +46,14 @@ class OpenRoadGUI(tk.Tk):
         # Initialize intelligence modules
         self.optimizer = None
         self.failure_predictor = None
+        self.surrogate_inference = None
         if HAS_INTELLIGENCE:
             try:
                 self.optimizer = FlowOptimizationEngine()
                 self.failure_predictor = FailurePredictor()
+                self.surrogate_inference = SurrogateInference(
+                    Path(__file__).parent.parent / "intelligence" / "models" / "saved"
+                )
             except Exception as e:
                 print(f"Warning: Could not initialize intelligence modules: {e}")
 
@@ -743,7 +750,7 @@ class OpenRoadGUI(tk.Tk):
 
     def _show_surrogate_predictions(self) -> None:
         """Show surrogate model predictions for the current design."""
-        if not HAS_INTELLIGENCE:
+        if not HAS_INTELLIGENCE or self.surrogate_inference is None:
             messagebox.showinfo("Intelligence Unavailable", "Surrogate models not available.")
             return
 
@@ -751,17 +758,35 @@ class OpenRoadGUI(tk.Tk):
             messagebox.showwarning("No Design", "No active design selected.")
             return
 
+        # Build features from config.mk and design
+        features = self._build_surrogate_features()
+
+        if not features:
+            messagebox.showinfo(
+                "Cannot Predict",
+                "Could not extract design features. Ensure config.mk exists and has required parameters."
+            )
+            return
+
         # Get predictions from surrogate models
-        messagebox.showinfo(
-            "Surrogate Predictions",
-            f"Design: {self.app_config.design_name}\n"
-            f"Platform: {self.app_config.platform}\n\n"
-            "Surrogate model predictions would show:\n"
-            "  • Predicted WNS/TNS\n"
-            "  • Predicted area & power\n"
-            "  • DRC violation probability\n\n"
-            "Run a flow stage first to collect metrics for accurate predictions."
-        )
+        predictions = self.surrogate_inference.predict_ensemble(features)
+
+        # Format results
+        msg_lines = [
+            f"Surrogate Model Predictions (Ensemble)",
+            f"Design: {self.app_config.design_name}",
+            f"Platform: {self.app_config.platform}",
+            "",
+            f"Predicted WNS: {predictions.get('wns', 0):.2f} ns",
+            f"Predicted TNS: {predictions.get('tns', 0):.2f} ns",
+            f"Predicted Area: {predictions.get('area', 0):.0f} um²",
+            f"Predicted Power: {predictions.get('power', 0):.1f} mW",
+            "",
+            "Note: Predictions based on synthetic training data. "
+            "Accuracy improves with real ORFS run data.",
+        ]
+
+        messagebox.showinfo("Surrogate Predictions", "\n".join(msg_lines))
 
     def _open_intelligence_reports(self) -> None:
         """Open the intelligence reports directory."""
@@ -772,7 +797,7 @@ class OpenRoadGUI(tk.Tk):
         # Open the logs/training directory where surrogate results are stored
         try:
             import os
-            reports_dir = Path("/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/training/logs")
+            reports_dir = Path(__file__).parent.parent / "intelligence" / "training" / "logs"
             if not reports_dir.exists():
                 messagebox.showinfo("No Reports", "Intelligence reports not found. Run training first.")
                 return
@@ -783,6 +808,53 @@ class OpenRoadGUI(tk.Tk):
                 subprocess.Popen(["xdg-open", str(reports_dir)])
         except OSError as exc:
             messagebox.showerror("Open failed", str(exc))
+
+    def _build_surrogate_features(self) -> dict:
+        """Build feature dict for surrogate inference from active design config."""
+        features = {}
+
+        # Parse config.mk for design parameters
+        config_path = self.app_config.flow_dir / "designs" / self.app_config.platform / self.app_config.design_name / "config.mk"
+        if config_path.exists():
+            import re
+            content = config_path.read_text()
+
+            # Extract key parameters
+            for key in ['CORE_UTILIZATION', 'CORE_ASPECT_RATIO', 'CORE_MARGIN']:
+                match = re.search(rf'{key}\s*=\s*([\d.]+)', content)
+                if match:
+                    features[key.lower()] = float(match.group(1))
+
+        # Set defaults for missing
+        features.setdefault('core_utilization', 30.0)
+        features.setdefault('core_aspect_ratio', 1.0)
+        features.setdefault('core_margin', 5.0)
+
+        # Platform
+        features['platform'] = self.app_config.platform
+        features['core_aspect_ratio'] = float(features['core_aspect_ratio'])
+
+        # Estimate design size from config.mk verilog files
+        verilog_files = list((self.app_config.flow_dir / "designs" / self.app_config.platform / self.app_config.design_name).glob("*.v"))
+        num_instances = 5000  # default
+        if verilog_files:
+            # Rough estimate from verilog
+            content = verilog_files[0].read_text()
+            num_instances = max(100, len(re.findall(r'\b(module|always|assign)\b', content)) * 100)
+
+        features['num_instances'] = num_instances
+        features['num_nets'] = int(num_instances * 1.2)
+        features['num_sequential'] = int(num_instances * 0.2)
+        features['num_macros'] = 0
+        features['macro_area_ratio'] = 0.0
+
+        # Derived features
+        features['log_instances'] = np.log1p(num_instances) / 20.0
+        features['log_nets'] = np.log1p(features['num_nets']) / 20.0
+        features['seq_ratio'] = features['num_sequential'] / max(1, features['num_instances'])
+        features['macro_ratio'] = features['num_macros'] / max(1, features['num_instances'])
+
+        return features
 
     def _fetch_design_metrics(self) -> dict:
         """Fetch real metrics from flow reports for the active design."""
