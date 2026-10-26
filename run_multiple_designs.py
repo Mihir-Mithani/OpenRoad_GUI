@@ -111,9 +111,27 @@ class DesignRunner:
 
             try:
                 # Run make stage
+                # Add USE_FILL=0 for low-utilization designs at finish stage
                 cmd = [
                     "make", f"DESIGN_CONFIG={design_config}", stage
                 ]
+
+                # Add USE_FILL=0 for finish stage on low-utilization designs
+                if stage == "finish":
+                    # Parse config.mk to get CORE_UTILIZATION
+                    config_path = self.flow_dir / "designs" / self.platform / design / "config.mk"
+                    use_fill = "1"  # Default to using fill
+                    if config_path.exists():
+                        try:
+                            content = config_path.read_text()
+                            import re
+                            match = re.search(r'CORE_UTILIZATION\s*=\s*([\d.]+)', content)
+                            if match:
+                                util_val = float(match.group(1))
+                                if util_val < 70:  # Low utilization - skip density fill
+                                    env["USE_FILL"] = "0"
+                        except Exception:
+                            pass
 
                 self.current_process = subprocess.Popen(
                     cmd,

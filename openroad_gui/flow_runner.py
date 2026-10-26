@@ -70,11 +70,23 @@ class FlowRunner:
         )
         klayout_export = f'export KLAYOUT_CMD="{cfg.klayout_cmd}"'
 
+        # Set USE_FILL=0 for low-utilization designs to skip density fill
+        # Density fill is only needed for high-utilization designs (>70%)
+        core_util = cfg.design_config_metrics.get("CORE_UTILIZATION", "0")
+        try:
+            util_val = float(core_util)
+            use_fill = "0" if util_val < 70 else "1"
+        except ValueError:
+            use_fill = "1"  # Default to using fill if parsing fails
+
+        use_fill_export = f'export USE_FILL="{use_fill}"'
+
         return (
             f'set -e\n'
             f'source "{env_script}"\n'
             f'{klayout_export}\n'
             f'{extra_exports}\n'
+            f'{use_fill_export}\n'
             f'cd "{flow_dir}"\n'
             f'echo ">>> Running: make DESIGN_CONFIG={design_config} {make_target}"\n'
             f'make DESIGN_CONFIG={design_config} {make_target}\n'

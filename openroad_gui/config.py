@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -84,6 +85,36 @@ class AppConfig:
     def results_dir(self) -> Path:
         return self.flow_dir / "results" / self.platform / self.design_name
 
+    @property
+    def design_config_metrics(self) -> dict:
+        """Parse config.mk to extract design metrics like CORE_UTILIZATION."""
+        metrics = {}
+        config_path = self.flow_dir / "designs" / self.platform / self.design_name / "config.mk"
+        if config_path.exists():
+            try:
+                content = config_path.read_text()
+                import re
+                # Extract CORE_UTILIZATION
+                match = re.search(r'CORE_UTILIZATION\s*=\s*([\d.]+)', content)
+                if match:
+                    metrics["CORE_UTILIZATION"] = float(match.group(1))
+                # Extract CORE_ASPECT_RATIO
+                match = re.search(r'CORE_ASPECT_RATIO\s*=\s*([\d.]+)', content)
+                if match:
+                    metrics["CORE_ASPECT_RATIO"] = float(match.group(1))
+                # Extract CORE_MARGIN
+                match = re.search(r'CORE_MARGIN\s*=\s*([\d.]+)', content)
+                if match:
+                    metrics["CORE_MARGIN"] = float(match.group(1))
+                # Extract PLACE_DENSITY
+                match = re.search(r'PLACE_DENSITY\s*=\s*([\d.]+)', content)
+                if match:
+                    metrics["PLACE_DENSITY"] = float(match.group(1))
+            except Exception:
+                pass
+        return metrics
+
+    @property
     def gds_target(self) -> str:
         rel = self.results_dir.relative_to(self.flow_dir)
         return f"{rel.as_posix()}/base/6_final.gds"
