@@ -1,0 +1,192 @@
+uv pip install "nemo-microservices[data-designer]"
+## If not using uv
+# pip install "nemo-microservices[data-designer]"
+
+step 2
+
+from nemo_microservices.data_designer.essentials import (
+    CategorySamplerParams,
+    DataDesignerConfigBuilder,
+    InferenceParameters,
+    LLMTextColumnConfig,
+    ModelConfig,
+    NeMoDataDesignerClient,
+    PersonSamplerParams,
+    SamplerColumnConfig,
+    SamplerType,
+    SubcategorySamplerParams,
+    UniformSamplerParams,
+)
+
+data_designer_client = NeMoDataDesignerClient(
+    base_url="https://ai.api.nvidia.com/v1/nemo/dd",
+    default_headers={"Authorization": "Bearer $NVIDIA_API_KEY"} # auto-generated API KEY
+)
+
+# The following models are available by default in this hosted Data Designer
+# nvidia/nemotron-3-nano-30b-a3b
+# nvidia/nvidia-nemotron-nano-9b-v2
+# nvidia/llama-3.3-nemotron-super-49b-v1.5
+# mistralai/mistral-small-24b-instruct
+# openai/gpt-oss-20b
+# openai/gpt-oss-120b
+# meta/llama-4-scout-17b-16e-instruct
+
+model_id = "nvidia/nemotron-3-nano-30b-a3b"
+
+model_alias = "my-model"
+model_configs = [
+ModelConfig(
+    alias=model_alias,
+    model=model_id,
+    inference_parameters=InferenceParameters(
+    temperature=0.6,
+    top_p=0.95,
+    max_tokens=2048,
+    )
+)
+]
+
+config_builder = DataDesignerConfigBuilder(model_configs)
+
+
+step 3
+
+config_builder.add_column(
+    SamplerColumnConfig(
+        name="product_category",
+        sampler_type=SamplerType.CATEGORY,
+        params=CategorySamplerParams(
+            values=[
+                "Electronics",
+                "Clothing",
+                "Home & Kitchen",
+                "Books",
+                "Home Office",
+            ],
+        ),
+    )
+)
+
+config_builder.add_column(
+    SamplerColumnConfig(
+        name="product_subcategory",
+        sampler_type=SamplerType.SUBCATEGORY,
+        params=SubcategorySamplerParams(
+            category="product_category",
+            values={
+                "Electronics": [
+                    "Smartphones",
+                    "Laptops",
+                    "Headphones",
+                    "Cameras",
+                    "Accessories",
+                ],
+                "Clothing": [
+                    "Men's Clothing",
+                    "Women's Clothing",
+                    "Winter Coats",
+                    "Activewear",
+                    "Accessories",
+                ],
+                "Home & Kitchen": [
+                    "Appliances",
+                    "Cookware",
+                    "Furniture",
+                    "Decor",
+                    "Organization",
+                ],
+                "Books": [
+                    "Fiction",
+                    "Non-Fiction",
+                    "Self-Help",
+                    "Textbooks",
+                    "Classics",
+                ],
+                "Home Office": [
+                    "Desks",
+                    "Chairs",
+                    "Storage",
+                    "Office Supplies",
+                    "Lighting",
+                ],
+            },
+        ),
+    )
+)
+
+config_builder.add_column(
+    SamplerColumnConfig(
+        name="target_age_range",
+        sampler_type=SamplerType.CATEGORY,
+        params=CategorySamplerParams(
+            values=["18-25", "25-35", "35-50", "50-65", "65+"]
+        ),
+    )
+)
+
+config_builder.add_column(
+    SamplerColumnConfig(
+        name="customer",
+        sampler_type=SamplerType.PERSON,
+        params=PersonSamplerParams(age_range=[18, 70]),
+    )
+)
+
+config_builder.add_column(
+    SamplerColumnConfig(
+        name="number_of_stars",
+        sampler_type=SamplerType.UNIFORM,
+        params=UniformSamplerParams(low=1, high=5),
+        convert_to="int",
+    )
+)
+
+config_builder.add_column(
+    SamplerColumnConfig(
+        name="review_style",
+        sampler_type=SamplerType.CATEGORY,
+        params=CategorySamplerParams(
+            values=["rambling", "brief", "detailed", "structured with bullet points"],
+            weights=[1, 2, 2, 1],
+        ),
+    )
+)
+
+config_builder.add_column(
+    LLMTextColumnConfig(
+        name="product_name",
+        prompt=(
+            "Come up with a creative product name for a product in the '{{ product_category }}' category, focusing "
+            "on products related to '{{ product_subcategory }}'. The target age range of the ideal customer is "
+            "{{ target_age_range }} years old. Respond with only the product name, no other text."
+        ),
+        # This is optional, but it can be useful for controlling the behavior of the LLM. Do not include instructions
+        # related to output formatting in the system prompt, as Data Designer handles this based on the column type.
+        system_prompt=(
+            "You are a helpful assistant that generates product names. You respond with only the product name, "
+            "no other text. You do NOT add quotes around the product name."
+        ),
+        model_alias=model_alias,
+    )
+)
+
+config_builder.add_column(
+    LLMTextColumnConfig(
+        name="customer_review",
+        prompt=(
+            "You are a customer named {{ customer.first_name }} from {{ customer.city }}, {{ customer.state }}. "
+            "You are {{ customer.age }} years old and recently purchased a product called {{ product_name }}. "
+            "Write a review of this product, which you gave a rating of {{ number_of_stars }} stars. "
+            "The style of the review should be '{{ review_style }}'."
+        ),
+        model_alias=model_alias,
+    )
+)
+
+step 4
+
+preview = data_designer_client.preview(config_builder, num_records=10)
+preview.display_sample_record()
+preview.dataset
+
