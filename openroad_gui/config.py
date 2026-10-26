@@ -114,7 +114,6 @@ class AppConfig:
                 pass
         return metrics
 
-    @property
     def gds_target(self) -> str:
         rel = self.results_dir.relative_to(self.flow_dir)
         return f"{rel.as_posix()}/base/6_final.gds"

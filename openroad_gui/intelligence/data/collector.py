@@ -122,11 +122,16 @@ class HistoricalDataCollector:
             print(f"Results directory not found: {results_dir}")
             return records
 
-        # Find ORFS root by looking for flow/designs,
+        # Find ORFS root by looking for flow/designs, flow/reports, flow/logs
         # results_dir = <orfs_root>/flow/results
-        # From debug: Level 2 (parent.parent) is the ORFS root
-        orfs_root = results_dir.parent.parent
+        orfs_root = results_dir.parent.parent.parent
         designs_root = orfs_root / "flow" / "designs"
+
+        # If not found, try going up one more level (for nested OpenROAD-flow-scripts)
+        if not designs_root.exists():
+            orfs_root = results_dir.parent.parent.parent.parent
+            designs_root = orfs_root / "flow" / "designs"
+
         reports_root = orfs_root / "flow" / "reports"
         logs_root = orfs_root / "flow" / "logs"
 
@@ -168,6 +173,131 @@ class HistoricalDataCollector:
                     records.append(record)
 
         return records
+
+    def _parse_orfs_design(self, design_dir: Path, platform: str, design: str,
+                           report_dir: Path, log_dir: Path, result_dir: Path) -> Optional[RunRecord]:
+        """Parse a single ORFS design (one run per design)."""
+        try:
+            import time
+            from datetime import datetime
+
+            # Parse config.mk from design directory
+            config_path = design_dir / "config.mk"
+            config_params = self._parse_config_mk(config_path)
+
+            # Parse design features from netlist (if available)
+            design_features = self._extract_design_features(design_dir)
+
+            # Parse stage results from reports
+            stage_results = self._parse_stage_reports(report_dir)
+
+            # Parse final PPA from final reports
+            final_metrics = self._parse_final_metrics(report_dir)
+
+            # Parse runtimes from logs
+            stage_runtimes, total_runtime = self._parse_runtimes(log_dir)
+
+            # Generate run_id from design + timestamp
+            run_id = f"{design}_{int(time.time())}"
+
+            return RunRecord(
+                run_id=run_id,
+                timestamp=datetime.now(),
+                design_name=design,
+                platform=platform,
+                config_params=config_params,
+                design_features=design_features,
+                stage_results=stage_results,
+                **final_metrics,
+                total_runtime_sec=total_runtime,
+                stage_runtimes=stage_runtimes,
+                timing_closure=final_metrics.get("final_wns_ns", 1) >= 0,
+                drc_clean=final_metrics.get("final_drc_violations", 1) == 0,
+                lvs_clean=final_metrics.get("lvs_clean", 0) == 1
+            )
+        except Exception as e:
+            print(f"Failed to parse {platform}/{design}: {e}")
+            return None
+
+    def _parse_stage_reports(self, reports_dir: Path) -> Dict[str, Dict[str, Any]]:
+        """Parse stage-specific reports from ORFS reports directory."""
+        results = {}
+        if not reports_dir.exists():
+            return results
+
+        for report_file in reports_dir.glob("*.rpt"):
+            stage_name = report_file.stem
+            try:
+                content = report_file.read_text()
+                results[stage_name] = self._parse_report_content(content)
+            except Exception:
+                pass
+        return results
+
+    def _parse_final_metrics(self, reports_dir: Path) -> Dict[str, Any]:
+        """Parse final PPA metrics from ORFS finish reports."""
+        metrics = {}
+        if not reports_dir.exists():
+            return metrics
+
+        # Look for finish report (6_finish.rpt or *finish*.rpt)
+        finish_reports = list(reports_dir.glob("*finish*.rpt"))
+        if not finish_reports:
+            finish_reports = list(reports_dir.glob("6_finish.rpt"))
+        if not finish_reports:
+            finish_reports = list(reports_dir.glob("*6_*.rpt"))
+
+        for report_file in finish_reports:
+            try:
+                content = report_file.read_text()
+                metrics.update(self._parse_report_content(content))
+            except Exception:
+                pass
+
+        return {
+            "final_wns_ns": metrics.get("wns_ns", 0.0),
+            "final_tns_ns": metrics.get("tns_ns", 0.0),
+            "final_area_um2": metrics.get("area_um2", 0.0),
+            "final_power_mw": metrics.get("power_mw", 0.0),
+            "final_drc_violations": int(metrics.get("drc_violations", 0)),
+        }
+
+    def _parse_runtimes(self, logs_dir: Path) -> tuple:
+        """Parse stage runtimes from ORFS logs directory."""
+        stage_runtimes = {}
+        total_runtime = 0.0
+
+        if not logs_dir.exists():
+            return stage_runtimes, total_runtime
+
+        for log_file in logs_dir.glob("*.log"):
+            try:
+                content = log_file.read_text()
+                stage_name = log_file.stem
+                import re
+                time_patterns = [
+                    r"Elapsed.*?(\d+(?:\.\d+)?)\s*s",
+                    r"Time:\s*([\d.]+)\s*s",
+                    r"Elapsed.*?(\d+):(\d+):(\d+)",
+                ]
+                for pattern in time_patterns:
+                    match = re.search(pattern, content, re.IGNORECASE)
+                    if match:
+                        try:
+                            if ":" in match.group(1):
+                                parts = match.group(1).split(":")
+                                seconds = int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+                            else:
+                                seconds = float(match.group(1))
+                            stage_runtimes[stage_name] = seconds
+                            total_runtime += seconds
+                            break
+                        except (ValueError, IndexError):
+                            pass
+            except Exception:
+                pass
+
+        return stage_runtimes, total_runtime
 
     def _parse_orfs_design(self, design_dir: Path, platform: str, design: str,
                            report_dir: Path, log_dir: Path, result_dir: Path) -> Optional[RunRecord]:
