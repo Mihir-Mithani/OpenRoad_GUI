@@ -750,6 +750,9 @@ class OpenRoadGUI(tk.Tk):
 
     def _show_surrogate_predictions(self) -> None:
         """Show surrogate model predictions for the current design."""
+        # Force recreate to pick up new preprocessor
+        from openroad_gui.intelligence.utils.onnx_export import SurrogateInference
+        self.surrogate_inference = SurrogateInference('openroad_gui/intelligence/models/saved')
         if not HAS_INTELLIGENCE or self.surrogate_inference is None:
             messagebox.showinfo("Intelligence Unavailable", "Surrogate models not available.")
             return

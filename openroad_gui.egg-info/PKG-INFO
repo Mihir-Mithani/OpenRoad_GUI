@@ -1,0 +1,199 @@
+Metadata-Version: 2.4
+Name: openroad-gui
+Version: 1.0.0
+Summary: OpenROAD Flow GUI - RTL-to-GDSII automation
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: stable-baselines3[extra]
+Requires-Dist: gymnasium
+Requires-Dist: torch
+Requires-Dist: pandas
+Requires-Dist: polars
+Requires-Dist: joblib
+Requires-Dist: lightgbm
+Requires-Dist: scikit-learn==1.9.1
+Requires-Dist: onnx
+Requires-Dist: onnxruntime
+Dynamic: license-file
+
+# OpenROAD Flow GUI - By Mihir Mithani
+
+A lightweight desktop wrapper for [OpenROAD Flow Scripts](https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts) (ORFS). It automates project setup, file templating, environment sourcing, and one-click execution of the RTL-to-GDSII pipeline.
+
+**Pure Python 3.10+ stdlib (tkinter) — no external dependencies.**
+
+---
+
+## Version Comparison
+
+| Feature | Version 1 (v1.0.0) | Version 2 (v2.0.0 — current) |
+|---------|-------------------|------------------------------|
+| **Layout** | Fixed stack: Flow → Preview → Log | **Resizable vertical panes** — drag divider between preview & log |
+| **Action Buttons** | Inside Preview tab (moves with resize) | **Fixed toolbar** above panes — always accessible |
+| **Stage Grid** | 3 rows × 2 columns | **2 rows × 3 columns** — more compact |
+| **Tooltips** | None | **On all 12 buttons** — hover for stage descriptions |
+| **Progress Feedback** | Status label only | **Per-stage indeterminate progress bars** + ✓/✗ button states |
+| **Log Export** | No | **Yes** — "Export Log..." saves full colored log to `.txt` |
+| **Reports Access** | Manual navigation | **"Open Reports Folder"** button opens `reports/<pdk>/<design>/` |
+| **Log Toolbar** | Clear only | **Clear + Export Log...** |
+| **Architecture** | Single-threaded flow + UI | Background thread for flow; UI never freezes |
+
+---
+
+## Requirements
+
+- Python 3.10+ with **tkinter** (included with most Python installs on macOS/Windows/Linux)
+- A working ORFS installation with `use-openroad.sh`
+- `make`, `bash`, Yosys, and OpenROAD on your PATH (via the ORFS env script)
+- KLayout (for GDS export/preview) — set path in **Settings → Paths**
+
+---
+
+## Quick Start
+
+Clone the repository and launch the application:
+
+```bash
+git clone https://github.com/Mihir-Mithani/OpenRoad_GUI.git
+cd OpenRoad_GUI
+
+python3 -m venv .venv
+source .venv/bin/activate
+
+python3 main.py
+```
+
+If you already have the required Python environment, you can launch the application directly with `python3 main.py`.
+
+---
+
+## First-Time Setup
+
+1. **Settings → Paths**
+
+    * **OpenROAD Root:** Select your local OpenROAD Flow Scripts (ORFS) checkout.
+    * **KLayout binary:** Select the KLayout executable if you want to use GDS viewing and preview features. The application can discover KLayout automatically when it is available on your PATH.
+
+2. **Settings → Active Design**
+
+    * Select the platform, design name, and `config.mk` file.
+    * Alternatively, click a `config.mk` file in the project tree to activate it.
+
+3. **Create a new design (optional)**
+
+    * Click **New Design** in the sidebar.
+    * Choose the PDK and design name to generate starter files.
+
+## Running the Flow
+
+| Button | Equivalent command |
+|--------|-------------------|
+| Synthesis | `make DESIGN_CONFIG=... synth` |
+| Floorplan | `make DESIGN_CONFIG=... floorplan` |
+| Core Placement | `make DESIGN_CONFIG=... place` |
+| CTS | `make DESIGN_CONFIG=... cts` |
+| Routing & DRC | `make DESIGN_CONFIG=... route` |
+| GDSII Generation | `make DESIGN_CONFIG=... results/<pdk>/<design>/base/6_final.gds` |
+| Full Pipeline | All stages in sequence |
+
+The app automatically runs `source use-openroad.sh` before each `make` invocation. Logs stream live into the bottom panel.
+
+---
+
+## Project Layout
+
+```
+OpenRoad GUI/
+├── main.py                      # Entry point
+├── openroad_gui/
+│   ├── app.py                   # Main window + layout
+│   ├── config.py                # Saved settings (~/.config/openroad-gui/config.json)
+│   ├── flow_runner.py           # Subprocess flow execution (threaded)
+│   ├── templates.py             # RTL/SDC/config templates
+│   ├── viewers.py               # KLayout, OpenROAD GUI, GDS preview
+│   ├── gds_info.py              # Stdlib-only GDSII parser
+│   └── widgets/
+│       ├── project_tree.py      # Workspace tree + new design
+│       ├── flow_panel.py        # Stage buttons, tooltips, progress bars
+│       ├── log_viewer.py        # Terminal output + export
+│       └── settings_dialog.py   # Paths & environment
+└── tests/                       # 91 unit tests (pytest)
+```
+
+---
+
+## Context Menu (right-click a design folder)
+
+- New Verilog (`.v`)
+- New Testbench (`.tb`)
+- New SDC (`.sdc`)
+- New `config.mk` / `config.json`
+
+---
+
+## Viewing Results
+
+### GDS files
+- Active design results appear under **results (<design>)** in the project tree.
+- **Double-click** a `.gds` file to open it in KLayout.
+- **Right-click** a `.gds` file for *View in KLayout* or *Preview Layout*.
+- The **Layout** tab shows an in-app PNG preview (rendered via KLayout batch mode).
+- **View → GDS** menu or **View GDS in KLayout** button opens `6_final.gds`.
+
+### OpenROAD GUI
+- Use the **OpenROAD GUI Viewer** buttons (Synthesis, Floorplan, Placement, CTS, Routing, Final).
+- Or **View → OpenROAD GUI** menu to open the interactive layout viewer at each stage.
+- **Right-click** any `.odb` checkpoint → *View in OpenROAD GUI*.
+- Equivalent to `make DESIGN_CONFIG=... gui_route`, `gui_final`, etc.
+
+---
+
+## New in Version 2 — Quick Reference
+
+| Action | Where |
+|--------|-------|
+| Resize preview vs. log | Drag the horizontal divider between Layout tab and Log panel |
+| Open reports folder | **Open Reports Folder** button in fixed toolbar (or FlowPanel) |
+| Export full log | **Export Log...** button in Log panel toolbar or fixed toolbar |
+| See what a stage does | Hover any stage button (Synthesis, Floorplan, etc.) |
+| Know when a stage finishes | Progress spinner on running stage; button turns ✓ (success) or ✗ (fail) |
+
+---
+
+## Tips
+
+- Right-click a design directory to add individual template files.
+- Extra env vars (e.g. `KLAYOUT_CMD`) can be set in **Settings → Environment**.
+- Config is stored at `~/.config/openroad-gui/config.json`.
+- All 91 unit tests pass: `python -m pytest tests/ -v`
+
+---
+
+## Example: 4-bit ALU (asap7)
+
+With the default paths pointing at your ORFS install:
+
+1. Open the GUI — the `alu4` design under `designs/asap7/alu4/` should appear.
+2. Click `config.mk` to activate it.
+3. Click **Run Full RTL-to-GDSII Pipeline** or run stages individually.
+4. GDS output: `flow/results/asap7/alu4/base/6_final.gds`
+
+---
+
+## License
+
+OpenRoad_GUI is licensed under the BSD 3-Clause License. See the [LICENSE](LICENSE) file for the complete license text.
+
+OpenRoad_GUI uses OpenROAD Flow Scripts (ORFS) and other external tools as dependencies. Those projects and their individual components remain subject to their respective licenses.
+
+---
+
+## Version History
+
+- **v2.0.0** (current) — Resizable panes, fixed toolbar, tooltips, progress bars, log export, 2×3 grid
+- **v1.0.0** — Initial release: flow execution, GDS preview, OpenROAD GUI launch, design templating
+
+---
+
+Built because I wanted it for myself. Rough edges remain — issues, suggestions, and PRs welcome.

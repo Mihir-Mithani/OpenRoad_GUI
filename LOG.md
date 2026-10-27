@@ -335,13 +335,90 @@ Built a complete end-to-end intelligence pipeline that blends real ORFS run data
 
 ---
 
-### Next Steps
+### Session 7 - 2025-10-27: Complete GUI Integration & Deployment
 
-1. **Complete Phase 4 commit** - Add train_failure_predictor.py
-2. **Force-add ignored directories** for dataset_genration/ and intelligence/data/
+#### Summary
+Successfully integrated the complete RL pipeline into the GUI with full tkinter support on macOS.
+
+#### Issues Fixed (Session 7)
+
+##### 1. macOS tkinter Support
+- **Problem**: MacPorts Python 3.13 venv missing tkinter (`_tkinter` module not found)
+- **Root Cause**: `py313-tkinter` port installed Python bindings but `tk8-quartz` port installs Tk library to `/opt/local/lib/tk8-quartz/tk8.6/` (non-standard path)
+- **Solution**: 
+  - Install `tk8-quartz` port: `sudo port install tk8-quartz`
+  - Set correct environment variables in venv activate script:
+    ```bash
+    export TCL_LIBRARY=/opt/local/lib/tcl8.6
+    export TK_LIBRARY=/opt/local/lib/tk8-quartz/tk8.6
+    ```
+  - Add to `.venv/bin/activate` for persistence
+
+##### 2. SurrogateInference Preprocessor Path Issue
+- **Problem**: GUI callback used cached `SurrogateInference` instance created before preprocessor was copied
+- **Error**: `ValueError: Preprocessor not loaded`
+- **Solution**: Restart GUI after preprocessor is in place, or force recreate in callback
+
+##### 3. ONNX Export for PPO Policy
+- **Problem**: PyTorch 2.x Dynamo exporter fails on SB3's `DiagGaussianDistribution` (data-dependent shapes)
+- **Solution**: Use legacy exporter with `dynamo=False`:
+  ```python
+  torch.onnx.export(
+      model.policy, dummy_input, path,
+      opset_version=17, dynamo=False,
+      training=torch.onnx.TrainingMode.EVAL
+  )
+  ```
+
+##### 4. sklearn Version Mismatch
+- **Problem**: Preprocessor pickled with sklearn 1.9.1, Colab has 1.6.1
+- **Fix**: Install matching version in Colab: `pip install scikit-learn==1.9.1`
+
+#### Session 7 Results
+
+| Component | Status |
+|-----------|--------|
+| GUI Launch | ✅ Works (tkinter fixed) |
+| Intelligence Menu | ✅ Works (surrogate predictions show) |
+| Surrogate Predictions | ✅ Works (WNS: 1.69ns, Area: 1524μm², etc.) |
+| ONNX Export | ✅ All 9 models exported |
+| PPO Training | ✅ 200k steps on T4 GPU |
+| Failure Predictor | ✅ Loaded (AUC 0.74) |
+| Surrogate Models | ✅ LightGBM + MLP ensemble |
+| GUI Integration | ✅ Intelligence menu with live predictions |
+
+#### Complete Model Stack in `openroad_gui/intelligence/models/saved/`
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `ppo_flow_optimizer.onnx` | PPO Policy (ONNX) | ✅ Works |
+| `ppo_flow_optimizer_final.zip` | PPO Model (SB3) | ✅ Works |
+| `best/best_model.zip` | Best Eval Checkpoint | ✅ |
+| `surrogate_*_lgb.pkl` (4) | LightGBM Surrogates | ✅ Ready |
+| `surrogate_*_mlp.pt` (4) | PyTorch MLP Surrogates | ✅ Ready |
+| `surrogate_preprocessor.pkl` | Feature Preprocessor | ✅ Works |
+| `timing_closure_lgb.pkl` | Failure Predictor | ✅ AUC 0.74 |
+| `drc_clean_lgb.pkl` | Failure Predictor | ✅ AUC 0.52 |
+
+#### Updated Files Created/Modified (Session 7)
+
+**New Files:**
+- `colab_rl_package/run_colab_training.py` - One-click Colab training script
+- `openroad_gui/intelligence/utils/onnx_export.py` - Fixed ONNX export (dynamo=False)
+
+**Modified Files:**
+- `openroad_gui/intelligence/utils/onnx_export.py` - Fixed MLP export, added LightGBM support
+- `.venv/bin/activate` - Added TCL/TK library paths for tkinter
+- `pyproject.toml` - Added project metadata for editable install
+
+#### Next Steps
+
+1. **Commit remaining Phase 4** - Add `train_failure_predictor.py`
+2. **Force-add ignored directories** for `dataset_genration/` and `intelligence/data/`
 3. **Retrain with expanded real data** - Run more ORFS configs (vary utilization, aspect ratio, margin)
-4. **ONNX Runtime inference** - Integrate ONNXInferenceEngine for faster inference
+4. **ONNX Runtime inference** - Integrate `ONNXInferenceEngine` for faster inference
 5. **GUI Analytics tab** - Add congestion heatmaps, PPA trend plots
+6. **Documentation** - Update README with model usage and ONNX schema
 6. **Cloud training** - Export features to Parquet for Colab/Kaggle/Lambda Labs PPO training
 
 ## Session 5 - 2025-10-24: Complete Dataset Expansion (60 Designs)

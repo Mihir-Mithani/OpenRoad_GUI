@@ -56,7 +56,7 @@ class ONNXExporter:
     """Export trained models to ONNX format for deployment."""
 
     def __init__(self, model_dir: str | Path):
-        self.model_dir = Path(model_dir)
+        self.model_dir = Path(model_dir).resolve()
 
     def export_lightgbm_to_onnx(self, target: str, output_path: str | Path) -> bool:
         """Export LightGBM model to ONNX using onnxmltools."""
@@ -183,7 +183,7 @@ class ONNXInferenceEngine:
     """Fast ONNX Runtime inference for surrogate models."""
 
     def __init__(self, model_dir: str | Path):
-        self.model_dir = Path(model_dir)
+        self.model_dir = Path(model_dir).resolve()
         self.sessions: Dict[str, ort.InferenceSession] = {}
         self.preprocessor = None
         self._load_preprocessor()
@@ -255,7 +255,7 @@ class SurrogateInference:
     """High-level inference using joblib models (no ONNX required)."""
 
     def __init__(self, model_dir: str | Path):
-        self.model_dir = Path(model_dir)
+        self.model_dir = Path(model_dir).resolve()
         self.models: Dict[str, Dict] = {}
         self.preprocessor = None
         self._load_all()
