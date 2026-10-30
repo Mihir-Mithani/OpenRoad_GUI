@@ -310,16 +310,9 @@ class OpenRoadGUI(tk.Tk):
                     command=cmd,
                 ).pack(fill="x", pady=1)
 
-        # 5.1 Project
-        add_section("Project", [
-            ("New Design", "➕", self._new_design),
-            ("Open Project…", "📁", self._open_project),
-            ("Save Project", "💾", self._save_project),
-        ], primary_first=True)
-
         # Project tree (existing widget, unchanged behaviour) sits directly under Project
-        tree_holder = ttk.Frame(inner, style="Sidebar.TFrame", height=380)
-        tree_holder.pack(fill="x", padx=10, pady=(8, 4))
+        tree_holder = ttk.Frame(inner, style="Sidebar.TFrame", height=520)
+        tree_holder.pack(fill="x", padx=10, pady=(10, 4))
         tree_holder.pack_propagate(False)
         self.project_tree = ProjectTree(
             tree_holder,
