@@ -18,6 +18,7 @@ class ThemeManager:
         "BG_PANEL": "#101C2B",
         "BG_ELEVATED": "#142337",
         "BG_INPUT": "#0C1726",
+        "BG_HOVER": "#1A2A3F",
         "BORDER": "#26384F",
         "FG_PRIMARY": "#F0F5FF",
         "FG_SECONDARY": "#A7B7CD",
@@ -30,13 +31,10 @@ class ThemeManager:
         "ACCENT_RED": "#FF667A",
         "ACCENT_RED_HOVER": "#FF8A8A",
         "ACCENT_PURPLE": "#C084FC",
-        "ACCENT_BLUE_HOVER": "#4DA3FF",
-        "ACCENT_GREEN_HOVER": "#56E096",
-        "ACCENT_RED_HOVER": "#FF8A8A",
-        "ACCENT_AMBER": "#FFC857",
         "SELECTION_BG": "#264F78",
         "SELECTION_FG": "#FFFFFF",
         "LOG_BG": "#050B13",
+        "LOG_FG": "#8EE6B4",
     }
 
     # Light mode colors (professional light theme)
@@ -47,6 +45,7 @@ class ThemeManager:
         "BG_PANEL": "#FFFFFF",
         "BG_ELEVATED": "#F5F7FA",
         "BG_INPUT": "#FFFFFF",
+        "BG_HOVER": "#E4E7EC",
         "BORDER": "#D0D5DD",
         "FG_PRIMARY": "#1D2939",
         "FG_SECONDARY": "#667085",
@@ -59,31 +58,10 @@ class ThemeManager:
         "ACCENT_RED": "#EF4444",
         "ACCENT_RED_HOVER": "#F87171",
         "ACCENT_PURPLE": "#A855F7",
-        "ACCENT_BLUE_HOVER": "#3B82F6",
-        "ACCENT_GREEN_HOVER": "#34D399",
-        "ACCENT_RED_HOVER": "#FCA5A5",
-        "ACCENT_AMBER": "#F59E0B",
         "SELECTION_BG": "#E0E7FF",
         "SELECTION_FG": "#1E1E1E",
         "LOG_BG": "#F5F7FA",
-        "BORDER": "#D0D5DD",
-        "FG_PRIMARY": "#1D2939",
-        "FG_SECONDARY": "#667085",
-        "FG_DISABLED": "#98A2B3",
-        "ACCENT_BLUE_HOVER": "#3B82F6",
-        "ACCENT_GREEN_HOVER": "#34D399",
-        "ACCENT_RED_HOVER": "#FCA5A5",
-        "ACCENT_AMBER": "#F59E0B",
-        "SELECTION_BG": "#E0E7FF",
-        "SELECTION_FG": "#1E1E1E",
-        "LOG_BG": "#FFFFFF",
-        "BG_APP": "#F5F7FA",
-        "BG_HEADER": "#FFFFFF",
-        "BG_SIDEBAR": "#F0F2F5",
-        "BG_PANEL": "#FFFFFF",
-        "BG_ELEVATED": "#F5F7FA",
-        "BG_INPUT": "#FFFFFF",
-        "BORDER": "#D0D5DD",
+        "LOG_FG": "#0F3D2E",
     }
 
     # Font configuration
@@ -94,6 +72,7 @@ class ThemeManager:
         self.root = root
         self._dark_mode = True  # Default to dark mode
         self.style = ttk.Style(root)
+        self._on_theme_change = None  # Callback for theme changes
         self._init_themes()
         self._apply_theme()
 
@@ -121,12 +100,16 @@ class ThemeManager:
         """Toggle between light and dark mode."""
         self._dark_mode = not self._dark_mode
         self._apply_theme()
+        if self._on_theme_change:
+            self._on_theme_change(self._dark_mode)
 
     def set_dark_mode(self, dark: bool = True):
         """Set theme mode explicitly."""
         if self._dark_mode != dark:
             self._dark_mode = dark
             self._apply_theme()
+            if self._on_theme_change:
+                self._on_theme_change(self._dark_mode)
 
     def is_dark_mode(self) -> bool:
         return self._dark_mode
@@ -163,6 +146,32 @@ class ThemeManager:
                        background=t["BG_APP"],
                        foreground=t["FG_PRIMARY"],
                        font=("TkDefaultFont", 10, "bold"))
+
+        # Card-style LabelFrame for panels
+        style.configure("Card.TLabelframe",
+                       background=t["BG_APP"],
+                       bordercolor=t["BORDER"],
+                       lightcolor=t["BORDER"],
+                       darkcolor=t["BORDER"])
+        style.configure("Card.TLabelframe.Label",
+                       background=t["BG_APP"],
+                       foreground=t["FG_PRIMARY"],
+                       font=("TkDefaultFont", 10, "bold"))
+
+        # Metric card frame
+        style.configure("MetricCard.TFrame",
+                       relief="solid",
+                       borderwidth=1,
+                       background=t["BG_ELEVATED"],
+                       bordercolor=t["BORDER"],
+                       lightcolor=t["BORDER"],
+                       darkcolor=t["BORDER"])
+
+        # Metric value label
+        style.configure("MetricValue.TLabel",
+                       background=t["BG_ELEVATED"],
+                       foreground=t["FG_PRIMARY"],
+                       font=("TkDefaultFont", 14, "bold"))
 
         # Label
         style.configure("TLabel", background=t["BG_APP"], foreground=t["FG_PRIMARY"])
@@ -215,8 +224,8 @@ class ThemeManager:
                         background=t["BG_ELEVATED"],
                         foreground=t["FG_SECONDARY"],
                         bordercolor=t["BORDER"],
-                        padding=(8, 4),
-                        font=("TkDefaultFont", 8))
+                        padding=(8, 5),
+                        font=("TkDefaultFont", 9))
         style.map("Secondary.TButton",
                   background=[("active", t["BG_HOVER"]), ("disabled", t["BG_ELEVATED"])],
                   foreground=[("active", t["FG_PRIMARY"]), ("disabled", t["FG_DISABLED"])])
@@ -232,6 +241,58 @@ class ThemeManager:
                   background=[("active", t["BG_ELEVATED"]), ("disabled", t["BG_APP"])],
                   foreground=[("disabled", t["FG_DISABLED"])])
 
+        # ===== Region frames / labels referenced by app.py =====
+        style.configure("Workspace.TFrame", background=t["BG_APP"])
+        style.configure("Header.TFrame", background=t["BG_HEADER"])
+        style.configure("Sidebar.TFrame", background=t["BG_SIDEBAR"])
+        style.configure("Header.TLabel", background=t["BG_HEADER"], foreground=t["FG_PRIMARY"])
+        style.configure("Header.Secondary.TLabel", background=t["BG_HEADER"], foreground=t["FG_SECONDARY"])
+        style.configure("Sidebar.Bold.TLabel", background=t["BG_SIDEBAR"], foreground=t["FG_SECONDARY"],
+                        font=("TkDefaultFont", 9, "bold"))
+        style.configure("MetricCard.TLabel", background=t["BG_ELEVATED"], foreground=t["FG_SECONDARY"])
+        style.configure("Placeholder.TLabel", background=t["BG_INPUT"], foreground=t["FG_DISABLED"])
+        style.configure("Preview.TLabel", background=t["LOG_BG"], foreground=t["FG_SECONDARY"])
+
+        # Left-rail navigation rows (flat, left aligned)
+        style.configure("Nav.TButton",
+                        background=t["BG_SIDEBAR"],
+                        foreground=t["FG_PRIMARY"],
+                        bordercolor=t["BG_SIDEBAR"],
+                        lightcolor=t["BG_SIDEBAR"],
+                        darkcolor=t["BG_SIDEBAR"],
+                        anchor="w",
+                        padding=(10, 6),
+                        font=("TkDefaultFont", 10))
+        style.map("Nav.TButton",
+                  background=[("active", t["BG_HOVER"]), ("pressed", t["BG_HOVER"]), ("disabled", t["BG_SIDEBAR"])],
+                  bordercolor=[("focus", t["ACCENT_BLUE"])],
+                  foreground=[("disabled", t["FG_DISABLED"])])
+
+        # Header action buttons (sit on the header colour)
+        style.configure("Header.Flat.TButton",
+                        background=t["BG_HEADER"],
+                        foreground=t["FG_PRIMARY"],
+                        bordercolor=t["BORDER"],
+                        lightcolor=t["BG_HEADER"],
+                        darkcolor=t["BG_HEADER"],
+                        padding=(10, 5),
+                        font=("TkDefaultFont", 9))
+        style.map("Header.Flat.TButton",
+                  background=[("active", t["BG_ELEVATED"])],
+                  bordercolor=[("focus", t["ACCENT_BLUE"])])
+
+        # Compact buttons for dense grids (Reports)
+        style.configure("Compact.TButton",
+                        background=t["BG_ELEVATED"],
+                        foreground=t["FG_PRIMARY"],
+                        bordercolor=t["BORDER"],
+                        padding=(2, 5),
+                        font=("TkDefaultFont", 8))
+        style.map("Compact.TButton",
+                  background=[("active", t["BG_HOVER"]), ("disabled", t["BG_ELEVATED"])],
+                  foreground=[("disabled", t["FG_DISABLED"])],
+                  bordercolor=[("focus", t["ACCENT_BLUE"])])
+
         # Entry
         style.configure("TEntry",
                         fieldbackground=t["BG_INPUT"],
@@ -243,7 +304,7 @@ class ThemeManager:
                         padding=(8, 6))
         style.map("TEntry",
                   bordercolor=[("focus", t["ACCENT_BLUE"])],
-                  fieldbackground=[("disabled", t["BG_ELEVATED"])])
+                  fieldbackground=[("readonly", t["BG_INPUT"]), ("disabled", t["BG_ELEVATED"])])
 
         # Combobox
         style.configure("TCombobox",
@@ -258,16 +319,18 @@ class ThemeManager:
                   foreground=[("disabled", t["FG_DISABLED"])])
 
         # Notebook (tabs)
-        style.configure("TNotebook", background=t["BG_APP"], borderwidth=0, tabmargins=(0, 0, 0, 0))
+        style.configure("TNotebook", background=t["BG_APP"], borderwidth=1, tabmargins=(2, 4, 2, 0),
+                        bordercolor=t["BORDER"], lightcolor=t["BG_APP"], darkcolor=t["BG_APP"])
         style.configure("TNotebook.Tab",
                         background=t["BG_ELEVATED"],
                         foreground=t["FG_SECONDARY"],
                         bordercolor=t["BORDER"],
                         lightcolor=t["BG_ELEVATED"],
                         darkcolor=t["BG_ELEVATED"],
-                        padding=(16, 8),
+                        padding=(14, 6),
                         font=("TkDefaultFont", 9))
         style.map("TNotebook.Tab",
+                  expand=[("selected", [0, 0, 0, 0])],
                   background=[("selected", t["BG_PANEL"]), ("active", t["BG_ELEVATED"])],
                   foreground=[("selected", t["FG_PRIMARY"]), ("active", t["FG_PRIMARY"])],
                   bordercolor=[("selected", t["ACCENT_BLUE"])])
@@ -311,7 +374,7 @@ class ThemeManager:
                         arrowcolor=t["FG_SECONDARY"],
                         gripcount=0)
         style.map("Vertical.TScrollbar",
-                  background=[("active", t["BG_HOVER"] if "BG_HOVER" in theme else t["BG_ELEVATED"])],
+                  background=[("active", t["BG_HOVER"])],
                   arrowcolor=[("active", t["FG_PRIMARY"])])
 
         style.configure("Horizontal.TScrollbar",
@@ -321,7 +384,7 @@ class ThemeManager:
                         arrowcolor=t["FG_SECONDARY"],
                         gripcount=0)
         style.map("Horizontal.TScrollbar",
-                  background=[("active", t["BG_HOVER"] if "BG_HOVER" in theme else t["BG_ELEVATED"])],
+                  background=[("active", t["BG_HOVER"])],
                   arrowcolor=[("active", t["FG_PRIMARY"])])
 
         # Separator
@@ -332,6 +395,7 @@ class ThemeManager:
         style.map("TCheckbutton",
                   background=[("active", t["BG_APP"])],
                   foreground=[("disabled", t["FG_DISABLED"])])
+
         style.configure("TRadiobutton", background=t["BG_APP"], foreground=t["FG_PRIMARY"], focuscolor=t["ACCENT_BLUE"])
         style.map("TRadiobutton",
                   background=[("active", t["BG_APP"])],
@@ -352,8 +416,9 @@ class ThemeManager:
                         padding=(10, 5),
                         font=("TkDefaultFont", 9))
         style.map("TMenubutton",
-                  background=[("active", t["BG_HOVER"] if "BG_HOVER" in theme else t["BG_ELEVATED"]), ("disabled", t["BG_ELEVATED"])],
-                  foreground=[("disabled", t["FG_DISABLED"])])
+                  background=[("active", t["BG_ELEVATED"]), ("disabled", t["BG_ELEVATED"]), ("focus", t["BG_ELEVATED"])],
+                  foreground=[("disabled", t["FG_DISABLED"])],
+                  bordercolor=[("focus", t["BORDER"])])
 
         # Sizegrip
         style.configure("TSizegrip", background=t["BG_APP"], bordercolor=t["BORDER"])
@@ -362,30 +427,41 @@ class ThemeManager:
         self._apply_theme_to_tk_widgets(self.root)
 
     def _apply_theme_to_tk_widgets(self, widget: tk.Misc) -> None:
-        """Recursively apply theme to raw tk widgets."""
+        """Recursively apply theme to raw tk widgets.
+
+        A widget may declare its role with ``_theme_bg`` / ``_theme_fg`` attributes
+        (keys into the colour table); otherwise sensible defaults are used.
+        """
         theme = self._get_current_theme()
 
-        if isinstance(widget, (tk.Canvas, tk.Text, tk.Listbox, tk.Scrollbar)):
-            try:
-                is_text_or_canvas = isinstance(widget, (tk.Canvas, tk.Text))
+        try:
+            if isinstance(widget, tk.Canvas):
                 widget.configure(
-                    background=theme["BG_PANEL"] if is_text_or_canvas else theme["BG_APP"],
-                    foreground=theme["FG_PRIMARY"],
+                    background=theme[getattr(widget, "_theme_bg", "BG_APP")],
+                    highlightthickness=0,
+                    borderwidth=0,
+                )
+            elif isinstance(widget, tk.Text):
+                widget.configure(
+                    background=theme[getattr(widget, "_theme_bg", "BG_PANEL")],
+                    foreground=theme[getattr(widget, "_theme_fg", "FG_PRIMARY")],
                     insertbackground=theme["FG_PRIMARY"],
                     selectbackground=theme["SELECTION_BG"],
                     selectforeground=theme["SELECTION_FG"],
                     highlightthickness=0,
                     borderwidth=0,
                 )
-                if isinstance(widget, tk.Scrollbar):
-                    widget.configure(
-                        background=theme["BG_ELEVATED"],
-                        troughcolor=theme["BG_APP"],
-                        activebackground=theme["BG_HOVER"] if "BG_HOVER" in theme else theme["BG_ELEVATED"],
-                        borderwidth=0,
-                    )
-            except tk.TclError:
-                pass
+            elif isinstance(widget, tk.Listbox):
+                widget.configure(
+                    background=theme["BG_PANEL"],
+                    foreground=theme["FG_PRIMARY"],
+                    selectbackground=theme["SELECTION_BG"],
+                    selectforeground=theme["SELECTION_FG"],
+                    highlightthickness=0,
+                    borderwidth=0,
+                )
+        except tk.TclError:
+            pass
 
         # Recurse into children
         try:
@@ -394,9 +470,35 @@ class ThemeManager:
         except tk.TclError:
             pass
 
+    def apply_to_widgets(self, root: tk.Misc | None = None) -> None:
+        """Re-theme raw tk widgets created after the theme was first applied."""
+        self._apply_theme_to_tk_widgets(root or self.root)
+
     def get_colors(self) -> dict:
         """Get current theme colors for custom widgets."""
         return self._get_current_theme()
+
+
+# Module-level exports for backward compatibility (using Dark theme defaults)
+BG_DARK = ThemeManager.DARK["BG_APP"]
+BG_PANEL = ThemeManager.DARK["BG_PANEL"]
+BG_ELEVATED = ThemeManager.DARK["BG_ELEVATED"]
+BG_HOVER = ThemeManager.DARK["BG_HOVER"]
+BORDER = ThemeManager.DARK["BORDER"]
+FG_PRIMARY = ThemeManager.DARK["FG_PRIMARY"]
+FG_SECONDARY = ThemeManager.DARK["FG_SECONDARY"]
+ACCENT_BLUE = ThemeManager.DARK["ACCENT_BLUE"]
+ACCENT_BLUE_HOVER = ThemeManager.DARK["ACCENT_BLUE_HOVER"]
+ACCENT_GREEN = ThemeManager.DARK["ACCENT_GREEN"]
+ACCENT_GREEN_HOVER = ThemeManager.DARK["ACCENT_GREEN_HOVER"]
+ACCENT_AMBER = ThemeManager.DARK["ACCENT_AMBER"]
+ACCENT_RED = ThemeManager.DARK["ACCENT_RED"]
+ACCENT_RED_HOVER = ThemeManager.DARK["ACCENT_RED_HOVER"]
+ACCENT_PURPLE = ThemeManager.DARK["ACCENT_PURPLE"]
+SELECTION_BG = ThemeManager.DARK["SELECTION_BG"]
+SELECTION_FG = ThemeManager.DARK["SELECTION_FG"]
+LOG_BG = ThemeManager.DARK["LOG_BG"]
+LOG_FG = ThemeManager.DARK["LOG_FG"]
 
 
 # Global theme manager instance (initialized in app.py)

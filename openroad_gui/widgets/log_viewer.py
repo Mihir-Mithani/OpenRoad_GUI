@@ -74,7 +74,7 @@ class TerminalWidget(ttk.Frame):
         self.text = scrolledtext.ScrolledText(
             self,
             wrap=tk.WORD,
-            height=12,
+            height=6,
             font=("Menlo", 11),
             state=tk.NORMAL,
             background="#1e1e1e",
@@ -82,6 +82,8 @@ class TerminalWidget(ttk.Frame):
             insertbackground="#d4d4d4",
         )
         self.text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        self.text._theme_bg = "LOG_BG"
+        self.text._theme_fg = "FG_PRIMARY"
 
         # Tags for colored output (for our own messages)
         self.text.tag_configure("stdout", foreground="#d4d4d4")
@@ -302,6 +304,30 @@ class TerminalWidget(ttk.Frame):
         self._stop_pty()
         super().destroy()
 
+    def _refresh_theme(self) -> None:
+        """Refresh theme colors for the terminal widget."""
+        try:
+            from openroad_gui.theme import get_theme_manager
+            theme = get_theme_manager().get_colors()
+            self.text.configure(
+                background=theme["LOG_BG"],
+                foreground=theme["FG_PRIMARY"],
+                insertbackground=theme["FG_PRIMARY"],
+            )
+            # Update tags for new theme
+            if get_theme_manager().is_dark_mode():  # Dark theme
+                self.text.tag_configure("stdout", foreground=theme["FG_PRIMARY"])
+                self.text.tag_configure("stderr", foreground=theme["ACCENT_RED"])
+                self.text.tag_configure("info", foreground=theme["ACCENT_GREEN"])
+                self.text.tag_configure("error", foreground=theme["ACCENT_RED"], font=("Menlo", 11, "bold"))
+            else:  # Light theme
+                self.text.tag_configure("stdout", foreground="#333333")
+                self.text.tag_configure("stderr", foreground="#cc0000")
+                self.text.tag_configure("info", foreground="#006600")
+                self.text.tag_configure("error", foreground="#cc0000", font=("Menlo", 11, "bold"))
+        except RuntimeError:
+            pass
+
 
 class LogViewer(ttk.Frame):
     def __init__(self, master: tk.Misc, **kwargs) -> None:
@@ -331,7 +357,7 @@ class LogViewer(ttk.Frame):
         self.text = scrolledtext.ScrolledText(
             self.log_frame,
             wrap=tk.WORD,
-            height=12,
+            height=6,
             font=("Menlo", 11),
             state=tk.DISABLED,
             background="#1e1e1e",
@@ -339,6 +365,8 @@ class LogViewer(ttk.Frame):
             insertbackground="#d4d4d4",
         )
         self.text.pack(fill=tk.BOTH, expand=True)
+        self.text._theme_bg = "LOG_BG"
+        self.text._theme_fg = "FG_PRIMARY"
 
         self.text.tag_configure("stdout", foreground="#d4d4d4")
         self.text.tag_configure("stderr", foreground="#f48771")
@@ -348,6 +376,7 @@ class LogViewer(ttk.Frame):
         # --- Terminal tab ---
         self.terminal = TerminalWidget(self.notebook)
         self.notebook.add(self.terminal, text="Terminal")
+        self._refresh_theme()
 
     def append(self, stream: str, line: str) -> None:
         self.text.configure(state=tk.NORMAL)
@@ -358,6 +387,9 @@ class LogViewer(ttk.Frame):
 
     def log_info(self, message: str) -> None:
         self.append("info", message if message.endswith("\n") else message + "\n")
+
+    def log_warning(self, message: str) -> None:
+        self.append("stderr", message if message.endswith("\n") else message + "\n")
 
     def log_error(self, message: str) -> None:
         self.text.configure(state=tk.NORMAL)
@@ -390,3 +422,31 @@ class LogViewer(ttk.Frame):
                     f.write(content)
             except OSError:
                 pass  # Silently ignore export errors
+
+    def _refresh_theme(self) -> None:
+        """Refresh theme colors for the log viewer."""
+        try:
+            from openroad_gui.theme import get_theme_manager
+            theme = get_theme_manager().get_colors()
+            # Update Flow Log text widget
+            self.text.configure(
+                background=theme["LOG_BG"],
+                foreground=theme["FG_PRIMARY"],
+                insertbackground=theme["FG_PRIMARY"],
+            )
+            # Update tags for new theme
+            if get_theme_manager().is_dark_mode():  # Dark theme
+                self.text.tag_configure("stdout", foreground=theme["FG_PRIMARY"])
+                self.text.tag_configure("stderr", foreground=theme["ACCENT_RED"])
+                self.text.tag_configure("info", foreground=theme["ACCENT_GREEN"])
+                self.text.tag_configure("error", foreground=theme["ACCENT_RED"], font=("Menlo", 11, "bold"))
+            else:  # Light theme - use darker colors for readability
+                self.text.tag_configure("stdout", foreground="#333333")
+                self.text.tag_configure("stderr", foreground="#cc0000")
+                self.text.tag_configure("info", foreground="#006600")
+                self.text.tag_configure("error", foreground="#cc0000", font=("Menlo", 11, "bold"))
+            # Update terminal widget if it exists
+            if hasattr(self, 'terminal'):
+                self.terminal._refresh_theme()
+        except RuntimeError:
+            pass

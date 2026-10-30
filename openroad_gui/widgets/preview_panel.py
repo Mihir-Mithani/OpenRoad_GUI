@@ -28,10 +28,13 @@ class PreviewPanel(ttk.LabelFrame):
             wrap=tk.NONE,
             font=("Menlo", 11),
             state=tk.DISABLED,
+            height=8,
+            width=20,
         )
         self.text.pack(fill=tk.BOTH, expand=True)
 
-        self.image_canvas = tk.Canvas(self.image_tab, background="#2b2b2b", highlightthickness=0)
+        self.image_canvas = tk.Canvas(self.image_tab, highlightthickness=0, height=120, width=200)
+        self.image_canvas._theme_bg = "LOG_BG"
         image_vsb = ttk.Scrollbar(self.image_tab, orient=tk.VERTICAL, command=self.image_canvas.yview)
         image_hsb = ttk.Scrollbar(self.image_tab, orient=tk.HORIZONTAL, command=self.image_canvas.xview)
         self.image_canvas.configure(xscrollcommand=image_hsb.set, yscrollcommand=image_vsb.set)
@@ -40,7 +43,7 @@ class PreviewPanel(ttk.LabelFrame):
         image_hsb.pack(side=tk.BOTTOM, fill=tk.X)
         self.image_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        self.image_label = ttk.Label(self.image_canvas, text="No layout preview")
+        self.image_label = ttk.Label(self.image_canvas, text="No layout preview", style="Preview.TLabel")
         self.image_window = self.image_canvas.create_window(0, 0, anchor=tk.NW, window=self.image_label)
 
         self.image_label.bind("<Configure>", self._on_image_configure)

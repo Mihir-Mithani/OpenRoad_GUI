@@ -30,7 +30,7 @@ class OpenROADGuiStage(Enum):
     PLACE = ("gui_place", "Placement")
     CTS = ("gui_cts", "CTS")
     ROUTE = ("gui_route", "Routing")
-    FINAL = ("gui_final", "Final")
+    FINAL = ("gui_final", "GDSII Export")
 
     def __init__(self, make_target: str, label: str) -> None:
         self.make_target = make_target

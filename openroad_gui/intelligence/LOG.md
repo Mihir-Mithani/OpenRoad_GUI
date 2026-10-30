@@ -1,6 +1,6 @@
 # OpenROAD Flow GUI - Intelligence Module Development Log
 
-## Date: 2025-01-19 (Session 1) & 2025-01-20 (Session 2) & 2025-10-21 (Session 3)
+## Date: 2026-01-19 (Session 1) & 2026-01-20 (Session 2) & 2026-10-21 (Session 3)
 
 ---
 
@@ -109,7 +109,7 @@ Fixed the intelligence module data pipeline to work with real ORFS (OpenROAD Flo
 
 ---
 
-## Session 3: Google Colab Training (2025-10-21)
+## Session 3: Google Colab Training (2026-10-21)
 
 ### Google Colab Training Session
 - **Platform:** Google Colab with T4 GPU
@@ -338,15 +338,75 @@ python3 -m openroad_gui
 
 ---
 
+## Session 4: Local GUI Integration & Layout Overhaul (2026-10-28)
+
+### Sprint 4 Goals
+- **Merge new 4-zone AI-Assisted EDA workstation layout** with **proven working backend**
+- **Fix theme system** with centralized dark/light mode
+- **Integrate all intelligence modules** (FailurePredictor, SurrogateInference, FlowOptimizationEngine) with new UI
+- **Restore full working functionality** from backup while keeping new visual design
+
+### Work Completed (2026-10-28)
+
+#### 1. New 4-Zone UI Layout (`openroad_gui/app.py`)
+- **Header**: Brand + navigation tabs (Home, Flow, Design, Run, Results, AI, Settings) + theme toggle + help
+- **Left Navigation Rail** (212px): ProjectTree (expands) + scrollable sections (Project, Design Inputs, Flow Config, Run & Monitor, Results & Analysis, Utilities)
+- **Center Workspace** (4 bands):
+  - Band 1: PipelineRow with 7 visual nodes + "Run Full Flow"
+  - Band 2: Design Inputs (307px) + Layout Viewer (578px)
+  - Band 3: Terminal/Flow Log with tabs (OpenROAD Log, Terminal, Errors)
+  - Band 4: Flow Progress + Quick Metrics (WNS, TNS, Area, Power, DRC, LVS)
+- **Right Analysis Rail** (406px): AI Assistant, PPA Analysis, Optimization Suggestions, Reports
+
+#### 2. Theme System (`openroad_gui/theme.py`)
+- Centralized dark/light mode with professional EDA color tokens
+- Module-level exports for backward compatibility (BG_DARK, ACCENT_BLUE, etc.)
+- `Ctrl+T` toggle, `Ctrl+D` dark mode set
+- Added missing styles: `Card.TLabelframe`, `MetricCard.TFrame`, `MetricValue.TLabel`
+
+#### 3. PipelineRow Widget Integration
+- Supports all 10 callbacks: run_stage, run_all, stop, open_gui, view_gds, open_in_editor, use_as_config, open_reports, export_log, preview_layout
+- Visual stage nodes with status coding (pending/running/completed/failed)
+
+#### 4. Backend Functionality Merged from Backup
+- **All file/preview handlers**: `_on_file_select`, `_show_gds_file`, `_generate_gds_preview`, `_set_active_config`, `_use_as_config`, `_open_in_editor`
+- **Flow execution**: `_run_stage`, `_run_all`, `_stop_flow`, `_make_clean` (with clean target dropdown)
+- **Intelligence methods**: `_predict_failure_risk`, `_suggest_optimal_params`, `_show_surrogate_predictions`, `_fetch_design_metrics`, `_build_surrogate_features`
+- **Settings/terminal/reports**: `_open_settings`, `_open_terminal_here`, `_open_reports_folder`, `_export_log`
+- **Project tree integration**: `_new_design`, `_open_project`, `_save_project`
+
+#### 5. Dual Widget Support
+- Handlers check `hasattr(self, 'flow_panel')` / `hasattr(self, 'pipeline_row')` to call correct widget methods
+- Both legacy `FlowPanel` and new `PipelineRow` supported
+
+#### 6. Tests Verified
+- All **91 unit tests pass** (config, flow_runner, templates, gds_info)
+- Application starts without crashes
+- Theme system initializes correctly
+
+### Files Modified
+1. `openroad_gui/app.py` - Complete rewrite: new 4-zone layout + all backup handlers merged
+2. `openroad_gui/theme.py` - Added missing styles + module-level exports
+3. `openroad_gui/intelligence/LOG.md` - Date corrections + this session entry
+
+### Next Steps (Sprint 5)
+- [ ] Wire AI Assistant chat to actual LLM/backend
+- [ ] Connect PPA Analysis "Run Prediction" to SurrogateInference
+- [ ] Implement "Apply Suggestion" with diff preview
+- [ ] Add real-time metrics updates during flow runs
+- [ ] Production hardening: model versioning, confidence intervals, fallback params
+
+---
+
 ## Notes
 - All fixes are in the main codebase, no temporary patch files needed
 - The collector now correctly handles ORFS standard directory structure
 - 22 diverse designs provide good platform/design coverage for initial training
 - 18 designs have `6_report.json` with full PPA metrics (area, power, DRC, utilization)
 - Report parsing and JSON extraction are the key enablers for meaningful feature data
-- Ready for Sprint 4: Local GUI integration and production hardening
+- Sprint 4 complete: New UI layout + working backend merged successfully
 
 ---
 
-**Last Updated:** 2025-10-21  
-**Status:** All training complete, models exported, ready for local integration (Sprint 4)
+**Last Updated:** 2026-10-28  
+**Status:** Sprint 4 complete — New 4-zone AI-Assisted EDA workstation layout with fully working backend

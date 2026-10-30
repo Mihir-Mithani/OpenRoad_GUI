@@ -1,0 +1,2009 @@
+diff --git a/.idea/.name b/.idea/.name
+index 1f4ab1b..aa15e3e 100644
+--- a/.idea/.name
++++ b/.idea/.name
+@@ -1 +1 @@
+-LOG.md
+\ No newline at end of file
++app.py
+\ No newline at end of file
+diff --git a/openroad_gui/app.py b/openroad_gui/app.py
+index 64bfab7..2ab8f54 100644
+--- a/openroad_gui/app.py
++++ b/openroad_gui/app.py
+@@ -1,4 +1,4 @@
+-"""Main application window."""
++"""Main application window - Industrial EDA Workstation."""
+ 
+ from __future__ import annotations
+ 
+@@ -21,6 +21,9 @@ from openroad_gui.widgets.preview_panel import PreviewPanel
+ from openroad_gui.widgets.project_tree import ProjectTree
+ from openroad_gui.widgets.settings_dialog import SettingsDialog
+ 
++# Theme management
++from openroad_gui.theme import init_theme, get_theme_manager, toggle_theme, set_dark_mode
++
+ # Intelligence modules
+ try:
+     from openroad_gui.intelligence import FlowOptimizationEngine, FailurePredictor, SurrogateInference
+@@ -33,12 +36,19 @@ except ImportError:
+ 
+ 
+ class OpenRoadGUI(tk.Tk):
++    """Main application window - Industrial EDA Workstation."""
++
+     def __init__(self) -> None:
+         super().__init__()
+-        self.title(f"OpenROAD Flow GUI v{__version__}")
+-        self.geometry("1200x800")
++        self.title(f"OpenROAD Flow GUI v{__version__} - AI-Assisted EDA")
++        self.geometry("1536x1024")
+         self.minsize(900, 600)
+ 
++        # Initialize theme manager FIRST (before any widgets)
++        from openroad_gui.theme import init_theme
++        self.theme_manager = init_theme(self)
++        self.theme = self.theme_manager.get_colors()
++
+         self.app_config = load_config()
+         self.runner = FlowRunner(self.app_config)
+         self.viewers = ViewerService(self.app_config)
+@@ -57,6 +67,7 @@ class OpenRoadGUI(tk.Tk):
+             except Exception as e:
+                 print(f"Warning: Could not initialize intelligence modules: {e}")
+ 
++        # Build UI in order: style -> menu -> layout
+         self._apply_style()
+         self._build_menu()
+         self._build_layout()
+@@ -64,33 +75,37 @@ class OpenRoadGUI(tk.Tk):
+ 
+         self.protocol("WM_DELETE_WINDOW", self._on_close)
+ 
++        # Bind theme toggle
++        self.bind("<Control-t>", lambda e: toggle_theme())
++        self.bind("<Control-d>", lambda e: self.theme_manager.set_dark_mode(not self.theme_manager.is_dark_mode()))
++
+     def _apply_style(self) -> None:
+-        style = ttk.Style(self)
+-        if "aqua" in style.theme_names():
+-            style.theme_use("aqua")
+-        elif "clam" in style.theme_names():
+-            style.theme_use("clam")
++        """Apply theme - handled by ThemeManager during init."""
++        pass  # Theme applied during init_theme()
+ 
+     def _build_menu(self) -> None:
++        """Build the complete menu bar."""
+         menubar = tk.Menu(self)
+         self.config(menu=menubar)
+ 
+-        file_menu = tk.Menu(menubar, tearoff=0)
++        # File menu
++        file_menu = tk.Menu(self, tearoff=0)
+         menubar.add_cascade(label="File", menu=file_menu)
+-        file_menu.add_command(label="Settings…", command=self._open_settings)
++        file_menu.add_command(label="New Design", command=self._new_design, accelerator="Ctrl+N")
++        file_menu.add_command(label="Open Project…", command=self._open_project, accelerator="Ctrl+O")
++        file_menu.add_command(label="Save Project", command=self._save_project, accelerator="Ctrl+S")
+         file_menu.add_separator()
+-        file_menu.add_command(label="Quit", command=self._on_close)
++        file_menu.add_command(label="Settings…", command=self._open_settings, accelerator="Ctrl+,")
++        file_menu.add_separator()
++        file_menu.add_command(label="Quit", command=self._on_close, accelerator="Ctrl+Q")
+ 
+-        view_menu = tk.Menu(menubar, tearoff=0)
++        # View menu
++        view_menu = tk.Menu(self, tearoff=0)
+         menubar.add_cascade(label="View", menu=view_menu)
+-        view_menu.add_command(
+-            label="GDS — View in KLayout",
+-            command=self._view_default_gds,
+-        )
+-        view_menu.add_command(
+-            label="GDS — Preview Layout",
+-            command=self._preview_default_gds,
+-        )
++        view_menu.add_command(label="Toggle Theme", command=toggle_theme, accelerator="Ctrl+T")
++        view_menu.add_separator()
++        view_menu.add_command(label="GDS — View in KLayout", command=self._view_default_gds)
++        view_menu.add_command(label="GDS — Preview Layout", command=self._preview_default_gds)
+         view_menu.add_separator()
+         for stage in OPENROAD_GUI_STAGES:
+             view_menu.add_command(
+@@ -98,7 +113,8 @@ class OpenRoadGUI(tk.Tk):
+                 command=lambda s=stage: self._open_or_gui_stage(s),
+             )
+ 
+-        flow_menu = tk.Menu(menubar, tearoff=0)
++        # Flow menu
++        flow_menu = tk.Menu(self, tearoff=0)
+         menubar.add_cascade(label="Flow", menu=flow_menu)
+         for stage in FULL_PIPELINE:
+             flow_menu.add_command(
+@@ -110,7 +126,7 @@ class OpenRoadGUI(tk.Tk):
+         flow_menu.add_command(label="Stop", command=self._stop_flow)
+ 
+         # Intelligence menu
+-        intel_menu = tk.Menu(menubar, tearoff=0)
++        intel_menu = tk.Menu(self, tearoff=0)
+         menubar.add_cascade(label="Intelligence", menu=intel_menu)
+         if HAS_INTELLIGENCE:
+             intel_menu.add_command(
+@@ -137,99 +153,868 @@ class OpenRoadGUI(tk.Tk):
+                 state="disabled",
+             )
+ 
+-        help_menu = tk.Menu(menubar, tearoff=0)
++        # Help menu
++        help_menu = tk.Menu(self, tearoff=0)
+         menubar.add_cascade(label="Help", menu=help_menu)
+         help_menu.add_command(label="Quick Start", command=self._show_help)
++        help_menu.add_command(label="About", command=self._show_about)
+ 
+-    def _build_layout(self) -> None:
+-        paned = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
+-        paned.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
++        # Store menubar reference
++        self.config(menu=menubar)
+ 
+-        left = ttk.Frame(paned, width=280)
+-        paned.add(left, weight=1)
++    def _build_menu_bar(self) -> None:
++        """Build the complete menu bar (alias for _build_menu for compatibility)."""
++        # Menu already built in _build_menu - this is kept for compatibility
++        pass
+ 
+-        right = ttk.Frame(paned)
+-        paned.add(right, weight=3)
++    def _apply_style(self) -> None:
++        """Apply theme - handled by ThemeManager during init."""
++        pass  # Theme applied during init_theme()
+ 
+-        self.project_tree = ProjectTree(
+-            left,
+-            on_select=self._on_file_select,
+-            on_view_gds=self._view_gds_in_klayout,
+-            on_open_or_gui=self._open_or_gui_for_file,
+-        )
+-        self.project_tree.pack(fill=tk.BOTH, expand=True)
++    def _build_menu(self) -> None:
++        """Build the complete menu bar."""
++        menubar = tk.Menu(self)
++        self.config(menu=menubar)
++
++        # File menu
++        file_menu = tk.Menu(self, tearoff=0)
++        menubar.add_cascade(label="File", menu=file_menu)
++        file_menu.add_command(label="New Design", command=self._new_design, accelerator="Ctrl+N")
++        file_menu.add_command(label="Open Project…", command=self._open_project, accelerator="Ctrl+O")
++        file_menu.add_command(label="Save Project", command=self._save_project, accelerator="Ctrl+S")
++        file_menu.add_separator()
++        file_menu.add_command(label="Settings…", command=self._open_settings, accelerator="Ctrl+,")
++        file_menu.add_separator()
++        file_menu.add_command(label="Quit", command=self._on_close, accelerator="Ctrl+Q")
++
++        # View menu
++        view_menu = tk.Menu(self, tearoff=0)
++        menubar.add_cascade(label="View", menu=view_menu)
++        view_menu.add_command(label="Toggle Theme", command=toggle_theme, accelerator="Ctrl+T")
++        view_menu.add_separator()
++        view_menu.add_command(label="GDS — View in KLayout", command=self._view_default_gds)
++        view_menu.add_command(label="GDS — Preview Layout", command=self._preview_default_gds)
++        view_menu.add_separator()
++        for stage in OPENROAD_GUI_STAGES:
++            view_menu.add_command(
++                label=f"OpenROAD GUI — {stage.label}",
++                command=lambda s=stage: self._open_or_gui_stage(s),
++            )
++
++        # Flow menu
++        flow_menu = tk.Menu(self, tearoff=0)
++        menubar.add_cascade(label="Flow", menu=flow_menu)
++        for stage in FULL_PIPELINE:
++            flow_menu.add_command(
++                label=stage.label,
++                command=lambda s=stage: self._run_stage(s),
++            )
++        flow_menu.add_separator()
++        flow_menu.add_command(label="Run Full Pipeline", command=self._run_all)
++        flow_menu.add_command(label="Stop", command=self._stop_flow)
++
++        # Intelligence menu
++        intel_menu = tk.Menu(self, tearoff=0)
++        menubar.add_cascade(label="Intelligence", menu=intel_menu)
++        if HAS_INTELLIGENCE:
++            intel_menu.add_command(
++                label="Predict Failure Risk",
++                command=self._predict_failure_risk,
++            )
++            intel_menu.add_command(
++                label="Suggest Optimal Parameters",
++                command=self._suggest_optimal_params,
++            )
++            intel_menu.add_separator()
++            intel_menu.add_command(
++                label="Show Surrogate Predictions",
++                command=self._show_surrogate_predictions,
++            )
++            intel_menu.add_separator()
++            intel_menu.add_command(
++                label="Open Intelligence Reports",
++                command=self._open_intelligence_reports,
++            )
++        else:
++            intel_menu.add_command(
++                label="Intelligence Unavailable",
++                state="disabled",
++            )
+ 
+-        self.flow_panel = FlowPanel(
+-            right,
++        # Help menu
++        help_menu = tk.Menu(self, tearoff=0)
++        menubar.add_cascade(label="Help", menu=help_menu)
++        help_menu.add_command(label="Quick Start", command=self._show_help)
++        help_menu.add_command(label="About", command=self._show_about)
++
++        # Store menubar reference
++        self.config(menu=menubar)
++
++# PHASE 2: Layout Structure
++# Add these methods to your OpenRoadGUI class (after __init__)
++
++def _build_layout(self) -> None:
++    """Build the main 4-zone layout:
++    - Header (top)
++    - Left Navigation Rail
++    - Center Workspace (Pipeline + Inputs/Viewer + Terminal/Log + Progress/Metrics)
++    - Right Rail (AI Assistant, PPA, Optimization, Reports)
++    """
++    # Configure root grid
++    self.columnconfigure(0, weight=0, minsize=212)   # Left navigation rail
++    self.columnconfigure(1, weight=1, minsize=900)   # Center workspace
++    self.columnconfigure(2, weight=0, minsize=406)   # Right rail
++
++    self.rowconfigure(0, weight=0, minsize=62)   # Header
++    self.rowconfigure(1, weight=1, minsize=700)   # Main content
++
++    # ===== HEADER =====
++    self.header_frame = ttk.Frame(self, style="Header.TFrame")
++    self.header_frame.grid(row=0, column=0, columnspan=3, sticky="nsew", padx=0, pady=0)
++    self.header_frame.columnconfigure(0, weight=0)   # Brand
++    self.header_frame.columnconfigure(1, weight=1)   # Navigation tabs
++    self.header_frame.columnconfigure(2, weight=0)   # Theme/Help
++
++    self._build_header()
++
++    # ===== LEFT NAVIGATION RAIL =====
++    self.nav_rail = ttk.Frame(self, style="Sidebar.TFrame", width=212)
++    self.nav_rail.grid(row=1, column=0, sticky="nsew", padx=0, pady=0)
++    self.nav_rail.grid_propagate(False)
++    self.nav_rail.columnconfigure(0, weight=1)
++
++    self._build_nav_rail()
++
++    # ===== CENTER WORKSPACE =====
++    self.center_workspace = ttk.Frame(self, style="Workspace.TFrame")
++    self.center_workspace.grid(row=1, column=1, sticky="nsew", padx=11, pady=0)
++    self.center_workspace.columnconfigure(0, weight=1)
++    self.center_workspace.rowconfigure(0, weight=0, minsize=150)  # Pipeline
++    self.center_workspace.rowconfigure(1, weight=0, minsize=366)  # Inputs + Viewer
++    self.center_workspace.rowconfigure(2, weight=1, minsize=237)  # Terminal/Log
++    self.center_workspace.rowconfigure(3, weight=0, minsize=113)  # Progress + Metrics
++
++    self._build_center_workspace()
++
++    # ===== RIGHT RAIL =====
++    self.right_rail = ttk.Frame(self, style="Sidebar.TFrame", width=406)
++    self.right_rail.grid(row=1, column=2, sticky="nsew", padx=12, pady=0)
++    self.right_rail.grid_propagate(False)
++    self.right_rail.columnconfigure(0, weight=1)
++
++    self._build_right_rail()
++
++    # Bind responsive behavior
++    self.bind("<Configure>", self._on_window_resize)
++
++def _build_header(self) -> None:
++    """Build the application header with brand, navigation, and actions."""
++    t = self.theme_manager.get_colors()
++
++    # Brand block (left)
++    brand_frame = ttk.Frame(self.header_frame, style="Header.TFrame")
++    brand_frame.grid(row=0, column=0, sticky="nsew", padx=18, pady=0)
++    brand_frame.columnconfigure(1, weight=1)
++
++    # Icon + Title
++    icon_label = ttk.Label(self.header_frame, text="⬢", style="Header.TLabel", font=("TkDefaultFont", 24))
++    icon_label.grid(row=0, column=0, padx=(18, 12), pady=10, sticky="w")
++
++    title_frame = ttk.Frame(self.header_frame, style="Header.TFrame")
++    title_frame.grid(row=0, column=1, sticky="w", pady=10, padx=(0, 0))
++
++    ttk.Label(title_frame, text="AI-Assisted EDA", style="Header.TLabel", font=("TkDefaultFont", 22, "bold")).grid(row=0, column=0, sticky="w")
++    ttk.Label(title_frame, text="OpenROAD GUI for RTL-to-GDSII Flow", style="Header.TLabel", font=("TkDefaultFont", 10), foreground=self.theme["FG_SECONDARY"]).grid(row=1, column=0, sticky="w")
++
++    # Navigation tabs (center)
++    nav_frame = ttk.Frame(self.header_frame, style="Header.TFrame")
++    nav_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=10)
++
++    nav_items = [
++        ("Home", "🏠", lambda: self._show_home()),
++        ("Flow", "⚡", lambda: self._show_flow_view()),
++        ("Design", "📐", lambda: self._show_design_view()),
++        ("Run", "▶", lambda: self._show_run_view()),
++        ("Results", "📊", lambda: self._show_results_view()),
++        ("AI Assistant", "🤖", lambda: self._show_ai_view()),
++        ("Settings", "⚙", self._open_settings),
++    ]
++
++    for i, (label, icon, cmd) in enumerate(nav_items):
++        btn = ttk.Button(
++            self.header_frame,
++            text=f"  {icon}  {label}  ",
++            style="Flat.TButton",
++            command=cmd,
++        )
++        btn.grid(row=0, column=i, padx=4, pady=5, sticky="nsew")
++
++    # Right actions (theme toggle + help)
++    actions_frame = ttk.Frame(self.header_frame, style="Header.TFrame")
++    actions_frame.grid(row=0, column=2, sticky="nsew", padx=18, pady=10)
++
++    self.theme_toggle_btn = ttk.Button(
++        self.header_frame,
++        text="🌙 Dark" if self.theme_manager.is_dark_mode() else "☀️ Light",
++        style="Flat.TButton",
++        command=toggle_theme,
++        width=12
++    )
++    self.theme_toggle_btn.grid(row=0, column=0, padx=(0, 8), pady=5)
++
++    ttk.Button(
++        self.header_frame,
++        text="❓ Help",
++        style="Flat.TButton",
++        command=self._show_help,
++        width=8
++    ).grid(row=0, column=1, padx=(0, 0), pady=5)
++
++def _build_nav_rail(self) -> None:
++    nav = self.nav_rail
++
++    # Create scrollable canvas for nav rail
++    canvas = tk.Canvas(nav, highlightthickness=0, background=self.theme["BG_SIDEBAR"])
++    scrollbar = ttk.Scrollbar(nav, orient="vertical", command=canvas.yview)
++    scrollable_frame = ttk.Frame(canvas, style="Sidebar.TFrame")
++
++    scrollable_frame.bind(
++        "<Configure>",
++        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
++    )
++
++    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw", width=212)
++    canvas.configure(yscrollcommand=scrollbar.set)
++
++    canvas.pack(side="left", fill="both", expand=True)
++    scrollbar.pack(side="right", fill="y")
++
++    def _on_mousewheel(event):
++        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
++    canvas.bind_all("<MouseWheel>", _on_mousewheel)
++
++    def add_section(parent, title, items):
++        section_frame = ttk.Frame(parent, style="Sidebar.TFrame")
++        section_frame.pack(fill="x", padx=8, pady=(12, 4), anchor="w")
++        section_frame.columnconfigure(0, weight=1)
++
++        ttk.Label(section_frame, text=title, style="Bold.TLabel",
++                 font=("TkDefaultFont", 9, "bold")).pack(anchor="w", pady=(0, 6))
++
++        for label, icon, cmd in items:
++            btn = ttk.Button(
++                section_frame,
++                text=f"  {icon}  {label}",
++                style="Flat.TButton",
++                command=cmd,
++            )
++            btn.pack(fill="x", pady=2, padx=4, anchor="w")
++
++            ttk.Separator(section_frame, orient="horizontal").pack(fill="x", pady=(8, 4))
++
++        # 5.1 Project
++        add_section(self.nav_rail, "Project", [
++            ("New Design", "➕", self._new_design),
++            ("Open Project…", "📁", self._open_project),
++            ("Save Project", "💾", self._save_project),
++        ])
++
++        # 5.2 Design Inputs
++        add_section(self.nav_rail, "Design Inputs", [
++            ("RTL (Verilog/SystemVerilog)", "📄", lambda: self._focus_input("rtl")),
++            ("Technology (Lib/LEF)", "🔬", lambda: self._focus_input("lib")),
++            ("Constraints (SDC)", "📋", lambda: self._focus_input("sdc")),
++            ("Floorplan / Config", "📐", lambda: self._focus_input("config")),
++        ])
++
++        # 5.3 Flow Configuration
++        add_section(self.nav_rail, "Flow Configuration", [
++            ("Flow Steps", "🔢", self._show_flow_config),
++            ("Parameter Tuning", "🎛", self._show_param_tuning),
++            ("AI Optimization", "🤖", self._show_ai_optimization),
++        ])
++
++        # 5.4 Run & Monitor
++        add_section(self.nav_rail, "Run & Monitor", [
++            ("Start Flow", "▶", self._run_all),
++            ("Stop", "⏹", self._stop_flow),
++            ("View Logs", "📋", self._focus_logs),
++        ])
++
++        # 5.5 Results & Analysis
++        add_section(self.nav_rail, "Results & Analysis", [
++            ("Reports (PPA)", "📊", self._show_reports),
++            ("Layout Viewer", "📐", self._show_layout_viewer),
++            ("Timing Analysis", "⏱", self._show_timing_analysis),
++            ("Power Analysis", "⚡", self._show_power_analysis),
++            ("DRC/LVS", "✅", self._show_drc_lvs),
++        ])
++
++        # 5.6 Utilities
++        add_section(self.nav_rail, "Utilities", [
++            ("Scripting (TCL)", "📝", self._open_tcl_console),
++            ("Docs & Help", "📖", self._show_help),
++            ("About", "ℹ", self._show_about),
++        ])
++
++    def _build_center_workspace(self) -> None:
++        cw = self.center_workspace
++
++        # Band 1: Pipeline
++        self.pipeline_frame = ttk.LabelFrame(cw, text="Design Flow (RTL → GDSII)", style="Card.TLabelframe")
++        self.pipeline_frame.grid(row=0, column=0, sticky="nsew", padx=4, pady=(4, 2))
++        self.pipeline_frame.columnconfigure(0, weight=1)
++
++        ttk.Label(self.pipeline_frame, text="Design Flow (RTL → GDSII)", style="Title.TLabel").pack(side="left", padx=12, pady=8)
++        ttk.Button(
++            self.pipeline_frame,
++            text="▶ Run Full Flow",
++            style="Primary.TButton",
++            command=self._run_all
++        ).pack(side="right", padx=12, pady=8)
++
++        from openroad_gui.widgets.pipeline_row import PipelineRow
++        self.pipeline_row = PipelineRow(
++            self.pipeline_frame,
+             on_run_stage=self._run_stage,
+             on_run_all=self._run_all,
+             on_stop=self._stop_flow,
+             on_open_gui=self._open_or_gui_stage,
+             on_view_gds=self._view_default_gds,
+-            on_make_clean=self._make_clean,
+-            get_config=lambda: self.app_config,
+         )
+-        self.flow_panel.pack(fill=tk.X, padx=4, pady=4)
++        self.pipeline_row.pack(fill=tk.X, padx=12, pady=(0, 8))
++
++        # Band 2: Design Inputs (left) + Layout Viewer (right)
++        band2 = ttk.Frame(self.center_workspace)
++        band2.grid(row=1, column=0, sticky="nsew", padx=4, pady=2)
++        band2.columnconfigure(0, weight=0, minsize=307)
++        band2.columnconfigure(1, weight=1, minsize=578)
++
++        self.inputs_frame = ttk.LabelFrame(cw, text="Design Inputs", style="Card.TLabelframe")
++        self.inputs_frame.grid(row=1, column=0, sticky="nsew", padx=(4, 6), pady=(0, 2))
++        self.inputs_frame.columnconfigure(1, weight=1)
++        self._build_inputs_panel()
++
++        self.viewer_frame = ttk.LabelFrame(cw, text="Layout Viewer", style="Card.TLabelframe")
++        self.viewer_frame.grid(row=1, column=1, sticky="nsew", padx=(6, 4), pady=(0, 2))
++        self.viewer_frame.columnconfigure(0, weight=1)
++        self.viewer_frame.rowconfigure(0, weight=1)
++
++        viewer_toolbar = ttk.Frame(self.viewer_frame)
++        viewer_toolbar.pack(fill="x", padx=8, pady=4)
++
++        self.preview_notebook = ttk.Notebook(self.viewer_frame)
++        self.preview_notebook.pack(fill="both", expand=True, padx=8, pady=(0, 8))
++
++        self.preview_panel = PreviewPanel(self.preview_notebook)
++        self.preview_notebook.add(self.preview_panel, text="Layout Visualizer")
+ 
+-        # Action buttons frame (fixed, not in paned window)
+-        action_frame = ttk.Frame(right)
+-        action_frame.pack(fill=tk.X, padx=4, pady=(0, 4))
+-        ttk.Button(action_frame, text="Open in Editor", command=self._open_in_editor).pack(side=tk.LEFT, padx=(0, 8))
+-        ttk.Button(action_frame, text="Use as Active config.mk", command=self._use_as_config).pack(side=tk.LEFT, padx=(0, 8))
+-        ttk.Button(action_frame, text="View GDS in KLayout", command=self._view_selected_gds).pack(side=tk.LEFT, padx=(0, 8))
+-        ttk.Button(action_frame, text="Preview Layout", command=self._preview_selected_gds).pack(side=tk.LEFT, padx=(0, 8))
+-        ttk.Button(action_frame, text="OpenROAD GUI", command=self._open_or_gui_for_selected).pack(side=tk.LEFT, padx=(0, 8))
+-        ttk.Button(action_frame, text="Open Reports Folder", command=self._open_reports_folder).pack(side=tk.LEFT, padx=(0, 8))
+-        ttk.Button(action_frame, text="Export Log...", command=self._export_log).pack(side=tk.LEFT, padx=(0, 8))
+-        ttk.Button(action_frame, text="Open Terminal Here", command=self._open_terminal_here).pack(side=tk.LEFT)
++        self.text_preview = ttk.Frame(self.preview_notebook)
++        self.preview_notebook.add(self.text_preview, text="Text Editor")
+ 
+-        # Vertical paned window for preview and log viewer
+-        right_paned = ttk.PanedWindow(right, orient=tk.VERTICAL)
+-        right_paned.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
++        # Band 3: Terminal / Flow Log
++        self.log_frame = ttk.LabelFrame(self.center_workspace, text="Terminal / Flow Log", style="Card.TLabelframe")
++        self.log_frame.grid(row=2, column=0, sticky="nsew", padx=4, pady=2)
++        self.log_frame.columnconfigure(0, weight=1)
++        self.log_frame.rowconfigure(0, weight=1)
++
++        self.log_notebook = ttk.Notebook(self.log_frame)
++        self.log_notebook.pack(fill="both", expand=True)
++
++        self.log_viewer = LogViewer(self.log_notebook)
++        self.log_notebook.add(self.log_viewer, text="OpenROAD Log")
++
++        self.terminal_frame = ttk.Frame(self.log_notebook)
++        self.log_notebook.add(self.terminal_frame, text="Terminal")
++        ttk.Label(self.terminal_frame, text="Terminal - Coming Soon", foreground="gray").pack(expand=True)
++
++        self.errors_frame = ttk.Frame(self.log_notebook)
++        self.log_notebook.add(self.errors_frame, text="Errors / Warnings")
++        ttk.Label(self.errors_frame, text="Errors / Warnings - Coming Soon", foreground="gray").pack(expand=True)
++
++        log_toolbar = ttk.Frame(self.log_frame)
++        log_toolbar.pack(fill="x", padx=4, pady=4)
++        ttk.Label(log_toolbar, text="Terminal / Flow Log", style="Bold.TLabel").pack(side="left")
++        ttk.Button(log_toolbar, text="Clear", command=self.log_viewer.clear, width=8).pack(side="right", padx=2)
++        ttk.Button(log_toolbar, text="Export Log…", command=self._export_log, width=12).pack(side="right", padx=2)
++
++        # Band 4: Progress + Metrics
++        bottom_row = ttk.Frame(self.center_workspace)
++        bottom_row.grid(row=3, column=0, sticky="nsew", padx=4, pady=(2, 4))
++        bottom_row.columnconfigure(0, weight=0, minsize=300)
++        bottom_row.columnconfigure(1, weight=1, minsize=589)
++
++        self.progress_frame = ttk.LabelFrame(self.center_workspace, text="Flow Progress", style="Card.TLabelframe")
++        self.progress_frame.grid(row=3, column=0, sticky="nsew", padx=(4, 6), pady=(0, 4))
++        self.progress_frame.columnconfigure(0, weight=1)
++
++        self.progress_label = ttk.Label(self.progress_frame, text="Ready", style="Bold.TLabel")
++        self.progress_label.pack(anchor="w", padx=12, pady=(8, 4))
++
++        self.progress_bar = ttk.Progressbar(self.progress_frame, mode="indeterminate", length=280)
++        self.progress_bar.pack(fill="x", padx=12, pady=4)
++
++        self.progress_pct = ttk.Label(self.progress_frame, text="0%")
++        self.progress_pct.pack(anchor="w", padx=12, pady=(0, 8))
++
++        self.metrics_frame = ttk.LabelFrame(self.center_workspace, text="Quick Metrics (Current Run)", style="Card.TLabelframe")
++        self.metrics_frame.grid(row=3, column=0, sticky="nsew", padx=(6, 4), pady=(0, 4))
++        self.metrics_frame.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
++
++        self._build_metrics_cards()
++
++    def _build_right_rail(self) -> None:
++        rail = self.right_rail
++        rail.columnconfigure(0, weight=1)
++
++        # 1. AI Assistant
++        self.ai_frame = ttk.LabelFrame(rail, text="AI Assistant", style="Card.TLabelframe")
++        self.ai_frame.pack(fill="x", padx=4, pady=(4, 6))
++        self.ai_frame.columnconfigure(0, weight=1)
++        self._build_ai_assistant()
++
++        # 2. PPA Analysis
++        self.ppa_frame = ttk.LabelFrame(rail, text="PPA Analysis (AI Prediction)", style="Card.TLabelframe")
++        self.ppa_frame.pack(fill="x", padx=4, pady=6)
++        self.ppa_frame.columnconfigure(0, weight=1)
++        self._build_ppa_analysis()
++
++        # 3. Optimization Suggestions
++        self.opt_frame = ttk.LabelFrame(rail, text="Optimization Suggestions", style="Card.TLabelframe")
++        self.opt_frame.pack(fill="x", padx=4, pady=6)
++        self.opt_frame.columnconfigure(0, weight=1)
++        self._build_optimization_suggestions()
++
++        # 4. Reports
++        self.reports_frame = ttk.LabelFrame(rail, text="Reports", style="Card.TLabelframe")
++        self.reports_frame.pack(fill="x", padx=4, pady=(6, 4))
++        self.reports_frame.columnconfigure(0, weight=1)
++        self._build_reports_panel()
++
++    def _build_header(self) -> None:
++        t = self.theme_manager.get_colors()
++
++        brand_frame = ttk.Frame(self.header_frame, style="Header.TFrame")
++        brand_frame.grid(row=0, column=0, sticky="nsew", padx=18, pady=0)
++        brand_frame.columnconfigure(1, weight=1)
++
++        icon_label = ttk.Label(self.header_frame, text="⬢", style="Header.TLabel", font=("TkDefaultFont", 24))
++        icon_label.grid(row=0, column=0, padx=(18, 12), pady=10, sticky="w")
++
++        title_frame = ttk.Frame(self.header_frame, style="Header.TFrame")
++        title_frame.grid(row=0, column=1, sticky="w", pady=10, padx=(0, 0))
++
++        ttk.Label(title_frame, text="AI-Assisted EDA", style="Header.TLabel", font=("TkDefaultFont", 22, "bold")).grid(row=0, column=0, sticky="w")
++        ttk.Label(title_frame, text="OpenROAD GUI for RTL-to-GDSII Flow", style="Header.TLabel", font=("TkDefaultFont", 10), foreground=self.theme["FG_SECONDARY"]).grid(row=1, column=0, sticky="w")
++
++        nav_frame = ttk.Frame(self.header_frame, style="Header.TFrame")
++        nav_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=10)
++
++        nav_items = [
++            ("Home", "🏠", lambda: self._show_home()),
++            ("Flow", "⚡", lambda: self._show_flow_view()),
++            ("Design", "📐", lambda: self._show_design_view()),
++            ("Run", "▶", lambda: self._show_run_view()),
++            ("Results", "📊", lambda: self._show_results_view()),
++            ("AI Assistant", "🤖", lambda: self._show_ai_view()),
++            ("Settings", "⚙", self._open_settings),
++        ]
+ 
+-        self.preview_panel = PreviewPanel(right_paned)
+-        right_paned.add(self.preview_panel, weight=3)
++        for i, (label, icon, cmd) in enumerate(nav_items):
++            btn = ttk.Button(
++                self.header_frame,
++                text=f"  {icon}  {label}  ",
++                style="Flat.TButton",
++                command=cmd,
++            )
++            btn.grid(row=0, column=i, padx=4, pady=5, sticky="nsew")
+ 
+-        self.log_viewer = LogViewer(right_paned)
+-        right_paned.add(self.log_viewer, weight=1)
++        actions_frame = ttk.Frame(self.header_frame, style="Header.TFrame")
++        actions_frame.grid(row=0, column=2, sticky="nsew", padx=18, pady=10)
+ 
+-        self._selected_file: Path | None = None
++        self.theme_toggle_btn = ttk.Button(
++            self.header_frame,
++            text="🌙 Dark" if self.theme_manager.is_dark_mode() else "☀️ Light",
++            style="Flat.TButton",
++            command=toggle_theme,
++            width=12
++        )
++        self.theme_toggle_btn.grid(row=0, column=0, padx=(0, 8), pady=5)
++
++        ttk.Button(
++            self.header_frame,
++            text="❓ Help",
++            style="Flat.TButton",
++            command=self._show_help,
++            width=8
++        ).grid(row=0, column=1, padx=(0, 0), pady=5)
++
++    def _build_nav_rail(self) -> None:
++        nav = self.nav_rail
++
++        canvas = tk.Canvas(nav, highlightthickness=0, background=self.theme["BG_SIDEBAR"])
++        scrollbar = ttk.Scrollbar(nav, orient="vertical", command=canvas.yview)
++        scrollable_frame = ttk.Frame(canvas, style="Sidebar.TFrame")
++
++        scrollable_frame.bind(
++            "<Configure>",
++            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
++        )
+ 
+-    def _apply_config(self) -> None:
+-        self.app_config.update_from_design_config(self.app_config.design_config)
+-        self.runner = FlowRunner(self.app_config)
+-        self.viewers = ViewerService(self.app_config)
++        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw", width=212)
++        canvas.configure(yscrollcommand=scrollbar.set)
+ 
+-        flow_dir = self.app_config.flow_dir
+-        results_dir = self.app_config.results_dir
+-        if flow_dir.is_dir():
+-            self.project_tree.set_root(
+-                flow_dir,
+-                active_results_dir=results_dir if results_dir.is_dir() else None,
+-            )
+-        else:
+-            self.log_viewer.log_error(
+-                f"Flow directory not found: {flow_dir}\n"
+-                "Open Settings to set the correct OpenROAD root path."
+-            )
++        canvas.pack(side="left", fill="both", expand=True)
++        scrollbar.pack(side="right", fill="y")
+ 
+-        self.flow_panel.set_design_info(
+-            self.app_config.design_name,
+-            self.app_config.platform,
+-            self.app_config.design_config,
++        def _on_mousewheel(event):
++            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
++        canvas.bind_all("<MouseWheel>", _on_mousewheel)
++
++        def add_section(parent, title, items):
++            section_frame = ttk.Frame(parent, style="Sidebar.TFrame")
++            section_frame.pack(fill="x", padx=8, pady=(12, 4), anchor="w")
++            section_frame.columnconfigure(0, weight=1)
++
++            ttk.Label(section_frame, text=title, style="Bold.TLabel",
++                     font=("TkDefaultFont", 9, "bold")).pack(anchor="w", pady=(0, 6))
++
++            for label, icon, cmd in items:
++                btn = ttk.Button(
++                    section_frame,
++                    text=f"  {icon}  {label}",
++                    style="Flat.TButton",
++                    command=cmd,
++                )
++                btn.pack(fill="x", pady=2, padx=4, anchor="w")
++
++                ttk.Separator(section_frame, orient="horizontal").pack(fill="x", pady=(8, 4))
++
++            # 5.1 Project
++            add_section(self.nav_rail, "Project", [
++                ("New Design", "➕", self._new_design),
++                ("Open Project…", "📁", self._open_project),
++                ("Save Project", "💾", self._save_project),
++            ])
++
++            add_section(self.nav_rail, "Design Inputs", [
++                ("RTL (Verilog/SystemVerilog)", "📄", lambda: self._focus_input("rtl")),
++                ("Technology (Lib/LEF)", "🔬", lambda: self._focus_input("lib")),
++                ("Constraints (SDC)", "📋", lambda: self._focus_input("sdc")),
++                ("Floorplan / Config", "📐", lambda: self._focus_input("config")),
++            ])
++
++            add_section(self.nav_rail, "Flow Configuration", [
++                ("Flow Steps", "🔢", self._show_flow_config),
++                ("Parameter Tuning", "🎛", self._show_param_tuning),
++                ("AI Optimization", "🤖", self._show_ai_optimization),
++            ])
++
++            add_section(self.nav_rail, "Run & Monitor", [
++                ("Start Flow", "▶", self._run_all),
++                ("Stop", "⏹", self._stop_flow),
++                ("View Logs", "📋", self._focus_logs),
++            ])
++
++            add_section(self.nav_rail, "Results & Analysis", [
++                ("Reports (PPA)", "📊", self._show_reports),
++                ("Layout Viewer", "📐", self._show_layout_viewer),
++                ("Timing Analysis", "⏱", self._show_timing_analysis),
++                ("Power Analysis", "⚡", self._show_power_analysis),
++                ("DRC/LVS", "✅", self._show_drc_lvs),
++            ])
++
++            add_section(self.nav_rail, "Utilities", [
++                ("Scripting (TCL)", "📝", self._open_tcl_console),
++                ("Docs & Help", "📖", self._show_help),
++                ("About", "ℹ", self._show_about),
++            ])
++
++    def _build_center_workspace(self) -> None:
++        cw = self.center_workspace
++
++        # Band 1: Pipeline
++        self.pipeline_frame = ttk.LabelFrame(cw, text="Design Flow (RTL → GDSII)", style="Card.TLabelframe")
++        self.pipeline_frame.grid(row=0, column=0, sticky="nsew", padx=4, pady=(4, 2))
++        self.pipeline_frame.columnconfigure(0, weight=1)
++
++        ttk.Label(self.pipeline_frame, text="Design Flow (RTL → GDSII)", style="Title.TLabel").pack(side="left", padx=12, pady=8)
++        ttk.Button(
++            self.pipeline_frame,
++            text="▶ Run Full Flow",
++            style="Primary.TButton",
++            command=self._run_all
++        ).pack(side="right", padx=12, pady=8)
++
++        from openroad_gui.widgets.pipeline_row import PipelineRow
++        self.pipeline_row = PipelineRow(
++            self.pipeline_frame,
++            on_run_stage=self._run_stage,
++            on_run_all=self._run_all,
++            on_stop=self._stop_flow,
++            on_open_gui=self._open_or_gui_stage,
++            on_view_gds=self._view_default_gds,
+         )
++        self.pipeline_row.pack(fill=tk.X, padx=12, pady=(0, 8))
++
++        # Band 2: Design Inputs (left) + Layout Viewer (right)
++        band2 = ttk.Frame(self.center_workspace)
++        band2.grid(row=1, column=0, sticky="nsew", padx=4, pady=2)
++        band2.columnconfigure(0, weight=0, minsize=307)
++        band2.columnconfigure(1, weight=1, minsize=578)
++
++        self.inputs_frame = ttk.LabelFrame(cw, text="Design Inputs", style="Card.TLabelframe")
++        self.inputs_frame.grid(row=1, column=0, sticky="nsew", padx=(4, 6), pady=(0, 2))
++        self.inputs_frame.columnconfigure(1, weight=1)
++        self._build_inputs_panel()
++
++        self.viewer_frame = ttk.LabelFrame(cw, text="Layout Viewer", style="Card.TLabelframe")
++        self.viewer_frame.grid(row=1, column=1, sticky="nsew", padx=(6, 4), pady=(0, 2))
++        self.viewer_frame.columnconfigure(0, weight=1)
++        self.viewer_frame.rowconfigure(0, weight=1)
++
++        viewer_toolbar = ttk.Frame(self.viewer_frame)
++        viewer_toolbar.pack(fill="x", padx=8, pady=4)
++
++        self.preview_notebook = ttk.Notebook(self.viewer_frame)
++        self.preview_notebook.pack(fill="both", expand=True, padx=8, pady=(0, 8))
++
++        self.preview_panel = PreviewPanel(self.preview_notebook)
++        self.preview_notebook.add(self.preview_panel, text="Layout Visualizer")
++
++        self.text_preview = ttk.Frame(self.preview_notebook)
++        self.preview_notebook.add(self.text_preview, text="Text Editor")
++
++        # Band 3: Terminal / Flow Log
++        self.log_frame = ttk.LabelFrame(self.center_workspace, text="Terminal / Flow Log", style="Card.TLabelframe")
++        self.log_frame.grid(row=2, column=0, sticky="nsew", padx=4, pady=2)
++        self.log_frame.columnconfigure(0, weight=1)
++        self.log_frame.rowconfigure(0, weight=1)
++
++        self.log_notebook = ttk.Notebook(self.log_frame)
++        self.log_notebook.pack(fill="both", expand=True)
++
++        self.log_viewer = LogViewer(self.log_notebook)
++        self.log_notebook.add(self.log_viewer, text="OpenROAD Log")
++
++        self.terminal_frame = ttk.Frame(self.log_notebook)
++        self.log_notebook.add(self.terminal_frame, text="Terminal")
++        ttk.Label(self.terminal_frame, text="Terminal - Coming Soon", foreground="gray").pack(expand=True)
++
++        self.errors_frame = ttk.Frame(self.log_notebook)
++        self.log_notebook.add(self.errors_frame, text="Errors / Warnings")
++        ttk.Label(self.errors_frame, text="Errors / Warnings - Coming Soon", foreground="gray").pack(expand=True)
++
++        log_toolbar = ttk.Frame(self.log_frame)
++        log_toolbar.pack(fill="x", padx=4, pady=4)
++        ttk.Label(log_toolbar, text="Terminal / Flow Log", style="Bold.TLabel").pack(side="left")
++        ttk.Button(log_toolbar, text="Clear", command=self.log_viewer.clear, width=8).pack(side="right", padx=2)
++        ttk.Button(log_toolbar, text="Export Log…", command=self._export_log, width=12).pack(side="right", padx=2)
++
++        # Band 4: Progress + Metrics
++        bottom_row = ttk.Frame(self.center_workspace)
++        bottom_row.grid(row=3, column=0, sticky="nsew", padx=4, pady=(2, 4))
++        bottom_row.columnconfigure(0, weight=0, minsize=300)
++        bottom_row.columnconfigure(1, weight=1, minsize=589)
++
++        self.progress_frame = ttk.LabelFrame(self.center_workspace, text="Flow Progress", style="Card.TLabelframe")
++        self.progress_frame.grid(row=3, column=0, sticky="nsew", padx=(4, 6), pady=(0, 4))
++        self.progress_frame.columnconfigure(0, weight=1)
++
++        self.progress_label = ttk.Label(self.progress_frame, text="Ready", style="Bold.TLabel")
++        self.progress_label.pack(anchor="w", padx=12, pady=(8, 4))
++
++        self.progress_bar = ttk.Progressbar(self.progress_frame, mode="indeterminate", length=280)
++        self.progress_bar.pack(fill="x", padx=12, pady=4)
++
++        self.progress_pct = ttk.Label(self.progress_frame, text="0%")
++        self.progress_pct.pack(anchor="w", padx=12, pady=(0, 8))
++
++        self.metrics_frame = ttk.LabelFrame(self.center_workspace, text="Quick Metrics (Current Run)", style="Card.TLabelframe")
++        self.metrics_frame.grid(row=3, column=0, sticky="nsew", padx=(6, 4), pady=(0, 4))
++        self.metrics_frame.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
++
++        self._build_metrics_cards()
++
++    def _build_right_rail(self) -> None:
++        rail = self.right_rail
++        rail.columnconfigure(0, weight=1)
++
++        # 1. AI Assistant
++        self.ai_frame = ttk.LabelFrame(rail, text="AI Assistant", style="Card.TLabelframe")
++        self.ai_frame.pack(fill="x", padx=4, pady=(4, 6))
++        self.ai_frame.columnconfigure(0, weight=1)
++        self._build_ai_assistant()
++
++        # 2. PPA Analysis
++        self.ppa_frame = ttk.LabelFrame(rail, text="PPA Analysis (AI Prediction)", style="Card.TLabelframe")
++        self.ppa_frame.pack(fill="x", padx=4, pady=6)
++        self.ppa_frame.columnconfigure(0, weight=1)
++        self._build_ppa_analysis()
++
++        # 3. Optimization Suggestions
++        self.opt_frame = ttk.LabelFrame(rail, text="Optimization Suggestions", style="Card.TLabelframe")
++        self.opt_frame.pack(fill="x", padx=4, pady=6)
++        self.opt_frame.columnconfigure(0, weight=1)
++        self._build_optimization_suggestions()
++
++        # 4. Reports
++        self.reports_frame = ttk.LabelFrame(rail, text="Reports", style="Card.TLabelframe")
++        self.reports_frame.pack(fill="x", padx=4, pady=(6, 4))
++        self.reports_frame.columnconfigure(0, weight=1)
++        self._build_reports_panel()
++
++
++    def _build_inputs_panel(self) -> None:
++        """Build Design Inputs panel."""
++        f = self.inputs_frame
++        f.columnconfigure(1, weight=1)
++
++        for i, (label, attr, editable) in enumerate([
++            ("Project Name", "project_name", True),
++            ("RTL File", "rtl_file", False),
++            ("Technology LIB", "lib_file", False),
++            ("LEF Files", "lef_files", False),
++            ("Constraints (SDC)", "sdc_file", False),
++            ("Config / Floorplan", "config_file", False),
++        ]):
++            ttk.Label(f, text=label, style="Secondary.TLabel").grid(row=i, column=0, sticky="w", padx=8, pady=6)
++            entry = ttk.Entry(f)
++            entry.grid(row=i, column=1, sticky="ew", padx=(0, 8), pady=6)
++            if not editable:
++                entry.configure(state="readonly")
++
++        btn_frame = ttk.Frame(self.inputs_frame)
++        btn_frame.grid(row=6, column=0, columnspan=2, sticky="ew", padx=8, pady=12)
++        ttk.Button(btn_frame, text="Load Inputs", style="Primary.TButton", command=self._load_inputs).pack(side="left", padx=4)
++        ttk.Button(btn_frame, text="View / Edit Files", command=self._view_edit_files).pack(side="left", padx=4)
++
++    def _build_metrics_cards(self) -> None:
++        metrics = [
++            ("WNS", "wns", "ns", "—", "wns"),
++            ("TNS", "tns", "ns", "—", "tns"),
++            ("Area", "area", "μm²", "—", "area"),
++            ("Power", "power", "mW", "—", "power"),
++            ("DRC", "drc", "", "—", "drc"),
++            ("LVS", "lvs", "", "—", "lvs"),
++        ]
+ 
+-        errors = self.app_config.validate()
+-        if errors:
+-            self.log_viewer.log_info("Environment check:\n" + "\n".join(f"  • {e}" for e in errors))
+-        else:
+-            gds = self.viewers.default_gds_path()
+-            gds_note = f"GDS: {gds.name} ({'found' if gds.is_file() else 'not yet built'})"
+-            self.log_viewer.log_info(
+-                f"Ready — ORFS: {self.app_config.orfs_root}\n"
+-                f"Active design: {self.app_config.platform}/{self.app_config.design_name}\n"
+-                f"{gds_note}\n"
+-            )
++        for i, (label, key, unit, default, attr) in enumerate(metrics):
++            card = ttk.Frame(self.metrics_frame, style="MetricCard.TFrame")
++            card.grid(row=0, column=i, sticky="nsew", padx=4, pady=8)
++            card.columnconfigure(0, weight=1)
++
++            ttk.Label(self.metrics_frame, text=label, style="Secondary.TLabel", font=("TkDefaultFont", 8)).grid(row=0, column=i, padx=4, pady=(4, 0))
++            value_label = ttk.Label(self.metrics_frame, text="—", style="MetricValue.TLabel", font=("TkDefaultFont", 14, "bold"))
++            value_label.grid(row=1, column=i, padx=4, pady=2)
++            if unit:
++                ttk.Label(self.metrics_frame, text=unit, style="Secondary.TLabel", font=("TkDefaultFont", 8)).grid(row=2, column=i, padx=4, pady=(0, 4))
++
++            setattr(self, f"metric_{attr}", value_label)
++
++    def _build_ai_assistant(self) -> None:
++        f = self.ai_frame
++        f.columnconfigure(0, weight=1)
++
++        header = ttk.Frame(f)
++        header.pack(fill="x", padx=8, pady=4)
++        ttk.Label(header, text="🤖  AI Assistant", style="Bold.TLabel").pack(side="left")
++        ttk.Button(f, text="Clear", width=8, command=self._clear_ai_chat).pack(side="right")
++
++        self.ai_chat = tk.Text(f, height=12, wrap="word", font=("Menlo", 10),
++                               bg=self.theme["LOG_BG"], fg=self.theme["FG_PRIMARY"],
++                               insertbackground="white", relief="flat")
++        self.ai_chat.pack(fill="both", expand=True, padx=8, pady=4)
++        self.ai_chat.insert("1.0", "🤖 How can I help you with your design today?\n\n")
++        self.ai_chat.config(state="disabled")
++
++        actions_frame = ttk.Frame(f)
++        actions_frame.pack(fill="x", padx=8, pady=4)
++
++        for label, cmd in [
++            ("Suggest optimal floorplan parameters", self._ai_suggest_floorplan),
++            ("Predict PPA for current design", self._ai_predict_ppa),
++            ("Recommend better configuration", self._ai_recommend_config),
++            ("Explain STA violations", self._ai_explain_sta),
++            ("Help me fix routing congestion", self._ai_fix_congestion),
++            ("Generate TCL script for custom flow", self._ai_generate_tcl),
++        ]:
++            ttk.Button(f, text=label, command=cmd, style="Secondary.TButton").pack(fill="x", padx=8, pady=2)
++
++        input_frame = ttk.Frame(f)
++        input_frame.pack(fill="x", padx=8, pady=(4, 8))
++        self.ai_input = ttk.Entry(input_frame, font=("TkDefaultFont", 10))
++        self.ai_input.pack(side="left", fill="x", expand=True, padx=(0, 8))
++        self.ai_input.bind("<Return>", lambda e: self._send_ai_message())
++        ttk.Button(input_frame, text="Send", command=self._send_ai_message, width=8).pack(side="right")
++
++    def _build_ppa_analysis(self) -> None:
++        f = self.ppa_frame
++        f.columnconfigure(0, weight=1)
++
++        ttk.Label(f, text="PPA Analysis (AI Prediction)", style="Bold.TLabel").pack(anchor="w", padx=8, pady=(8, 4))
++
++        ttk.Button(f, text="Run Prediction", style="Primary.TButton", command=self._run_ppa_prediction).pack(anchor="e", padx=8, pady=4)
++
++        cards_frame = ttk.Frame(f)
++        cards_frame.pack(fill="x", padx=8, pady=4)
++        cards_frame.columnconfigure((0, 1, 2), weight=1)
++
++        for i, (label, key, unit, attr) in enumerate([
++            ("Power", "power", "mW", "power"),
++            ("Performance (WNS)", "wns", "ns", "wns"),
++            ("Area", "area", "μm²", "area"),
++        ]):
++            card = ttk.Frame(f, style="MetricCard.TFrame")
++            card.grid(row=0, column=i, sticky="nsew", padx=4, pady=4)
++            card.columnconfigure(0, weight=1)
++
++            ttk.Label(card, text=label, style="Secondary.TLabel", font=("TkDefaultFont", 8)).pack(anchor="w", padx=8, pady=(8, 0))
++            val = ttk.Label(card, text="—", style="MetricValue.TLabel", font=("TkDefaultFont", 14, "bold"))
++            val.pack(anchor="w", padx=8, pady=2)
++            if unit:
++                ttk.Label(card, text=unit, style="Secondary.TLabel", font=("TkDefaultFont", 8)).pack(anchor="w", padx=8, pady=(0, 8))
++
++            setattr(self, f"ppa_{attr}", val)
++
++    def _build_optimization_suggestions(self) -> None:
++        f = self.opt_frame
++        f.columnconfigure(0, weight=1)
++
++        ttk.Label(f, text="Optimization Suggestions", style="Bold.TLabel").pack(anchor="w", padx=8, pady=(8, 4))
++
++        ttk.Button(f, text="Apply Suggestion", style="Primary.TButton", command=self._apply_optimization).pack(anchor="e", padx=8, pady=4)
++
++        self.suggestions_frame = ttk.Frame(f)
++        self.suggestions_frame.pack(fill="both", expand=True, padx=8, pady=4)
++
++        ttk.Label(self.suggestions_frame, text="Run optimization to see suggestions",
++                 foreground="gray", font=("TkDefaultFont", 10)).pack(anchor="w", padx=8, pady=8)
++
++    def _build_reports_panel(self) -> None:
++        f = self.reports_frame
++        f.columnconfigure(0, weight=1)
++
++        buttons = [
++            ("Timing Report", "📈", self._open_timing_report),
++            ("Power Report", "⚡", self._open_power_report),
++            ("Area Report", "📐", self._open_area_report),
++            ("DRC Report", "✅", self._open_drc_report),
++            ("LVS Report", "✅", self._open_lvs_report),
++            ("Generate GDSII", "💾", self._generate_gdsii),
++        ]
++
++        for row_idx, row_items in enumerate([buttons[:3], buttons[3:]]):
++            row = ttk.Frame(f)
++            row.pack(fill="x", padx=8, pady=4)
++            row.columnconfigure((0, 1, 2), weight=1)
++
++            for col, (label, icon, cmd) in enumerate(row_items):
++                btn = ttk.Button(row, text=f"{icon}  {label}", command=cmd, style="Secondary.TButton")
++                btn.grid(row=0, column=col, sticky="ew", padx=4, pady=4)
++
++
++    # ─── File/Preview Handlers ───
+ 
+     def _on_file_select(self, path: Path) -> None:
+         self._selected_file = path
+@@ -267,9 +1052,7 @@ class OpenRoadGUI(tk.Tk):
+ 
+         threading.Thread(target=work, daemon=True).start()
+ 
+-    def _on_preview_ready(
+-        self, path: Path, png_path: Path | None, error: str
+-    ) -> None:
++    def _on_preview_ready(self, path: Path, png_path: Path | None, error: str) -> None:
+         self.flow_panel.set_status("Ready")
+         if png_path:
+             self.preview_panel.show_image(path, png_path, path.name)
+@@ -319,25 +1102,20 @@ class OpenRoadGUI(tk.Tk):
+             return
+         path = str(self._selected_file)
+ 
+-        # Try Vim variants in order of preference
+         vim_commands = [
+-            ["gvim", "--remote-tab-silent", path],  # GVim (GUI)
+-            ["mvim", "--remote-tab-silent", path],  # MacVim (GUI)
+-            ["vim", path],                           # Terminal vim
++            ["gvim", "--remote-tab-silent", path],
++            ["mvim", "--remote-tab-silent", path],
++            ["vim", path],
+         ]
+ 
+-
+         for cmd in vim_commands:
+             try:
+-                # Check if command exists
+                 subprocess.run(["which", cmd[0]], check=True, capture_output=True)
+-                # Found it — launch and return
+                 subprocess.Popen(cmd)
+                 return
+             except (subprocess.CalledProcessError, FileNotFoundError):
+-                continue  # Try next editor
++                continue
+ 
+-        # Fallback: system default editor
+         try:
+             if os.uname().sysname == "Darwin":
+                 subprocess.Popen(["open", path])
+@@ -384,6 +1162,8 @@ class OpenRoadGUI(tk.Tk):
+         if gds:
+             self._selected_file = gds
+             self._show_gds_file(gds)
++        else:
++            messagebox.showinfo("No GDS", "No GDS file found for the active design.")
+ 
+     def _preview_selected_gds(self) -> None:
+         if self._selected_file and self._selected_file.suffix.lower() == ".gds":
+@@ -435,14 +1215,13 @@ class OpenRoadGUI(tk.Tk):
+             messagebox.showerror("Cannot run flow", "\n".join(errors))
+             return False
+         if not self.app_config.design_config:
+-            messagebox.showerror("No design", "Set an active design config.mk in Settings.")
++            messagebox.showwarning("No Design", "No active design selected.")
+             return False
+         return True
+ 
+     def _run_stage(self, stage: FlowStage) -> None:
+         if not self._validate_before_run():
+             return
+-
+         self.flow_panel.set_running(True)
+         self.log_viewer.log_info(f"\n--- Starting {stage.label} ---\n")
+         self.runner.run_stage(stage, self._on_log_line, self._on_stage_done)
+@@ -450,7 +1229,6 @@ class OpenRoadGUI(tk.Tk):
+     def _run_all(self) -> None:
+         if not self._validate_before_run():
+             return
+-
+         self.flow_panel.set_running(True)
+         self.runner.run_pipeline(FULL_PIPELINE, self._on_log_line, self._on_stage_done)
+ 
+@@ -461,7 +1239,6 @@ class OpenRoadGUI(tk.Tk):
+     def _make_clean(self) -> None:
+         if not self._validate_before_run():
+             return
+-
+         self.flow_panel.set_running(True)
+         self.log_viewer.log_info("\n--- Running make clean ---\n")
+ 
+@@ -477,21 +1254,14 @@ class OpenRoadGUI(tk.Tk):
+                 else:
+                     self.flow_panel.set_status(f"Make Clean — failed ({exit_code})")
+                     self.log_viewer.log_error(f"--- Make Clean failed (exit {exit_code}) ---\n")
+-
+             self.after(0, update)
+ 
+-        # Run make clean in the flow directory
+         cfg = self.app_config
+         design_config = cfg.design_config
+         flow_dir = cfg.flow_dir
+         env_script = cfg.env_script
+ 
+-        # Get selected clean target from dropdown
+-        clean_target = self.flow_panel.clean_var.get()
+-
+-        extra_exports = "\n".join(
+-            f'export {key}="{value}"' for key, value in cfg.extra_env.items()
+-        )
++        extra_exports = "\n".join(f'export {key}="{value}"' for key, value in cfg.extra_env.items())
+         klayout_export = f'export KLAYOUT_CMD="{cfg.klayout_cmd}"'
+ 
+         command = (
+@@ -500,8 +1270,8 @@ class OpenRoadGUI(tk.Tk):
+             f'{klayout_export}\n'
+             f'{extra_exports}\n'
+             f'cd "{flow_dir}"\n'
+-            f'echo ">>> Running: make DESIGN_CONFIG={design_config} {clean_target}"\n'
+-            f'make DESIGN_CONFIG={design_config} {clean_target}\n'
++            f'echo ">>> Running: make DESIGN_CONFIG={design_config} clean_all"\n'
++            f'make DESIGN_CONFIG={design_config} clean_all\n'
+         )
+ 
+         import threading
+@@ -534,12 +1304,8 @@ class OpenRoadGUI(tk.Tk):
+             for line in iter(pipe.readline, ""):
+                 on_log(stream_name, line)
+ 
+-        stdout_thread = threading.Thread(
+-            target=drain, args=("stdout", process.stdout), daemon=True
+-        )
+-        stderr_thread = threading.Thread(
+-            target=drain, args=("stderr", process.stderr), daemon=True
+-        )
++        stdout_thread = threading.Thread(target=drain, args=("stdout", process.stdout), daemon=True)
++        stderr_thread = threading.Thread(target=drain, args=("stderr", process.stderr), daemon=True)
+         stdout_thread.start()
+         stderr_thread.start()
+         stdout_thread.join()
+@@ -561,370 +1327,474 @@ class OpenRoadGUI(tk.Tk):
+                     gds = self.viewers.default_gds_path()
+                     if gds.is_file():
+                         results_dir = self.app_config.results_dir
+-                        self.project_tree.set_root(
+-                            self.app_config.flow_dir,
+-                            active_results_dir=results_dir if results_dir.is_dir() else None,
+-                        )
++                        if self.app_config.flow_dir.is_dir():
++                            self.project_tree.set_root(
++                                self.app_config.flow_dir,
++                                active_results_dir=results_dir if results_dir.is_dir() else None,
++                            )
+             else:
+                 self.flow_panel.set_status(f"{label} — failed ({exit_code})")
+                 self.log_viewer.log_error(f"--- {label} failed (exit {exit_code}) ---\n")
+-
+         self.after(0, update)
+ 
+-    def _show_help(self) -> None:
+-        messagebox.showinfo(
+-            "Quick Start",
+-            "1. Open Settings and set your OpenROAD root (ORFS) path.\n"
+-            "2. Select or create a design under flow/designs/<pdk>/<name>/.\n"
+-            "3. Click a config.mk in the tree to make it the active design.\n"
+-            "4. Run individual stages or the full RTL-to-GDSII pipeline.\n"
+-            "5. View results under 'results (<design>)' in the project tree.\n"
+-            "6. Double-click a .gds file to open in KLayout.\n"
+-            "7. Use View menu or Flow panel to launch OpenROAD GUI at any stage.\n\n"
+-            "The app sources use-openroad.sh automatically before each make.",
+-        )
+-
+-    def _on_close(self) -> None:
+-        if self.runner.is_running:
+-            if not messagebox.askyesno(
+-                "Flow running",
+-                "A flow stage is still running. Quit anyway?",
+-            ):
+-                return
+-            self.runner.stop()
+-        self.destroy()
+-
+-    def _open_reports_folder(self) -> None:
+-        """Open the reports directory for the active design."""
+-        # Reports are under flow/reports/<platform>/<design>/base/ (ORFS convention)
+-        reports_dir = self.app_config.flow_dir / "reports" / self.app_config.platform / self.app_config.design_name / "base"
+-        if not reports_dir.is_dir():
+-            messagebox.showinfo("No Reports", "Reports directory not found. Run a flow stage first.")
+-            return
+-        try:
+-            import os
+-            if os.uname().sysname == "Darwin":
+-                subprocess.Popen(["open", str(reports_dir)])
+-            else:
+-                subprocess.Popen(["xdg-open", str(reports_dir)])
+-        except OSError as exc:
+-            messagebox.showerror("Open failed", str(exc))
+-
+-    def _export_log(self) -> None:
+-        """Export the current log to a file."""
+-        from tkinter import filedialog
+-        content = self.log_viewer.get_text()
+-        if not content.strip():
+-            messagebox.showinfo("Empty Log", "No log content to export.")
+-            return
+-        path = filedialog.asksaveasfilename(
+-            title="Export Log",
+-            defaultextension=".txt",
+-            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+-            initialfile=f"{self.app_config.design_name}_flow_log.txt",
+-        )
+-        if path:
+-            try:
+-                Path(path).write_text(content, encoding="utf-8")
+-                self.log_viewer.log_info(f"Log exported to {path}\n")
+-            except OSError as exc:
+-                messagebox.showerror("Export failed", str(exc))
+-
+-    def _open_terminal_here(self) -> None:
+-        """Open system terminal at the active design's flow directory."""
+-        cwd = self.app_config.flow_dir
+-        if not cwd.is_dir():
+-            messagebox.showinfo("No Flow Dir", "Flow directory not found.")
++    def _make_clean(self) -> None:
++        if not self._validate_before_run():
+             return
+-        try:
+-            import os
+-            if os.uname().sysname == "Darwin":
+-                script = f'tell application "Terminal" to do script "cd {cwd} && clear"'
+-                subprocess.Popen(["osascript", "-e", script])
+-            elif os.uname().sysname == "Windows":
+-                subprocess.Popen(["cmd", "/k", f"cd /d {cwd}"])
+-            else:
+-                for term in ["gnome-terminal", "konsole", "xfce4-terminal", "xterm", "tilix", "alacritty", "kitty"]:
+-                    try:
+-                        subprocess.Popen([term, "--working-directory", str(cwd)])
+-                        break
+-                    except FileNotFoundError:
+-                        continue
+-        except OSError as exc:
+-            messagebox.showerror("Open failed", str(exc))
+ 
+-    # ============================================================
+-    # Intelligence Methods
+-    # ============================================================
++        self.flow_panel.set_running(True)
++        self.log_viewer.log_info("\n--- Running make clean ---\n")
+ 
+-    def _predict_failure_risk(self) -> None:
+-        """Predict failure risk for the current design using real flow metrics."""
+-        if not HAS_INTELLIGENCE or self.failure_predictor is None:
+-            messagebox.showinfo("Intelligence Unavailable", "Failure predictor not available.")
+-            return
++        def on_log(stream: str, line: str) -> None:
++            self.after(0, lambda: self.log_viewer.append(stream, line))
+ 
+-        if not self.app_config.design_config:
+-            messagebox.showwarning("No Design", "No active design selected.")
+-            return
++        def on_done(exit_code: int, label: str) -> None:
++            def update() -> None:
++                self.flow_panel.set_running(False)
++                if exit_code == 0:
++                    self.flow_panel.set_status("Make Clean — done")
++                    self.log_viewer.log_info("--- Make Clean finished successfully ---\n")
++                else:
++                    self.flow_panel.set_status(f"Make Clean — failed ({exit_code})")
++                    self.log_viewer.log_error(f"--- Make Clean failed (exit {exit_code}) ---\n")
++            self.after(0, update)
+ 
+-        # Fetch real metrics from flow reports
+-        metrics = self._fetch_design_metrics()
++        cfg = self.app_config
++        design_config = cfg.design_config
++        flow_dir = cfg.flow_dir
++        env_script = cfg.env_script
+ 
+-        if not metrics:
+-            messagebox.showinfo(
+-                "No Metrics Available",
+-                "No flow metrics found. Run a flow stage first to collect metrics."
+-            )
+-            return
++        extra_exports = "\n".join(f'export {key}="{value}"' for key, value in cfg.extra_env.items())
++        klayout_export = f'export KLAYOUT_CMD="{cfg.klayout_cmd}"'
+ 
+-        # Show which metrics were found
+-        found_metrics = [k for k, v in metrics.items() if v is not None and v != 0]
+-        self.log_viewer.log_info(f"Found metrics for prediction: {', '.join(found_metrics)}\n")
++        command = (
++            f'set -e\n'
++            f'source "{env_script}"\n'
++            f'{klayout_export}\n'
++            f'{extra_exports}\n'
++            f'cd "{flow_dir}"\n'
++            f'echo ">>> Running: make DESIGN_CONFIG={design_config} clean_all"\n'
++            f'make DESIGN_CONFIG={design_config} clean_all\n'
++        )
+ 
+-        # Use the failure predictor with real metrics
+-        prediction = self.failure_predictor.predict(metrics)
++        import threading
++        thread = threading.Thread(
++            target=self._run_clean_thread,
++            args=(command, on_log, on_done),
++            daemon=True,
++        )
++        thread.start()
+ 
+-        # Format the prediction results
+-        if not prediction.get("predictions"):
+-            messagebox.showinfo(
+-                "Failure Risk Assessment",
+-                f"Design: {self.app_config.design_name}\n"
+-                f"Platform: {self.app_config.platform}\n\n"
+-                "No significant failure risks detected.\n\n"
+-                f"Overall Risk: {prediction.get('overall_risk', 0.0):.1%}\n"
+-                f"Recommendations: {', '.join(prediction.get('recommendations', ['No specific mitigations needed']))}"
++    def _run_clean_thread(self, command: str, on_log, on_done) -> None:
++        import subprocess
++        try:
++            process = subprocess.Popen(
++                ["/bin/bash", "-lc", command],
++                stdout=subprocess.PIPE,
++                stderr=subprocess.PIPE,
++                text=True,
++                bufsize=1,
+             )
++        except OSError as exc:
++            on_log("stderr", f"Failed to start process: {exc}\n")
++            on_done(1, "Make Clean")
+             return
+ 
+-        # Format detailed predictions
+-        msg_lines = [
+-            f"Failure Risk Assessment for {self.app_config.design_name}",
+-            f"Platform: {self.app_config.platform}",
+-            f"Overall Risk: {prediction.get('overall_risk', 0.0):.1%}",
+-            "",
+-        ]
+-
+-        # Show key metrics being used
+-        key_metrics = ['wns_ns', 'tns_ns', 'drc_violations', 'congestion_pct', 'area_um2', 'power_mw']
+-        metric_lines = ["Key Metrics:"]
+-        for km in key_metrics:
+-            if km in metrics:
+-                metric_lines.append(f"  {km}: {metrics[km]}")
+-        msg_lines.extend(metric_lines)
+-        msg_lines.append("")
+-
+-        for failure_type, pred in prediction.get("predictions", {}).items():
+-            prob = pred.get("probability", 0)
+-            severity = pred.get("severity", "unknown")
+-            mitigations = pred.get("mitigations", [])
+-            # failure_type is a string key from the predictor (e.g., "timing_violation")
+-            msg_lines.append(f"  {failure_type}: {prob:.1%} ({severity})")
+-            if mitigations:
+-                msg_lines.append(f"  Mitigations: {', '.join(mitigations[:3])}")
+-
+-        msg_lines.append("")
+-        msg_lines.append(f"Recommendations: {', '.join(prediction.get('recommendations', ['None']))}")
+-
+-        messagebox.showinfo("Failure Risk Assessment", "\n".join(msg_lines))
+-    def _suggest_optimal_params(self) -> None:
+-        """Suggest optimal flow parameters using the optimization engine."""
+-        if not HAS_INTELLIGENCE or self.optimizer is None:
+-            messagebox.showinfo("Intelligence Unavailable", "Optimization engine not available.")
+-            return
++        assert process.stdout is not None
++        assert process.stderr is not None
+ 
+-        if not self.app_config.design_config:
+-            messagebox.showwarning("No Design", "No active design selected.")
+-            return
++        def drain(stream_name: str, pipe) -> None:
++            for line in iter(pipe.readline, ""):
++                on_log(stream_name, line)
+ 
+-        messagebox.showinfo(
+-            "Optimal Parameter Suggestion",
+-            f"Design: {self.app_config.design_name}\n"
+-            f"Platform: {self.app_config.platform}\n\n"
+-            "Optimal parameter suggestions would include:\n"
+-            "  • Synthesis strategy & effort\n"
+-            "  • Placement density & effort\n"
+-            "  • CTS skew target & buffer type\n"
+-            "  • Routing layers & effort\n\n"
+-            "Run a flow stage first to collect metrics for accurate suggestions."
+-        )
++        stdout_thread = threading.Thread(target=drain, args=("stdout", process.stdout), daemon=True)
++        stderr_thread = threading.Thread(target=drain, args=("stderr", process.stderr), daemon=True)
++        stdout_thread.start()
++        stderr_thread.start()
++        stdout_thread.join()
++        stderr_thread.join()
+ 
+-    def _show_surrogate_predictions(self) -> None:
+-        """Show surrogate model predictions for the current design."""
+-        # Force recreate to pick up new preprocessor
+-        from openroad_gui.intelligence.utils.onnx_export import SurrogateInference
+-        self.surrogate_inference = SurrogateInference('openroad_gui/intelligence/models/saved')
+-        if not HAS_INTELLIGENCE or self.surrogate_inference is None:
+-            messagebox.showinfo("Intelligence Unavailable", "Surrogate models not available.")
+-            return
++        exit_code = process.wait()
++        on_done(exit_code, "Make Clean")
+ 
+-        if not self.app_config.design_config:
+-            messagebox.showwarning("No Design", "No active design selected.")
+-            return
++    def _on_log_line(self, stream: str, line: str) -> None:
++        self.after(0, lambda: self.log_viewer.append(stream, line))
+ 
+-        # Build features from config.mk and design
+-        features = self._build_surrogate_features()
++    def _on_stage_done(self, exit_code: int, label: str) -> None:
++        def update() -> None:
++            self.flow_panel.set_running(False)
++            if exit_code == 0:
++                self.flow_panel.set_status(f"{label} — done")
++                self.log_viewer.log_info(f"--- {label} finished successfully ---\n")
++                if label in ("GDSII Generation", "Full Pipeline"):
++                    gds = self.viewers.default_gds_path()
++                    if gds.is_file():
++                        results_dir = self.app_config.results_dir
++                        if self.app_config.flow_dir.is_dir():
++                            self.project_tree.set_root(
++                                self.app_config.flow_dir,
++                                active_results_dir=results_dir if results_dir.is_dir() else None,
++                            )
++            else:
++                self.flow_panel.set_status(f"{label} — failed ({exit_code})")
++                self.log_viewer.log_error(f"--- {label} failed (exit {exit_code}) ---\n")
++        self.after(0, update)
+ 
+-        if not features:
+-            messagebox.showinfo(
+-                "Cannot Predict",
+-                "Could not extract design features. Ensure config.mk exists and has required parameters."
+-            )
++    def _make_clean(self) -> None:
++        if not self._validate_before_run():
+             return
+ 
+-        # Get predictions from surrogate models
+-        predictions = self.surrogate_inference.predict_ensemble(features)
+-
+-        # Format results
+-        msg_lines = [
+-            f"Surrogate Model Predictions (Ensemble)",
+-            f"Design: {self.app_config.design_name}",
+-            f"Platform: {self.app_config.platform}",
+-            "",
+-            f"Predicted WNS: {predictions.get('wns', 0):.2f} ns",
+-            f"Predicted TNS: {predictions.get('tns', 0):.2f} ns",
+-            f"Predicted Area: {predictions.get('area', 0):.0f} um²",
+-            f"Predicted Power: {predictions.get('power', 0):.1f} mW",
+-            "",
+-            "Note: Predictions based on synthetic training data. "
+-            "Accuracy improves with real ORFS run data.",
+-        ]
+-
+-        messagebox.showinfo("Surrogate Predictions", "\n".join(msg_lines))
+-
+-    def _open_intelligence_reports(self) -> None:
+-        """Open the intelligence reports directory."""
+-        if not HAS_INTELLIGENCE:
+-            messagebox.showinfo("Intelligence Unavailable", "Intelligence reports not available.")
+-            return
++        self.flow_panel.set_running(True)
++        self.log_viewer.log_info("\n--- Running make clean ---\n")
+ 
+-        # Open the logs/training directory where surrogate results are stored
+-        try:
+-            import os
+-            reports_dir = Path(__file__).parent.parent / "intelligence" / "training" / "logs"
+-            if not reports_dir.exists():
+-                messagebox.showinfo("No Reports", "Intelligence reports not found. Run training first.")
+-                return
++        def on_log(stream: str, line: str) -> None:
++            self.after(0, lambda: self.log_viewer.append(stream, line))
+ 
+-            if os.uname().sysname == "Darwin":
+-                subprocess.Popen(["open", str(reports_dir)])
+-            else:
+-                subprocess.Popen(["xdg-open", str(reports_dir)])
++        def on_done(exit_code: int, label: str) -> None:
++            def update() -> None:
++                self.flow_panel.set_running(False)
++                if exit_code == 0:
++                    self.flow_panel.set_status("Make Clean — done")
++                    self.log_viewer.log_info("--- Make Clean finished successfully ---\n")
++                else:
++                    self.flow_panel.set_status(f"Make Clean — failed ({exit_code})")
++                    self.log_viewer.log_error(f"--- Make Clean failed (exit {exit_code}) ---\n")
++            self.after(0, update)
++
++        cfg = self.app_config
++        design_config = cfg.design_config
++        flow_dir = cfg.flow_dir
++        env_script = cfg.env_script
++
++        extra_exports = "\n".join(f'export {key}="{value}"' for key, value in cfg.extra_env.items())
++        klayout_export = f'export KLAYOUT_CMD="{cfg.klayout_cmd}"'
++
++        command = (
++            f'set -e\n'
++            f'source "{env_script}"\n'
++            f'{klayout_export}\n'
++            f'{extra_exports}\n'
++            f'cd "{flow_dir}"\n'
++            f'echo ">>> Running: make DESIGN_CONFIG={design_config} clean_all"\n'
++            f'make DESIGN_CONFIG={design_config} clean_all\n'
++        )
++
++        import threading
++        thread = threading.Thread(
++            target=self._run_clean_thread,
++            args=(command, on_log, on_done),
++            daemon=True,
++        )
++        thread.start()
++
++    def _run_clean_thread(self, command: str, on_log, on_done) -> None:
++        import subprocess
++        try:
++            process = subprocess.Popen(
++                ["/bin/bash", "-lc", command],
++                stdout=subprocess.PIPE,
++                stderr=subprocess.PIPE,
++                text=True,
++                bufsize=1,
++            )
+         except OSError as exc:
+-            messagebox.showerror("Open failed", str(exc))
++            on_log("stderr", f"Failed to start process: {exc}\n")
++            on_done(1, "Make Clean")
++            return
++
++        assert process.stdout is not None
++        assert process.stderr is not None
++
++        def drain(stream_name: str, pipe) -> None:
++            for line in iter(pipe.readline, ""):
++                on_log(stream_name, line)
++
++        stdout_thread = threading.Thread(target=drain, args=("stdout", process.stdout), daemon=True)
++        stderr_thread = threading.Thread(target=drain, args=("stderr", process.stderr), daemon=True)
++        stdout_thread.start()
++        stderr_thread.start()
++        stdout_thread.join()
++        stderr_thread.join()
++
++        exit_code = process.wait()
++        on_done(exit_code, "Make Clean")
++
++    def _on_log_line(self, stream: str, line: str) -> None:
++        self.after(0, lambda: self.log_viewer.append(stream, line))
++
++    def _on_stage_done(self, exit_code: int, label: str) -> None:
++        def update() -> None:
++            self.flow_panel.set_running(False)
++            if exit_code == 0:
++                self.flow_panel.set_status(f"{label} — done")
++                self.log_viewer.log_info(f"--- {label} finished successfully ---\n")
++                if label in ("GDSII Generation", "Full Pipeline"):
++                    gds = self.viewers.default_gds_path()
++                    if gds.is_file():
++                        results_dir = self.app_config.results_dir
++                        if self.app_config.flow_dir.is_dir():
++                            self.project_tree.set_root(
++                                self.app_config.flow_dir,
++                                active_results_dir=results_dir if results_dir.is_dir() else None,
++                            )
++            else:
++                self.flow_panel.set_status(f"{label} — failed ({exit_code})")
++                self.log_viewer.log_error(f"--- {label} failed (exit {exit_code}) ---\n")
++        self.after(0, update)
++
++    def _make_clean(self) -> None:
++        if not self._validate_before_run():
++            return
++
++        self.flow_panel.set_running(True)
++        self.log_viewer.log_info("\n--- Running make clean ---\n")
++
++        def on_log(stream: str, line: str) -> None:
++            self.after(0, lambda: self.log_viewer.append(stream, line))
++
++        def on_done(exit_code: int, label: str) -> None:
++            def update() -> None:
++                self.flow_panel.set_running(False)
++                if exit_code == 0:
++                    self.flow_panel.set_status("Make Clean — done")
++                    self.log_viewer.log_info("--- Make Clean finished successfully ---\n")
++                else:
++                    self.flow_panel.set_status(f"Make Clean — failed ({exit_code})")
++                    self.log_viewer.log_error(f"--- Make Clean failed (exit {exit_code}) ---\n")
++            self.after(0, update)
+ 
+-    def _build_surrogate_features(self) -> dict:
+-        """Build feature dict for surrogate inference from active design config."""
+-        features = {}
+-
+-        # Parse config.mk for design parameters
+-        config_path = self.app_config.flow_dir / "designs" / self.app_config.platform / self.app_config.design_name / "config.mk"
+-        if config_path.exists():
+-            import re
+-            content = config_path.read_text()
+-
+-            # Extract key parameters
+-            for key in ['CORE_UTILIZATION', 'CORE_ASPECT_RATIO', 'CORE_MARGIN']:
+-                match = re.search(rf'{key}\s*=\s*([\d.]+)', content)
+-                if match:
+-                    features[key.lower()] = float(match.group(1))
+-
+-        # Set defaults for missing
+-        features.setdefault('core_utilization', 30.0)
+-        features.setdefault('core_aspect_ratio', 1.0)
+-        features.setdefault('core_margin', 5.0)
+-
+-        # Platform
+-        features['platform'] = self.app_config.platform
+-        features['core_aspect_ratio'] = float(features['core_aspect_ratio'])
+-
+-        # Estimate design size from config.mk verilog files
+-        verilog_files = list((self.app_config.flow_dir / "designs" / self.app_config.platform / self.app_config.design_name).glob("*.v"))
+-        num_instances = 5000  # default
+-        if verilog_files:
+-            # Rough estimate from verilog
+-            content = verilog_files[0].read_text()
+-            num_instances = max(100, len(re.findall(r'\b(module|always|assign)\b', content)) * 100)
+-
+-        features['num_instances'] = num_instances
+-        features['num_nets'] = int(num_instances * 1.2)
+-        features['num_sequential'] = int(num_instances * 0.2)
+-        features['num_macros'] = 0
+-        features['macro_area_ratio'] = 0.0
+-
+-        # Derived features
+-        features['log_instances'] = np.log1p(num_instances) / 20.0
+-        features['log_nets'] = np.log1p(features['num_nets']) / 20.0
+-        features['seq_ratio'] = features['num_sequential'] / max(1, features['num_instances'])
+-        features['macro_ratio'] = features['num_macros'] / max(1, features['num_instances'])
+-
+-        return features
+-
+-    def _fetch_design_metrics(self) -> dict:
+-        """Fetch real metrics from flow reports for the active design."""
+-        metrics = {}
+-
+-        if not self.app_config.design_config or not self.app_config.results_dir:
+-            return metrics
+-
+-        reports_dir = self.app_config.flow_dir / "reports" / self.app_config.platform / self.app_config.design_name / "base"
+-        if not reports_dir.exists():
+-            self.log_viewer.log_error(f"Reports directory not found: {reports_dir}\n")
+-            return metrics
+-
+-        self.log_viewer.log_info(f"Looking for reports in: {reports_dir}\n")
+-
+-        # Use the parser to extract metrics from ALL reports in the directory
+-        from openroad_gui.intelligence.data.parser import parse_reports_directory
++        cfg = self.app_config
++        design_config = cfg.design_config
++        flow_dir = cfg.flow_dir
++        env_script = cfg.env_script
++
++        extra_exports = "\n".join(f'export {key}="{value}"' for key, value in cfg.extra_env.items())
++        klayout_export = f'export KLAYOUT_CMD="{cfg.klayout_cmd}"'
++
++        command = (
++            f'set -e\n'
++            f'source "{env_script}"\n'
++            f'{klayout_export}\n'
++            f'{extra_exports}\n'
++            f'cd "{flow_dir}"\n'
++            f'echo ">>> Running: make DESIGN_CONFIG={design_config} clean_all"\n'
++            f'make DESIGN_CONFIG={design_config} clean_all\n'
++        )
++
++        import threading
++        thread = threading.Thread(
++            target=self._run_clean_thread,
++            args=(command, on_log, on_done),
++            daemon=True,
++        )
++        thread.start()
++
++    def _run_clean_thread(self, command: str, on_log, on_done) -> None:
++        import subprocess
+         try:
+-            metrics = parse_reports_directory(str(reports_dir))
+-            self.log_viewer.log_info(f"parse_reports_directory found metrics: {list(metrics.keys())}\n")
+-        except Exception as e:
+-            self.log_viewer.log_error(f"Failed to parse reports: {e}\n")
+-
+-        # Also try to get metrics from the latest stage report (by stage number)
+-        # ORFS reports are named: 1_synth.rpt, 2_floorplan.rpt, 3_place.rpt, 4_cts.rpt, 5_route.rpt, 6_finish.rpt
+-        # Also handles variants like 4_cts_final.rpt
++            process = subprocess.Popen(
++                ["/bin/bash", "-lc", command],
++                stdout=subprocess.PIPE,
++                stderr=subprocess.PIPE,
++                text=True,
++                bufsize=1,
++            )
++        except OSError as exc:
++            on_log("stderr", f"Failed to start process: {exc}\n")
++            on_done(1, "Make Clean")
++            return
++
++        assert process.stdout is not None
++        assert process.stderr is not None
++
++        def drain(stream_name: str, pipe) -> None:
++            for line in iter(pipe.readline, ""):
++                on_log(stream_name, line)
++
++        stdout_thread = threading.Thread(target=drain, args=("stdout", process.stdout), daemon=True)
++        stderr_thread = threading.Thread(target=drain, args=("stderr", process.stderr), daemon=True)
++        stdout_thread.start()
++        stderr_thread.start()
++        stdout_thread.join()
++        stderr_thread.join()
++
++        exit_code = process.wait()
++        on_done(exit_code, "Make Clean")
++
++    def _on_log_line(self, stream: str, line: str) -> None:
++        self.after(0, lambda: self.log_viewer.append(stream, line))
++
++    def _on_stage_done(self, exit_code: int, label: str) -> None:
++        def update() -> None:
++            self.flow_panel.set_running(False)
++            if exit_code == 0:
++                self.flow_panel.set_status(f"{label} — done")
++                self.log_viewer.log_info(f"--- {label} finished successfully ---\n")
++                if label in ("GDSII Generation", "Full Pipeline"):
++                    gds = self.viewers.default_gds_path()
++                    if gds.is_file():
++                        results_dir = self.app_config.results_dir
++                        if self.app_config.flow_dir.is_dir():
++                            self.project_tree.set_root(
++                                self.app_config.flow_dir,
++                                active_results_dir=results_dir if results_dir.is_dir() else None,
++                            )
++            else:
++                self.flow_panel.set_status(f"{label} — failed ({exit_code})")
++                self.log_viewer.log_error(f"--- {label} failed (exit {exit_code}) ---\n")
++        self.after(0, update)
++
++    def _make_clean(self) -> None:
++        if not self._validate_before_run():
++            return
++
++        self.flow_panel.set_running(True)
++        self.log_viewer.log_info("\n--- Running make clean ---\n")
++
++        def on_log(stream: str, line: str) -> None:
++            self.after(0, lambda: self.log_viewer.append(stream, line))
++
++        def on_done(exit_code: int, label: str) -> None:
++            def update() -> None:
++                self.flow_panel.set_running(False)
++                if exit_code == 0:
++                    self.flow_panel.set_status("Make Clean — done")
++                    self.log_viewer.log_info("--- Make Clean finished successfully ---\n")
++                else:
++                    self.flow_panel.set_status(f"Make Clean — failed ({exit_code})")
++                    self.log_viewer.log_error(f"--- Make Clean failed (exit {exit_code}) ---\n")
++            self.after(0, update)
++
++        cfg = self.app_config
++        design_config = cfg.design_config
++        flow_dir = cfg.flow_dir
++        env_script = cfg.env_script
++
++        extra_exports = "\n".join(f'export {key}="{value}"' for key, value in cfg.extra_env.items())
++        klayout_export = f'export KLAYOUT_CMD="{cfg.klayout_cmd}"'
++
++        command = (
++            f'set -e\n'
++            f'source "{env_script}"\n'
++            f'{klayout_export}\n'
++            f'{extra_exports}\n'
++            f'cd "{flow_dir}"\n'
++            f'echo ">>> Running: make DESIGN_CONFIG={design_config} clean_all"\n'
++            f'make DESIGN_CONFIG={design_config} clean_all\n'
++        )
++
++        import threading
++        thread = threading.Thread(
++            target=self._run_clean_thread,
++            args=(command, on_log, on_done),
++            daemon=True,
++        )
++        thread.start()
++
++    def _run_clean_thread(self, command: str, on_log, on_done) -> None:
++        import subprocess
+         try:
+-            if reports_dir.exists():
+-                # Look for all numbered stage reports (including _final suffix)
+-                stage_reports = list(reports_dir.glob("[0-9]_*.rpt"))
+-                self.log_viewer.log_info(f"Found stage reports: {[f.name for f in stage_reports]}\n")
+-                if stage_reports:
+-                    # Sort by stage number (extract number from filename)
+-                    def stage_num(f):
+-                        try:
+-                            return int(f.stem.split('_')[0])
+-                        except (ValueError, IndexError):
+-                            return 0
+-
+-                    latest_report = max(stage_reports, key=stage_num)
+-                    self.log_viewer.log_info(f"Latest stage report: {latest_report.name}\n")
+-                    content = latest_report.read_text()
+-                    # Debug: show first 500 chars of report
+-                    self.log_viewer.log_info(f"Report preview: {content[:500]}\n")
+-                    from openroad_gui.intelligence.data.parser import _parse_report_content
+-                    latest_metrics = _parse_report_content(content)
+-                    self.log_viewer.log_info(f"Parsed metrics from {latest_report.name}: {latest_metrics}\n")
+-                    # Update metrics with latest stage data (higher priority)
+-                    metrics.update(latest_metrics)
+-                    self.log_viewer.log_info(f"Using metrics from latest stage report: {latest_report.name}\n")
+-        except Exception as e:
+-            self.log_viewer.log_error(f"Failed to parse latest stage report: {e}\n")
+-            import traceback
+-            self.log_viewer.log_error(traceback.format_exc() + "\n")
+-
+-        # Final check - if still empty, list all files in reports dir
+-        if not metrics:
+-            try:
+-                all_files = list(reports_dir.glob("*"))
+-                self.log_viewer.log_info(f"All files in reports dir: {[f.name for f in all_files]}\n")
+-            except Exception:
+-                pass
++            process = subprocess.Popen(
++                ["/bin/bash", "-lc", command],
++                stdout=subprocess.PIPE,
++                stderr=subprocess.PIPE,
++                text=True,
++                bufsize=1,
++            )
++        except OSError as exc:
++            on_log("stderr", f"Failed to start process: {exc}\n")
++            on_done(1, "Make Clean")
++            return
++
++        assert process.stdout is not None
++        assert process.stderr is not None
++
++        def drain(stream_name: str, pipe) -> None:
++            for line in iter(pipe.readline, ""):
++                on_log(stream_name, line)
++
++        stdout_thread = threading.Thread(target=drain, args=("stdout", process.stdout), daemon=True)
++        stderr_thread = threading.Thread(target=drain, args=("stderr", process.stderr), daemon=True)
++        stdout_thread.start()
++        stderr_thread.start()
++        stdout_thread.join()
++        stderr_thread.join()
+ 
+-        return metrics
++        exit_code = process.wait()
++        on_done(exit_code, "Make Clean")
++
++    def _on_log_line(self, stream: str, line: str) -> None:
++        self.after(0, lambda: self.log_viewer.append(stream, line))
++
++    def _on_stage_done(self, exit_code: int, label: str) -> None:
++        def update() -> None:
++            self.flow_panel.set_running(False)
++            if exit_code == 0:
++                self.flow_panel.set_status(f"{label} — done")
++                self.log_viewer.log_info(f"--- {label} finished successfully ---\n")
++                if label in ("GDSII Generation", "Full Pipeline"):
++                    gds = self.viewers.default_gds_path()
++                    if gds.is_file():
++                        results_dir = self.app_config.results_dir
++                        if self.app_config.flow_dir.is_dir():
++                            self.project_tree.set_root(
++                                self.app_config.flow_dir,
++                                active_results_dir=results_dir if results_dir.is_dir() else None,
++                            )
++            else:
++                self.flow_panel.set_status(f"{label} — failed ({exit_code})")
++                self.log_viewer.log_error(f"--- {label} failed (exit {exit_code}) ---\n")
++        self.after(0, update)
++
++
++     # ─── Remaining Utility Methods & Entry Point ───
++
++    def _apply_config(self) -> None:
++        self.app_config.update_from_design_config(self.app_config.design_config)
++        self.runner = FlowRunner(self.app_config)
++        self.viewers = ViewerService(self.app_config)
++        flow_dir = self.app_config.flow_dir
++        results_dir = self.app_config.results_dir
++        if flow_dir.is_dir():
++           self.project_tree.set_root(
++                flow_dir,
++                active_results_dir=results_dir if results_dir.is_dir() else None,
++            )
++        else:
++            self.log_viewer.log_error(
++                f"Flow directory not found: {flow_dir}\n"
++                "Open Settings to set the correct OpenROAD root path."
++            )
++
++        self.flow_panel.set_design_info(
++            self.app_config.design_name,
++            self.app_config.platform,
++            self.app_config.design_config,
++        )
++
++        errors = self.app_config.validate()
++        if errors:
++            self.log_viewer.log_info("Environment check:\n" + "\n".join(f"
++        else:
++            gds = self.viewers.default_gds_path()
++            gds_note = f"GDS: {gds.name} ({'found' if gds.is_file() else 'not yet built'})"
++            self.log_viewer.log_info(
++                f"Ready — ORFS: {self.app_config.orfs_root}\n"
++                f"Active design: {self.app_config.platform}/{self.app_conf
++                f"{gds_note}\n"
++            )
++
++        def _on_close(self) -> None:
++            if self.runner.is_running:
++                if not messagebox.askyesno("Flow running", "A flow stage is st):
++                    return
++                self.runner.stop()
++            self.destroy()
+ 
+ 
+ def run() -> None:
+     """Entry point for the application."""
+     app = OpenRoadGUI()
+-    app.mainloop()
+\ No newline at end of file
++    app.mainloop()
++
++if __name__ == "__main__":
++    run()

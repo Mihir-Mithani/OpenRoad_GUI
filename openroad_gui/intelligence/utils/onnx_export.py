@@ -262,6 +262,7 @@ class SurrogateInference:
 
     def _load_all(self):
         """Load preprocessor and all available models."""
+        # Try loading separate preprocessor file first
         preprocessor_path = self.model_dir / "surrogate_preprocessor.pkl"
         if preprocessor_path.exists():
             self.preprocessor = joblib.load(preprocessor_path)
@@ -269,11 +270,25 @@ class SurrogateInference:
         targets = ['wns', 'tns', 'area', 'power']
         for target in targets:
             self.models[target] = {}
-            # LightGBM
+            # Try LightGBM model (with _lgb suffix as saved by training script)
             lgb_path = self.model_dir / f"surrogate_{target}_lgb.pkl"
+            if not lgb_path.exists():
+                # Fallback: try without _lgb suffix (actual training output format)
+                lgb_path = self.model_dir / f"surrogate_{target}.pkl"
             if lgb_path.exists():
-                self.models[target]['lgb'] = joblib.load(lgb_path)
-            # MLP
+                model_data = joblib.load(lgb_path)
+                # Model data can be either:
+                # 1. Dict with 'model' and 'preprocessor' keys (training script format)
+                # 2. Direct model object
+                if isinstance(model_data, dict):
+                    self.models[target]['lgb'] = model_data.get('model', model_data)
+                    # If we don't have a preprocessor yet, try to get it from model_data
+                    if self.preprocessor is None and 'preprocessor' in model_data:
+                        self.preprocessor = model_data['preprocessor']
+                else:
+                    self.models[target]['lgb'] = model_data
+
+            # MLP (PyTorch)
             if TORCH_AVAILABLE:
                 mlp_path = self.model_dir / f"surrogate_{target}_mlp.pt"
                 if mlp_path.exists():
@@ -286,7 +301,13 @@ class SurrogateInference:
     def predict(self, features: Dict[str, Any], target: str, model_type: str = 'lgb') -> Optional[float]:
         """Predict single target using specified model type."""
         if self.preprocessor is None:
-            raise ValueError("Preprocessor not loaded")
+            # Try to provide a meaningful error with available model info
+            available_targets = list(self.models.keys())
+            raise ValueError(
+                f"Preprocessor not loaded. Available models: {available_targets}. "
+                f"Ensure surrogate_preprocessor.pkl exists in {self.model_dir} "
+                f"or that model files contain embedded preprocessor."
+            )
 
         if target not in self.models or model_type not in self.models[target]:
             return None
