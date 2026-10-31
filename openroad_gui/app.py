@@ -13,7 +13,7 @@ from tkinter import filedialog, messagebox, ttk
 
 import numpy as np
 
-from openroad_gui import __version__
+from openroad_gui import __version__, signoff
 from openroad_gui.config import AppConfig, load_config, save_config
 from openroad_gui.flow_runner import FULL_PIPELINE, FlowRunner, FlowStage
 from openroad_gui.viewers import OPENROAD_GUI_STAGES, OpenROADGuiStage, ViewerService
@@ -68,6 +68,10 @@ class OpenRoadGUI(tk.Tk):
         self._wheel_bound = False
         self._active_stage: FlowStage | None = None
         self._ui_stop_requested = False
+        self._signoff_queue: list[FlowStage] = []
+        self._signoff_results: dict[str, signoff.SignoffResult] = {}
+        self._metric_units: dict[str, ttk.Label] = {}
+        self._metric_tips: dict[str, ToolTip] = {}
 
         # Initialize intelligence modules
         self.optimizer = None
@@ -112,6 +116,7 @@ class OpenRoadGUI(tk.Tk):
             self.pipeline_row._draw_pipeline()
         if hasattr(self, 'log_viewer'):
             self.log_viewer._refresh_theme()
+        self._apply_signoff_display()
         if hasattr(self, 'ppa_rows'):
             for row in self.ppa_rows.values():
                 row['pred'].configure(foreground=colors["ACCENT_BLUE"])
@@ -438,6 +443,7 @@ class OpenRoadGUI(tk.Tk):
             on_make_clean=self._make_clean,
             get_config=lambda: self.app_config,
             on_settings=self._open_settings,
+            on_run_signoff=self._show_drc_lvs,
         )
         self.pipeline_row.pack(fill=tk.X, padx=10, pady=(4, 6))
 
@@ -595,8 +601,8 @@ class OpenRoadGUI(tk.Tk):
             ("TNS", "tns", "ns"),
             ("Total Power", "power", "mW"),
             ("Cell Area", "area", "μm²"),
-            ("DRC", "drc", "violations"),
-            ("LVS", "lvs", "status"),
+            ("DRC", "drc", "not run"),
+            ("LVS", "lvs", "not run"),
         ]
 
         cards_container = ttk.Frame(self.metrics_frame)
@@ -612,10 +618,15 @@ class OpenRoadGUI(tk.Tk):
                       font=("TkDefaultFont", 9)).pack(anchor="w")
             value_label = ttk.Label(card, text="—", style="MetricValue.TLabel")
             value_label.pack(anchor="w")
-            ttk.Label(card, text=unit, style="MetricCard.TLabel",
-                      font=("TkDefaultFont", 8)).pack(anchor="w")
+            unit_label = ttk.Label(card, text=unit, style="MetricCard.TLabel",
+                                   font=("TkDefaultFont", 8))
+            unit_label.pack(anchor="w")
 
             setattr(self, f"metric_{key}", value_label)
+            if key in ("drc", "lvs"):
+                self._metric_units[key] = unit_label
+                self._metric_tips[key] = ToolTip(
+                    value_label, f"{label}: run the check to see results")
 
     def _build_ai_assistant(self) -> None:
         f = self.ai_frame
@@ -755,6 +766,10 @@ class OpenRoadGUI(tk.Tk):
             ("DRC Report", "✅", self._open_drc_report),
             ("LVS Report", "✅", self._open_lvs_report),
             ("Generate GDSII", "💾", self._generate_gdsii),
+            # Sign-off runs (make drc / make lvs through the existing flow runner)
+            ("Run DRC", "", lambda: self._run_signoff([FlowStage.DRC])),
+            ("Run LVS", "", lambda: self._run_signoff([FlowStage.LVS])),
+            ("Run DRC + LVS", "", self._show_drc_lvs),
         ]
 
         grid = ttk.Frame(f)
@@ -762,9 +777,12 @@ class OpenRoadGUI(tk.Tk):
         for col in range(3):
             grid.columnconfigure(col, weight=1, uniform="reports")
 
+        self._signoff_buttons = []
         for idx, (label, icon, cmd) in enumerate(buttons):
-            ttk.Button(grid, text=label, command=cmd, style="Compact.TButton").grid(
-                row=idx // 3, column=idx % 3, sticky="ew", padx=2, pady=3)
+            btn = ttk.Button(grid, text=label, command=cmd, style="Compact.TButton")
+            btn.grid(row=idx // 3, column=idx % 3, sticky="ew", padx=2, pady=3)
+            if idx >= 6:
+                self._signoff_buttons.append(btn)
 
     # ===== SHARED STATUS / PIPELINE-STATE HELPERS =====
     # The old code only updated the hidden FlowPanel (`if hasattr(self, 'flow_panel') ... elif
@@ -908,6 +926,7 @@ class OpenRoadGUI(tk.Tk):
                 active_results_dir=results_dir if results_dir.is_dir() else None,
             )
         self._populate_design_inputs()
+        self._refresh_signoff_metrics()
         self.log_viewer.log_info(f"Active design set to: {self.app_config.design_config}\n")
 
     def _use_as_config(self) -> None:
@@ -1069,6 +1088,7 @@ class OpenRoadGUI(tk.Tk):
 
     def _stop_flow(self) -> None:
         self._ui_stop_requested = True
+        self._signoff_queue.clear()
         self.runner.stop()
         self.log_viewer.log_error("Stop requested…")
 
@@ -1196,7 +1216,89 @@ class OpenRoadGUI(tk.Tk):
                 self._set_status(f"{label} — failed ({exit_code})")
                 self.log_viewer.log_error(f"--- {label} failed (exit {exit_code}) ---\n")
 
+            if label in (signoff.DRC_LABEL, signoff.LVS_LABEL):
+                self._on_signoff_done(label, exit_code)
+
         self.after(0, update)
+
+    # ===== SIGN-OFF (DRC / LVS) =====
+    def _check_klayout(self) -> bool:
+        """DRC and LVS are KLayout based (see `check-klayout` in the ORFS Makefile)."""
+        klayout = self.app_config.klayout_cmd
+        if not klayout or not Path(klayout).is_file():
+            messagebox.showerror(
+                "KLayout required",
+                "DRC and LVS run through KLayout.\nSet the KLayout binary in File → Settings → Paths.",
+            )
+            return False
+        return True
+
+    def _run_signoff(self, stages: list[FlowStage]) -> None:
+        if not self._validate_before_run() or not self._check_klayout():
+            return
+        if self.runner.is_running:
+            self.log_viewer.log_error("A flow stage is already running.")
+            return
+        self._signoff_queue = list(stages)
+        self._start_next_signoff()
+
+    def _start_next_signoff(self) -> None:
+        if self._signoff_queue:
+            self._run_stage(self._signoff_queue.pop(0))
+
+    def _on_signoff_done(self, label: str, exit_code: int) -> None:
+        kind = "drc" if label == signoff.DRC_LABEL else "lvs"
+        self._refresh_signoff_metrics()
+        if exit_code != 0:
+            # A failed run must not leave an older result looking current
+            self._signoff_queue.clear()
+            self._signoff_results[kind] = signoff.SignoffResult(
+                kind, signoff.ERROR, detail=f"run failed (exit {exit_code})")
+            self._apply_signoff_display()
+        result = self._signoff_results.get(kind)
+        if result is not None:
+            self.log_viewer.log_info(f"{kind.upper()} result: {result.summary()}\n")
+        if exit_code == 0:
+            self._start_next_signoff()
+
+    def _refresh_signoff_metrics(self) -> None:
+        """Re-read DRC/LVS result files for the active design and update the UI."""
+        try:
+            self._signoff_results = {
+                "drc": signoff.read_drc(self.app_config),
+                "lvs": signoff.read_lvs(self.app_config),
+            }
+        except Exception as exc:   # never let a parse problem break the GUI
+            self.log_viewer.log_error(f"Could not read sign-off results: {exc}\n")
+            return
+        self._apply_signoff_display()
+
+    def _apply_signoff_display(self) -> None:
+        if not self._signoff_results or not hasattr(self, "metric_drc"):
+            return
+        colors = self.theme_manager.get_colors()
+        level_color = {"ok": colors["ACCENT_GREEN"], "bad": colors["ACCENT_RED"],
+                       "warn": colors["ACCENT_AMBER"], "none": ""}
+        short = {}
+        statuses = []
+        for key in ("drc", "lvs"):
+            result = self._signoff_results.get(key)
+            if result is None:
+                continue
+            value, unit, level = result.display()
+            short[key] = value
+            statuses.append(result.status)
+            getattr(self, f"metric_{key}").configure(text=value, foreground=level_color[level])
+            self._metric_units[key].configure(text=unit)
+            self._metric_tips[key].text = f"{key.upper()}: {result.summary()}"
+        if hasattr(self, "pipeline_row"):
+            if signoff.VIOLATIONS in statuses or signoff.ERROR in statuses:
+                state = "violations"
+            elif signoff.CLEAN in statuses:
+                state = "clean"
+            else:
+                state = "pending"
+            self.pipeline_row.set_signoff_status(state, short.get("drc", "—"), short.get("lvs", "—"))
 
     # ===== INTELLIGENCE METHODS (from backup - WORKING) =====
     def _predict_failure_risk(self) -> None:
@@ -1371,11 +1473,49 @@ class OpenRoadGUI(tk.Tk):
         features['platform'] = self.app_config.platform
         features['core_aspect_ratio'] = float(features['core_aspect_ratio'])
 
-        verilog_files = list((self.app_config.flow_dir / "designs" / self.app_config.platform / self.app_config.design_name).glob("*.v"))
-        num_instances = 5000
-        if verilog_files:
-            content = verilog_files[0].read_text()
-            num_instances = max(100, len(re.findall(r'\b(module|always|assign)\b', content)) * 100)
+        # Try to get actual instance count from synthesis report first
+        num_instances = None
+        reports_dir = self.app_config.flow_dir / "reports" / self.app_config.platform / self.app_config.design_name / "base"
+        if reports_dir.exists():
+            # Look for synthesis reports with various naming patterns
+            synth_patterns = ["1_*synth*.rpt", "1_*.rpt", "*synth*.rpt", "synth_stat.txt", "synth_check.txt"]
+            for pattern in synth_patterns:
+                synth_reports = list(reports_dir.glob(pattern))
+                for report_file in synth_reports:
+                    try:
+                        content = report_file.read_text()
+                        # Yosys reports: "Number of cells: 123"
+                        match = re.search(r'Number of cells:\s+(\d+)', content)
+                        if not match:
+                            # synth_stat.txt format: "18    2.858       18    2.858 cells"
+                            match = re.search(r'^\s*(\d+)\s+[\d.]+\s+\d+\s+[\d.]+\s+cells', content, re.MULTILINE)
+                        if match:
+                            num_instances = int(match.group(1))
+                            break
+                    except Exception:
+                        pass
+                if num_instances is not None:
+                    break
+
+        # Fallback: estimate from Verilog complexity
+        if num_instances is None:
+            verilog_files = list((self.app_config.flow_dir / "designs" / self.app_config.platform / self.app_config.design_name).glob("*.v"))
+            num_instances = 500
+            if verilog_files:
+                content = verilog_files[0].read_text()
+                # Better heuristic: count actual instantiations, not keywords
+                module_inst = len(re.findall(r'\b\w+\s+\w+\s*\(', content))  # module_name instance_name (
+                cell_inst = len(re.findall(r'\b\w+_x?\d*\s+\w+\s*\(', content))  # cell_type instance_name (
+                always_blocks = len(re.findall(r'\balways\b', content))
+                assign_stmts = len(re.findall(r'\bassign\b', content))
+
+                # Weighted estimate based on design complexity
+                num_instances = max(50,
+                    module_inst * 10 +      # module instantiations
+                    cell_inst * 5 +         # cell instantiations
+                    always_blocks * 20 +    # sequential logic
+                    assign_stmts * 5        # combinational logic
+                )
 
         features['num_instances'] = num_instances
         features['num_nets'] = int(num_instances * 1.2)
@@ -1579,7 +1719,8 @@ class OpenRoadGUI(tk.Tk):
         self.log_viewer.log_info("Show power analysis\n")
 
     def _show_drc_lvs(self) -> None:
-        self.log_viewer.log_info("Show DRC/LVS\n")
+        """Run DRC then LVS (make drc / make lvs) and show the violation counts."""
+        self._run_signoff([FlowStage.DRC, FlowStage.LVS])
 
     def _open_tcl_console(self) -> None:
         self.log_viewer.log_info("Open TCL console\n")
@@ -1937,7 +2078,10 @@ class OpenRoadGUI(tk.Tk):
             else:
                 messagebox.showinfo("No Report", f"No {title} found. Run a flow stage first.")
             return
+        self._open_file_external(latest, title)
 
+    def _open_file_external(self, latest: Path, title: str) -> None:
+        """Open a report file in an external editor / viewer."""
         try:
             import os
             if os.uname().sysname == "Darwin":
@@ -1979,11 +2123,19 @@ class OpenRoadGUI(tk.Tk):
         self._open_report(["*_place*.rpt", "*_finish.rpt", "*_area*.rpt", "*_detailed_place*.rpt", "*_global_place*.rpt"], "Area Report")
 
     def _open_drc_report(self) -> None:
-        # DRC reports: 5_route_drc.rpt, 6_finish.rpt
+        # Real output of `make drc` first, then the older report patterns
+        lyrdb = signoff.drc_report_path(self.app_config)
+        if lyrdb.is_file():
+            self._open_file_external(lyrdb, "DRC Report")
+            return
         self._open_report(["*_route_drc*.rpt", "*_drc*.rpt", "*_finish.rpt", "*_magic*.rpt", "*_klayout*.rpt"], "DRC Report")
 
     def _open_lvs_report(self) -> None:
-        # LVS reports: 6_finish.rpt (final signoff)
+        # Real output of `make lvs` first (KLayout log has the verdict), then older patterns
+        log = signoff.lvs_log_path(self.app_config)
+        if log.is_file():
+            self._open_file_external(log, "LVS Report")
+            return
         self._open_report(["*_finish.rpt", "*_lvs*.rpt", "*_netgen*.rpt"], "LVS Report")
 
     def _generate_gdsii(self) -> None:
@@ -2046,6 +2198,7 @@ class OpenRoadGUI(tk.Tk):
 
         # Populate Design Inputs panel
         self._populate_design_inputs()
+        self._refresh_signoff_metrics()
 
         errors = self.app_config.validate()
         if errors:

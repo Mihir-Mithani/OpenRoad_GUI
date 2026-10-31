@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Real ORFS Data Collector
+Real ORFS Data Collector v2
 Fetches actual PPA metrics from completed ORFS runs and exports for dataset generation.
+Enhanced with better parsing, more metrics, and robust error handling.
 """
 
 from __future__ import annotations
@@ -155,6 +156,8 @@ class RealDataCollector:
             )
         except Exception as e:
             print(f"    Error collecting {platform}/{design}: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
     def _parse_config_mk(self, config_path: Path) -> Dict[str, float]:
@@ -249,7 +252,7 @@ class RealDataCollector:
             except Exception:
                 pass
 
-        # Calculate total DRC from violation types
+        # Calculate total DRC violations from violation types
         total_violations = (
             metrics.get('setup_violations', 0) +
             metrics.get('hold_violations', 0) +
@@ -277,7 +280,9 @@ class RealDataCollector:
                 "finish__timing__drv__max_fanout": "fanout_violations",
                 "finish__design__die__area": "die_area_um2",
                 "finish__design__core__area": "core_area_um2",
+                "finish__design__instance__area": "instance_area_um2",
                 "finish__design__instance__count": "instance_count",
+                "finish__design__instance__utilization": "utilization",
             }
             for json_key, metric_key in mapping.items():
                 if json_key in data:

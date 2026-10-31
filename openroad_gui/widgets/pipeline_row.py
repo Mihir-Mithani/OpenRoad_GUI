@@ -80,6 +80,7 @@ class PipelineRow(ttk.Frame):
         on_make_clean: Callable[[], None],
         get_config: Callable[[], Optional[AppConfig]] = None,
         on_settings: Optional[Callable[[], None]] = None,
+        on_run_signoff: Optional[Callable[[], None]] = None,
         **kwargs,
     ) -> None:
         super().__init__(master, **kwargs)
@@ -96,6 +97,9 @@ class PipelineRow(ttk.Frame):
         self.on_make_clean = on_make_clean
         self.get_config = get_config
         self.on_settings = on_settings
+        self.on_run_signoff = on_run_signoff
+        self._signoff_state = "pending"          # pending | clean | violations
+        self._signoff_lines = ["DRC: —", "LVS: —"]
 
         self._stage_states: dict[FlowStage, str] = {stage: "pending" for stage in FULL_PIPELINE}
         self._node_items: dict[str, dict] = {}   # canvas item ids, keyed by stage name
@@ -253,6 +257,10 @@ class PipelineRow(ttk.Frame):
         if state == "cancelled":
             return colors["BG_ELEVATED"], colors["FG_SECONDARY"], colors["FG_SECONDARY"], "⊘", 2
         if state == "signoff":
+            if self._signoff_state == "clean":
+                return colors["BG_ELEVATED"], colors["ACCENT_GREEN"], colors["ACCENT_GREEN"], "🛡", 3
+            if self._signoff_state == "violations":
+                return colors["BG_ELEVATED"], colors["ACCENT_RED"], colors["ACCENT_RED"], "🛡", 3
             return colors["BG_ELEVATED"], colors["ACCENT_AMBER"], colors["ACCENT_AMBER"], "🛡", 2
         # pending: filled with the card colour so the connector does not show through
         return colors["BG_ELEVATED"], colors["BORDER"], colors["FG_SECONDARY"], icon, 2
@@ -276,7 +284,8 @@ class PipelineRow(ttk.Frame):
         )
 
         if is_signoff:
-            label_color = colors["ACCENT_AMBER"]
+            label_color = {"clean": colors["ACCENT_GREEN"],
+                           "violations": colors["ACCENT_RED"]}.get(self._signoff_state, colors["ACCENT_AMBER"])
         elif state in ("completed", "running", "failed"):
             label_color = colors["FG_PRIMARY"]
         else:
@@ -298,11 +307,15 @@ class PipelineRow(ttk.Frame):
         h = self.GUI_BUTTON_HEIGHT
 
         if is_signoff:
-            # Status-only node: not runnable, no viewer button
+            # Status node: shows the real DRC / LVS counts; clicking runs both checks
             c.create_text(
-                x, top + h / 2, text="DRC / LVS", fill=colors["FG_SECONDARY"],
-                font=("TkDefaultFont", 8),
+                x, top + h / 2, text="\n".join(self._signoff_lines), fill=colors["FG_PRIMARY"],
+                font=("TkDefaultFont", 8), justify="center",
             )
+            for item in (circle, icon_id, label_id):
+                c.tag_bind(item, "<Button-1>", lambda e: self._on_signoff_click())
+                c.tag_bind(item, "<Enter>", lambda e, k=key: self._hover_node(k, True))
+                c.tag_bind(item, "<Leave>", lambda e, k=key: self._hover_node(k, False))
             return
 
         # Click on the node runs the existing stage handler
@@ -391,6 +404,17 @@ class PipelineRow(ttk.Frame):
             return
         if self._stage_states.get(stage) != "running":
             self.on_run_stage(stage)
+
+    def _on_signoff_click(self) -> None:
+        if self._running or not self.on_run_signoff:
+            return
+        self.on_run_signoff()
+
+    def set_signoff_status(self, state: str, drc_text: str, lvs_text: str) -> None:
+        """Show real sign-off results on the Signoff node (state: pending|clean|violations)."""
+        self._signoff_state = state
+        self._signoff_lines = [f"DRC: {drc_text}", f"LVS: {lvs_text}"]
+        self._draw_pipeline()
 
     def _on_gui_click(self, stage: FlowStage) -> None:
         """Open the OpenROAD GUI viewer for the stage (callback expects the enum)."""

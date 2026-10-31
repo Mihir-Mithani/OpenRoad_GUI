@@ -1,0 +1,524 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+source /OpenROAD-flow-scripts/flow/platforms/asap7/liberty_suppressions.tcl
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_RVT_FF_nldm_220123.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_LVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_LVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_LVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_LVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_LVT_FF_nldm_220123.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_SLVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_SLVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_SLVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_SLVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_SLVT_FF_nldm_220123.lib
+read_db ./results/asap7/tpu/base/1_synth.odb
+read_sdc ./results/asap7/tpu/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/asap7/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+number instances in verilog is 46354
+initialize_floorplan -utilization 60 -aspect_ratio 1 -core_space 2 -site asap7sc7p5t
+[INFO IFP-0107] Defining die area using utilization: 60.00% and aspect ratio: 1.
+[WARNING IFP-0028] Core area lower left (2.000, 2.000) snapped to (2.052, 2.160).
+[INFO IFP-0001] Added 345 rows of 1729 site asap7sc7p5t.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 97.448 97.448 ) um
+[INFO IFP-0101] Core BBox: (  2.052  2.160 ) ( 95.418 95.310 ) um
+[INFO IFP-0102] Core area:                         8697.043 um^2
+[INFO IFP-0103] Total instances area:              5239.542 um^2
+[INFO IFP-0104] Effective utilization:                0.602
+[INFO IFP-0105] Number of instances:                  46354
+source /OpenROAD-flow-scripts/flow/platforms/asap7/openRoad/make_tracks.tcl
+source /OpenROAD-flow-scripts/flow/platforms/asap7/fastroute.tcl
+set_dont_use "*x1p*_ASAP7* *xp*_ASAP7* SDF* ICG*"
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_RVT_FF_nldm_250407/TIELOx1_ASAP7_75t_R/L
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_RVT_FF_nldm_250407/TIEHIx1_ASAP7_75t_R/H
+repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[INFO RSZ-0100] Repair move sequence: UnbufferMove SizeUpMove SwapPinsMove VtSwapMove 
+[INFO RSZ-0094] Found 1665 endpoints with setup violations.
+[INFO RSZ-0099] Repairing 1665 out of 1665 (100.00%) violating endpoints...
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% | -512.169 |  -541211.5 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+      10* |       0 |       4 |        0 |      0 |     5 |    +0.0% | -505.055 |  -540861.2 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+      20* |       0 |      10 |        0 |      0 |     9 |    +0.0% | -497.707 |  -540109.2 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+      30* |       0 |      15 |        0 |      0 |    14 |    +0.0% | -494.810 |  -539608.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+      40* |       0 |      21 |        0 |      0 |    18 |    +0.0% | -492.581 |  -539152.0 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+      50* |       0 |      26 |        0 |      0 |    23 |    +0.0% | -490.056 |  -538736.1 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+      60* |       0 |      33 |        0 |      0 |    26 |    +0.0% | -488.183 |  -538138.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+      70* |       0 |      36 |        0 |      0 |    33 |    +0.0% | -487.761 |  -537938.0 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[24\]$_SDFFE_PP0N_/D
+      80* |       0 |      43 |        0 |      0 |    36 |    +0.0% | -485.774 |  -537400.0 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+      90* |       0 |      47 |        0 |      0 |    42 |    +0.0% | -485.204 |  -536862.9 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     100* |       0 |      55 |        0 |      0 |    44 |    +0.0% | -482.694 |  -536237.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     110* |       0 |      61 |        0 |      0 |    48 |    +0.0% | -481.590 |  -535821.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[24\]$_SDFFE_PP0N_/D
+     120* |       0 |      66 |        0 |      0 |    53 |    +0.0% | -480.312 |  -535176.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     130* |       0 |      74 |        0 |      0 |    55 |    +0.0% | -479.287 |  -534517.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     140* |       0 |      80 |        0 |      0 |    59 |    +0.0% | -477.996 |  -534191.5 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[0\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     150* |       0 |      85 |        0 |      0 |    64 |    +0.0% | -477.113 |  -533807.1 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[0\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     160* |       0 |      91 |        0 |      0 |    68 |    +0.0% | -475.847 |  -533495.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     170* |       0 |     101 |        0 |      0 |    68 |    +0.0% | -474.918 |  -532742.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     180* |       0 |     105 |        0 |      0 |    74 |    +0.0% | -474.778 |  -532447.6 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     190* |       0 |     112 |        0 |      0 |    77 |    +0.0% | -473.213 |  -532076.9 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     200* |       0 |     119 |        0 |      0 |    80 |    +0.0% | -472.496 |  -531624.3 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     210* |       0 |     126 |        0 |      0 |    83 |    +0.0% | -471.901 |  -531166.0 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     220* |       0 |     133 |        0 |      0 |    86 |    +0.0% | -470.107 |  -530772.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     230* |       0 |     139 |        0 |      0 |    90 |    +0.0% | -469.434 |  -530482.1 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     240* |       0 |     146 |        0 |      0 |    93 |    +0.0% | -468.683 |  -529755.0 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     250* |       0 |     153 |        0 |      0 |    96 |    +0.0% | -467.836 |  -529366.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     260* |       0 |     160 |        0 |      0 |    99 |    +0.0% | -467.368 |  -529024.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     270* |       0 |     169 |        0 |      0 |   100 |    +0.0% | -466.643 |  -528660.0 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     280* |       0 |     177 |        0 |      0 |   102 |    +0.0% | -465.939 |  -528117.4 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     290* |       0 |     184 |        0 |      0 |   105 |    +0.0% | -465.405 |  -527983.3 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     300* |       0 |     191 |        0 |      0 |   108 |    +0.0% | -464.952 |  -527752.0 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     310* |       0 |     197 |        0 |      0 |   112 |    +0.0% | -464.363 |  -527343.7 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     320* |       0 |     202 |        0 |      0 |   117 |    +0.0% | -463.953 |  -526894.1 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     330* |       0 |     209 |        0 |      0 |   120 |    +0.0% | -463.430 |  -526696.9 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     340* |       0 |     216 |        0 |      0 |   123 |    +0.0% | -462.849 |  -526336.5 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     350* |       0 |     220 |        0 |      0 |   129 |    +0.0% | -462.595 |  -526167.9 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     360* |       0 |     226 |        0 |      0 |   133 |    +0.0% | -461.914 |  -525800.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[5\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     370* |       0 |     233 |        0 |      0 |   136 |    +0.0% | -461.286 |  -525616.1 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     380* |       0 |     241 |        0 |      0 |   138 |    +0.1% | -460.719 |  -525168.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     390* |       0 |     248 |        0 |      0 |   141 |    +0.1% | -460.956 |  -525023.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     400* |       0 |     255 |        0 |      0 |   144 |    +0.1% | -459.866 |  -524935.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     410* |       0 |     262 |        0 |      0 |   147 |    +0.1% | -459.185 |  -524797.7 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[5\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     420* |       0 |     270 |        0 |      0 |   149 |    +0.1% | -459.037 |  -524545.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     430* |       0 |     277 |        0 |      0 |   152 |    +0.1% | -459.265 |  -524375.3 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     440* |       0 |     285 |        0 |      0 |   154 |    +0.1% | -458.422 |  -524290.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+     450* |       0 |     292 |        0 |      0 |   157 |    +0.1% | -458.302 |  -524124.2 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[5\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     460* |       0 |     300 |        0 |      0 |   159 |    +0.1% | -458.132 |  -524019.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     470* |       0 |     310 |        0 |      0 |   159 |    +0.1% | -457.811 |  -523674.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+     480* |       0 |     320 |        0 |      0 |   159 |    +0.1% | -457.389 |  -523448.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[5\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     490* |       0 |     328 |        0 |      0 |   161 |    +0.1% | -456.948 |  -523195.3 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     500* |       0 |     335 |        0 |      0 |   164 |    +0.1% | -456.762 |  -522958.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     510* |       0 |     341 |        0 |      0 |   168 |    +0.1% | -456.511 |  -522727.7 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     520* |       0 |     349 |        0 |      0 |   170 |    +0.1% | -456.114 |  -522364.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[0\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     530* |       0 |     357 |        0 |      0 |   172 |    +0.1% | -456.061 |  -522040.1 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     540* |       0 |     366 |        0 |      0 |   173 |    +0.1% | -455.346 |  -521788.2 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     550* |       0 |     375 |        0 |      0 |   174 |    +0.1% | -455.070 |  -521532.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     560* |       0 |     385 |        0 |      0 |   174 |    +0.1% | -454.542 |  -521264.9 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     570* |       0 |     394 |        0 |      0 |   175 |    +0.2% | -454.315 |  -521094.7 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     580* |       0 |     402 |        0 |      0 |   177 |    +0.2% | -453.921 |  -520862.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     590* |       0 |     410 |        0 |      0 |   179 |    +0.2% | -453.675 |  -520594.2 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     600* |       0 |     417 |        0 |      0 |   182 |    +0.2% | -453.252 |  -520409.5 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     610* |       0 |     424 |        0 |      0 |   185 |    +0.2% | -453.018 |  -520241.4 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     620* |       0 |     431 |        0 |      0 |   188 |    +0.2% | -452.840 |  -519979.9 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     630* |       0 |     439 |        0 |      0 |   190 |    +0.2% | -452.418 |  -519736.2 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[2\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     640* |       0 |     446 |        0 |      0 |   193 |    +0.2% | -452.048 |  -519544.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     650* |       0 |     454 |        0 |      0 |   195 |    +0.2% | -451.693 |  -519373.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[3\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     660* |       0 |     462 |        0 |      0 |   197 |    +0.2% | -451.577 |  -519280.5 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     670* |       0 |     472 |        0 |      0 |   197 |    +0.2% | -451.312 |  -519124.0 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     680* |       0 |     480 |        0 |      0 |   199 |    +0.2% | -451.129 |  -518856.7 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[3\].u_pe.psum_south\[26\]$_SDFFE_PP0N_/D
+     690* |       0 |     490 |        0 |      0 |   199 |    +0.2% | -450.833 |  -518585.5 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+     700* |       0 |     497 |        0 |      0 |   202 |    +0.2% | -450.501 |  -518407.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     710* |       0 |     506 |        0 |      0 |   203 |    +0.2% | -450.234 |  -518176.7 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     720* |       0 |     513 |        0 |      0 |   206 |    +0.2% | -450.060 |  -518040.3 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[5\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     730* |       0 |     520 |        0 |      0 |   209 |    +0.2% | -449.851 |  -517872.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     740* |       0 |     528 |        0 |      0 |   211 |    +0.2% | -449.370 |  -517742.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     750* |       0 |     538 |        0 |      0 |   211 |    +0.2% | -449.166 |  -517569.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     760* |       0 |     547 |        0 |      0 |   212 |    +0.2% | -449.168 |  -517408.5 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     770* |       0 |     554 |        0 |      0 |   215 |    +0.2% | -448.617 |  -517198.4 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[5\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     780* |       0 |     560 |        0 |      0 |   219 |    +0.2% | -448.293 |  -517114.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     790* |       0 |     567 |        0 |      0 |   222 |    +0.2% | -448.088 |  -516960.2 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     800* |       0 |     576 |        0 |      0 |   223 |    +0.2% | -447.928 |  -516824.1 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     810* |       0 |     584 |        0 |      0 |   225 |    +0.2% | -447.750 |  -516659.4 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     820* |       0 |     593 |        0 |      0 |   226 |    +0.2% | -449.194 |  -516519.5 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     830* |       0 |     601 |        0 |      0 |   228 |    +0.2% | -447.343 |  -516328.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+     840* |       0 |     611 |        0 |      0 |   228 |    +0.2% | -447.113 |  -516125.3 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     850* |       0 |     619 |        0 |      0 |   230 |    +0.3% | -446.856 |  -515923.0 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     860* |       0 |     628 |        0 |      0 |   231 |    +0.3% | -446.673 |  -515748.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     870* |       0 |     637 |        0 |      0 |   232 |    +0.3% | -446.266 |  -515628.0 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[5\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     880* |       0 |     645 |        0 |      0 |   234 |    +0.3% | -446.139 |  -515442.2 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     890* |       0 |     653 |        0 |      0 |   236 |    +0.3% | -445.905 |  -515298.3 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     900* |       0 |     663 |        0 |      0 |   236 |    +0.3% | -445.688 |  -515123.7 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     910* |       0 |     673 |        0 |      0 |   236 |    +0.3% | -445.411 |  -514931.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     920* |       0 |     682 |        0 |      0 |   237 |    +0.3% | -445.264 |  -514775.5 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     930* |       0 |     689 |        0 |      0 |   240 |    +0.3% | -445.064 |  -514677.9 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[2\].u_pe.psum_south\[22\]$_SDFFE_PP0N_/D
+     940* |       0 |     696 |        0 |      0 |   243 |    +0.3% | -444.863 |  -514464.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+     950* |       0 |     705 |        0 |      0 |   244 |    +0.3% | -444.708 |  -514206.0 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     960* |       0 |     714 |        0 |      0 |   245 |    +0.3% | -444.537 |  -514017.2 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     970* |       0 |     723 |        0 |      0 |   246 |    +0.3% | -444.374 |  -513913.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+     980* |       0 |     733 |        0 |      0 |   246 |    +0.3% | -444.125 |  -513674.2 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     990* |       0 |     742 |        0 |      0 |   247 |    +0.3% | -445.533 |  -513687.2 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1000* |       0 |     751 |        0 |      0 |   248 |    +0.3% | -443.777 |  -513451.4 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1010* |       0 |     759 |        0 |      0 |   250 |    +0.3% | -445.248 |  -513383.5 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1020* |       0 |     769 |        0 |      0 |   250 |    +0.3% | -443.412 |  -513184.7 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1030* |       0 |     779 |        0 |      0 |   250 |    +0.3% | -443.244 |  -513082.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1040* |       0 |     787 |        0 |      0 |   252 |    +0.3% | -444.199 |  -513039.3 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1050* |       0 |     796 |        0 |      0 |   253 |    +0.3% | -442.921 |  -512824.6 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    1060* |       0 |     804 |        0 |      0 |   255 |    +0.3% | -442.802 |  -512701.7 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    1070* |       0 |     811 |        0 |      0 |   258 |    +0.3% | -442.539 |  -512473.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1080* |       0 |     821 |        0 |      0 |   258 |    +0.4% | -442.368 |  -512320.2 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    1090* |       0 |     830 |        0 |      0 |   259 |    +0.4% | -443.093 |  -512161.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1100* |       0 |     839 |        0 |      0 |   260 |    +0.4% | -442.042 |  -511995.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1110* |       0 |     848 |        0 |      0 |   261 |    +0.4% | -441.858 |  -511814.0 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1120* |       0 |     856 |        0 |      0 |   263 |    +0.4% | -441.653 |  -511572.3 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    1130* |       0 |     865 |        0 |      0 |   264 |    +0.4% | -441.396 |  -511361.1 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1140* |       0 |     873 |        0 |      0 |   266 |    +0.4% | -441.263 |  -511251.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1150* |       0 |     879 |        0 |      0 |   270 |    +0.4% | -441.488 |  -511103.5 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[3\].u_pe.psum_south\[22\]$_SDFFE_PP0N_/D
+    1160* |       0 |     889 |        0 |      0 |   270 |    +0.4% | -440.679 |  -510912.2 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1170* |       0 |     896 |        0 |      0 |   273 |    +0.4% | -440.591 |  -510802.2 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1180* |       0 |     905 |        0 |      0 |   274 |    +0.4% | -440.403 |  -510711.4 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[0\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1190* |       0 |     913 |        0 |      0 |   276 |    +0.4% | -440.227 |  -510537.6 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1200* |       0 |     921 |        0 |      0 |   278 |    +0.4% | -440.027 |  -510427.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1210* |       0 |     930 |        0 |      0 |   279 |    +0.4% | -439.762 |  -510266.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1220* |       0 |     940 |        0 |      0 |   279 |    +0.4% | -439.607 |  -510167.1 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1230* |       0 |     949 |        0 |      0 |   280 |    +0.4% | -439.429 |  -510025.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1240* |       0 |     957 |        0 |      0 |   282 |    +0.4% | -439.322 |  -509791.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1250* |       0 |     964 |        0 |      0 |   285 |    +0.4% | -439.209 |  -509658.7 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1260* |       0 |     971 |        0 |      0 |   288 |    +0.4% | -439.051 |  -509473.0 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1270* |       0 |     978 |        0 |      0 |   291 |    +0.4% | -438.944 |  -509361.4 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1280* |       0 |     986 |        0 |      0 |   293 |    +0.4% | -438.809 |  -509291.4 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1290* |       0 |     993 |        0 |      0 |   296 |    +0.4% | -438.624 |  -509145.7 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1300* |       0 |    1002 |        0 |      0 |   297 |    +0.4% | -438.411 |  -508956.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1310* |       0 |    1011 |        0 |      0 |   298 |    +0.4% | -438.260 |  -508767.0 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1320* |       0 |    1019 |        0 |      0 |   300 |    +0.4% | -438.052 |  -508656.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1330* |       0 |    1027 |        0 |      0 |   302 |    +0.4% | -437.852 |  -508563.9 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1340* |       0 |    1035 |        0 |      0 |   304 |    +0.5% | -437.561 |  -508441.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[5\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    1350* |       0 |    1043 |        0 |      0 |   306 |    +0.5% | -437.713 |  -508264.6 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1360* |       0 |    1053 |        0 |      0 |   306 |    +0.5% | -437.291 |  -508178.6 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1370* |       0 |    1062 |        0 |      0 |   307 |    +0.5% | -436.978 |  -508059.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1380* |       0 |    1070 |        0 |      0 |   309 |    +0.5% | -436.846 |  -508000.5 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1390* |       0 |    1078 |        0 |      0 |   311 |    +0.5% | -436.769 |  -507804.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1400* |       0 |    1088 |        0 |      0 |   311 |    +0.5% | -436.692 |  -507681.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[3\].u_pe.psum_south\[26\]$_SDFFE_PP0N_/D
+    1410* |       0 |    1098 |        0 |      0 |   311 |    +0.5% | -436.556 |  -507570.9 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1420* |       0 |    1108 |        0 |      0 |   311 |    +0.5% | -436.408 |  -507375.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1430* |       0 |    1116 |        0 |      0 |   313 |    +0.5% | -436.185 |  -507174.9 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1440* |       0 |    1126 |        0 |      0 |   313 |    +0.5% | -435.978 |  -507054.4 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1450* |       0 |    1135 |        0 |      0 |   314 |    +0.5% | -435.869 |  -506872.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1460* |       0 |    1141 |        0 |      0 |   318 |    +0.5% | -435.774 |  -506773.2 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1470* |       0 |    1150 |        0 |      0 |   319 |    +0.5% | -435.621 |  -506697.2 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1480* |       0 |    1158 |        0 |      0 |   321 |    +0.5% | -435.492 |  -506571.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1490* |       0 |    1167 |        0 |      0 |   322 |    +0.5% | -437.856 |  -506374.3 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[2\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1500* |       0 |    1177 |        0 |      0 |   322 |    +0.5% | -435.165 |  -506238.4 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    1510* |       0 |    1187 |        0 |      0 |   322 |    +0.5% | -435.001 |  -506123.5 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1520* |       0 |    1197 |        0 |      0 |   322 |    +0.5% | -434.832 |  -505918.5 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1530* |       0 |    1207 |        0 |      0 |   322 |    +0.5% | -434.713 |  -505771.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1540* |       0 |    1216 |        0 |      0 |   323 |    +0.5% | -434.528 |  -505626.5 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1550* |       0 |    1225 |        0 |      0 |   324 |    +0.5% | -434.378 |  -505517.4 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1560* |       0 |    1234 |        0 |      0 |   325 |    +0.5% | -434.686 |  -505340.5 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1570* |       0 |    1243 |        0 |      0 |   326 |    +0.5% | -434.091 |  -505264.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1580* |       0 |    1252 |        0 |      0 |   327 |    +0.5% | -433.891 |  -505040.6 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1590* |       0 |    1260 |        0 |      0 |   329 |    +0.5% | -433.766 |  -504911.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1600* |       0 |    1269 |        0 |      0 |   330 |    +0.5% | -433.621 |  -504781.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[4\].u_pe.psum_south\[20\]$_SDFFE_PP0N_/D
+    1610* |       0 |    1277 |        0 |      0 |   332 |    +0.6% | -433.516 |  -504670.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1620* |       0 |    1286 |        0 |      0 |   333 |    +0.6% | -433.353 |  -504592.7 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1630* |       0 |    1292 |        0 |      0 |   337 |    +0.6% | -433.139 |  -504489.7 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[5\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1640* |       0 |    1300 |        0 |      0 |   339 |    +0.6% | -433.000 |  -504354.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1650* |       0 |    1309 |        0 |      0 |   340 |    +0.6% | -432.916 |  -504239.7 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[5\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1660* |       0 |    1319 |        0 |      0 |   340 |    +0.6% | -432.807 |  -504049.6 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1670* |       0 |    1328 |        0 |      0 |   341 |    +0.6% | -432.649 |  -503977.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1680* |       0 |    1334 |        0 |      0 |   345 |    +0.6% | -432.514 |  -503824.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1690* |       0 |    1343 |        0 |      0 |   346 |    +0.6% | -432.402 |  -503674.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1700* |       0 |    1350 |        0 |      0 |   349 |    +0.6% | -433.585 |  -503646.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1710* |       0 |    1360 |        0 |      0 |   349 |    +0.6% | -432.197 |  -503541.0 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1720* |       0 |    1369 |        0 |      0 |   350 |    +0.6% | -432.048 |  -503368.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1730* |       0 |    1373 |        0 |      0 |   356 |    +0.6% | -431.984 |  -503325.2 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1740* |       0 |    1382 |        0 |      0 |   357 |    +0.6% | -431.941 |  -503209.9 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1750* |       0 |    1390 |        0 |      0 |   359 |    +0.6% | -431.843 |  -503133.1 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1760* |       0 |    1400 |        0 |      0 |   359 |    +0.6% | -431.747 |  -502956.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1770* |       0 |    1408 |        0 |      0 |   361 |    +0.6% | -431.655 |  -502855.4 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[5\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1780* |       0 |    1417 |        0 |      0 |   362 |    +0.6% | -431.489 |  -502648.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[4\].u_pe.psum_south\[25\]$_SDFFE_PP0N_/D
+    1790* |       0 |    1426 |        0 |      0 |   363 |    +0.6% | -431.323 |  -502531.9 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    1800* |       0 |    1433 |        0 |      0 |   366 |    +0.6% | -431.207 |  -502421.9 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1810* |       0 |    1442 |        0 |      0 |   367 |    +0.6% | -431.124 |  -502309.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1820* |       0 |    1450 |        0 |      0 |   369 |    +0.6% | -430.926 |  -502257.2 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1830* |       0 |    1460 |        0 |      0 |   369 |    +0.6% | -430.723 |  -502073.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1840* |       0 |    1469 |        0 |      0 |   370 |    +0.6% | -430.568 |  -501955.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1850* |       0 |    1478 |        0 |      0 |   371 |    +0.6% | -430.465 |  -501813.7 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[2\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1860* |       0 |    1487 |        0 |      0 |   372 |    +0.6% | -430.287 |  -501720.1 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[3\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1870* |       0 |    1496 |        0 |      0 |   373 |    +0.6% | -430.178 |  -501557.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1880* |       0 |    1505 |        0 |      0 |   374 |    +0.6% | -429.946 |  -501410.0 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1890* |       0 |    1514 |        0 |      0 |   375 |    +0.6% | -429.866 |  -501356.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1900* |       0 |    1523 |        0 |      0 |   376 |    +0.6% | -429.673 |  -501282.3 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1910* |       0 |    1532 |        0 |      0 |   377 |    +0.6% | -429.513 |  -501181.7 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1920* |       0 |    1542 |        0 |      0 |   377 |    +0.6% | -429.383 |  -501049.7 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1930* |       0 |    1551 |        0 |      0 |   378 |    +0.6% | -429.211 |  -500966.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1940* |       0 |    1560 |        0 |      0 |   379 |    +0.6% | -429.128 |  -500868.3 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1950* |       0 |    1569 |        0 |      0 |   380 |    +0.6% | -429.008 |  -500765.6 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    1960* |       0 |    1578 |        0 |      0 |   381 |    +0.6% | -428.903 |  -500648.2 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1970* |       0 |    1585 |        0 |      0 |   384 |    +0.6% | -431.234 |  -500456.5 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    1980* |       0 |    1594 |        0 |      0 |   385 |    +0.6% | -428.674 |  -500295.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1990* |       0 |    1604 |        0 |      0 |   385 |    +0.6% | -428.582 |  -500169.1 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[4\].u_pe.psum_south\[25\]$_SDFFE_PP0N_/D
+    2000* |       0 |    1614 |        0 |      0 |   385 |    +0.6% | -428.463 |  -500048.5 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2010* |       0 |    1622 |        0 |      0 |   387 |    +0.7% | -428.330 |  -499924.3 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[3\].u_pe.psum_south\[26\]$_SDFFE_PP0N_/D
+    2020* |       0 |    1631 |        0 |      0 |   388 |    +0.7% | -428.248 |  -499832.6 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2030* |       0 |    1641 |        0 |      0 |   388 |    +0.7% | -428.053 |  -499734.2 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2040* |       0 |    1649 |        0 |      0 |   390 |    +0.7% | -427.990 |  -499684.2 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2050* |       0 |    1656 |        0 |      0 |   393 |    +0.7% | -427.871 |  -499615.4 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[0\].u_pe.psum_south\[19\]$_SDFFE_PP0N_/D
+    2060* |       0 |    1665 |        0 |      0 |   394 |    +0.7% | -427.782 |  -499468.5 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[3\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2070* |       0 |    1672 |        0 |      0 |   397 |    +0.7% | -427.726 |  -499346.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2080* |       0 |    1681 |        0 |      0 |   398 |    +0.7% | -427.542 |  -499246.3 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[5\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2090* |       0 |    1689 |        0 |      0 |   400 |    +0.7% | -427.480 |  -499155.7 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2100* |       0 |    1698 |        0 |      0 |   401 |    +0.7% | -427.310 |  -499007.1 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[4\].u_pe.psum_south\[25\]$_SDFFE_PP0N_/D
+    2110* |       0 |    1707 |        0 |      0 |   402 |    +0.7% | -427.214 |  -498903.9 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2120* |       0 |    1715 |        0 |      0 |   404 |    +0.7% | -427.132 |  -498837.0 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2130* |       0 |    1723 |        0 |      0 |   406 |    +0.7% | -429.792 |  -498773.2 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2140* |       0 |    1732 |        0 |      0 |   407 |    +0.7% | -428.575 |  -498685.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2150* |       0 |    1742 |        0 |      0 |   407 |    +0.7% | -426.834 |  -498540.9 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2160* |       0 |    1751 |        0 |      0 |   408 |    +0.7% | -426.702 |  -498453.1 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[3\].u_pe.psum_south\[19\]$_SDFFE_PP0N_/D
+    2170* |       0 |    1760 |        0 |      0 |   409 |    +0.7% | -426.604 |  -498374.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[4\].u_pe.psum_south\[25\]$_SDFFE_PP0N_/D
+    2180* |       0 |    1768 |        0 |      0 |   411 |    +0.7% | -426.505 |  -498270.7 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2190* |       0 |    1777 |        0 |      0 |   412 |    +0.7% | -426.390 |  -498163.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2200* |       0 |    1786 |        0 |      0 |   413 |    +0.7% | -426.332 |  -498128.4 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2210* |       0 |    1794 |        0 |      0 |   415 |    +0.7% | -426.225 |  -498058.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2220* |       0 |    1803 |        0 |      0 |   416 |    +0.7% | -426.152 |  -497960.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2230* |       0 |    1812 |        0 |      0 |   417 |    +0.7% | -426.031 |  -497862.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2240* |       0 |    1821 |        0 |      0 |   418 |    +0.7% | -425.872 |  -497618.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2250* |       0 |    1831 |        0 |      0 |   418 |    +0.7% | -425.693 |  -497532.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2260* |       0 |    1840 |        0 |      0 |   419 |    +0.7% | -425.590 |  -497443.9 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2270* |       0 |    1846 |        0 |      0 |   423 |    +0.7% | -425.428 |  -497327.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    2280* |       0 |    1856 |        0 |      0 |   423 |    +0.7% | -425.380 |  -497248.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2290* |       0 |    1864 |        0 |      0 |   425 |    +0.7% | -425.324 |  -497085.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2300* |       0 |    1873 |        0 |      0 |   426 |    +0.7% | -425.243 |  -497036.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2310* |       0 |    1883 |        0 |      0 |   426 |    +0.7% | -425.073 |  -496930.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2320* |       0 |    1891 |        0 |      0 |   428 |    +0.7% | -424.884 |  -496827.5 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2330* |       0 |    1899 |        0 |      0 |   430 |    +0.7% | -424.995 |  -496793.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2340* |       0 |    1908 |        0 |      0 |   431 |    +0.7% | -424.666 |  -496643.5 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2350* |       0 |    1917 |        0 |      0 |   432 |    +0.7% | -424.506 |  -496531.3 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2360* |       0 |    1926 |        0 |      0 |   433 |    +0.8% | -424.382 |  -496468.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2370* |       0 |    1936 |        0 |      0 |   433 |    +0.8% | -424.354 |  -496292.7 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2380* |       0 |    1946 |        0 |      0 |   433 |    +0.8% | -424.211 |  -496151.5 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2390* |       0 |    1953 |        0 |      0 |   436 |    +0.8% | -424.956 |  -496044.0 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2400* |       0 |    1962 |        0 |      0 |   437 |    +0.8% | -423.988 |  -495946.3 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2410* |       0 |    1971 |        0 |      0 |   438 |    +0.8% | -423.809 |  -495776.5 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[5\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2420* |       0 |    1981 |        0 |      0 |   438 |    +0.8% | -424.673 |  -495678.4 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2430* |       0 |    1989 |        0 |      0 |   440 |    +0.8% | -423.634 |  -495593.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[3\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2440* |       0 |    1998 |        0 |      0 |   441 |    +0.8% | -423.507 |  -495436.3 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2450* |       0 |    2006 |        0 |      0 |   443 |    +0.8% | -423.429 |  -495369.0 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2460* |       0 |    2014 |        0 |      0 |   445 |    +0.8% | -423.334 |  -495207.3 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[0\].u_pe.psum_south\[19\]$_SDFFE_PP0N_/D
+    2470* |       0 |    2024 |        0 |      0 |   445 |    +0.8% | -423.246 |  -494969.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[1\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2480* |       0 |    2032 |        0 |      0 |   447 |    +0.8% | -424.029 |  -494875.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2490* |       0 |    2041 |        0 |      0 |   448 |    +0.8% | -422.947 |  -494748.4 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2500* |       0 |    2050 |        0 |      0 |   449 |    +0.8% | -422.757 |  -494612.7 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2510* |       0 |    2060 |        0 |      0 |   449 |    +0.8% | -422.656 |  -494523.0 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2520* |       0 |    2068 |        0 |      0 |   451 |    +0.8% | -422.553 |  -494408.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2530* |       0 |    2078 |        0 |      0 |   451 |    +0.8% | -422.329 |  -494304.1 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[4\].u_pe.psum_south\[20\]$_SDFFE_PP0N_/D
+    2540* |       0 |    2086 |        0 |      0 |   453 |    +0.8% | -422.212 |  -494249.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2550* |       0 |    2095 |        0 |      0 |   454 |    +0.8% | -422.125 |  -494067.3 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[2\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2560* |       0 |    2103 |        0 |      0 |   456 |    +0.8% | -422.040 |  -493965.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2570* |       0 |    2112 |        0 |      0 |   457 |    +0.8% | -421.966 |  -493865.9 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2580* |       0 |    2122 |        0 |      0 |   457 |    +0.8% | -421.734 |  -493762.5 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[5\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2590* |       0 |    2131 |        0 |      0 |   458 |    +0.8% | -421.618 |  -493699.6 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2600* |       0 |    2138 |        0 |      0 |   461 |    +0.8% | -421.537 |  -493582.9 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2610* |       0 |    2145 |        0 |      0 |   464 |    +0.8% | -421.343 |  -493523.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2620* |       0 |    2155 |        0 |      0 |   464 |    +0.8% | -421.267 |  -493402.3 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2630* |       0 |    2162 |        0 |      0 |   467 |    +0.8% | -421.387 |  -493317.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[4\].u_pe.psum_south\[25\]$_SDFFE_PP0N_/D
+    2640* |       0 |    2170 |        0 |      0 |   469 |    +0.8% | -421.092 |  -493216.4 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2650* |       0 |    2180 |        0 |      0 |   469 |    +0.8% | -420.911 |  -493127.1 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2660* |       0 |    2189 |        0 |      0 |   470 |    +0.8% | -420.765 |  -493037.7 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2670* |       0 |    2198 |        0 |      0 |   471 |    +0.8% | -420.613 |  -492924.9 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    2680* |       0 |    2207 |        0 |      0 |   472 |    +0.8% | -420.522 |  -492822.4 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2690* |       0 |    2214 |        0 |      0 |   475 |    +0.8% | -420.422 |  -492767.1 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2700* |       0 |    2222 |        0 |      0 |   477 |    +0.8% | -420.383 |  -492736.0 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2710* |       0 |    2231 |        0 |      0 |   478 |    +0.8% | -421.260 |  -492659.3 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[5\].u_pe.psum_south\[20\]$_SDFFE_PP0N_/D
+    2720* |       0 |    2241 |        0 |      0 |   478 |    +0.8% | -420.245 |  -492614.4 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2730* |       0 |    2250 |        0 |      0 |   479 |    +0.8% | -420.156 |  -492474.2 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2740* |       0 |    2257 |        0 |      0 |   482 |    +0.8% | -420.037 |  -492336.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2750* |       0 |    2266 |        0 |      0 |   483 |    +0.9% | -419.906 |  -492254.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2760* |       0 |    2274 |        0 |      0 |   485 |    +0.9% | -419.844 |  -492204.4 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2770* |       0 |    2283 |        0 |      0 |   486 |    +0.9% | -419.820 |  -492109.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2780* |       0 |    2292 |        0 |      0 |   487 |    +0.9% | -420.041 |  -492009.6 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2790* |       0 |    2300 |        0 |      0 |   489 |    +0.9% | -420.117 |  -491881.9 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2800* |       0 |    2307 |        0 |      0 |   492 |    +0.9% | -419.418 |  -491830.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2810* |       0 |    2316 |        0 |      0 |   493 |    +0.9% | -419.345 |  -491757.7 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2820* |       0 |    2324 |        0 |      0 |   495 |    +0.9% | -419.288 |  -491672.9 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2830* |       0 |    2333 |        0 |      0 |   496 |    +0.9% | -419.099 |  -491446.1 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    2840* |       0 |    2341 |        0 |      0 |   498 |    +0.9% | -418.996 |  -491354.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[3\].u_pe.psum_south\[22\]$_SDFFE_PP0N_/D
+    2850* |       0 |    2350 |        0 |      0 |   499 |    +0.9% | -418.911 |  -491227.6 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2860* |       0 |    2357 |        0 |      0 |   502 |    +0.9% | -418.818 |  -491164.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2870* |       0 |    2367 |        0 |      0 |   502 |    +0.9% | -418.690 |  -491095.3 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    2880* |       0 |    2375 |        0 |      0 |   504 |    +0.9% | -418.623 |  -490976.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2890* |       0 |    2384 |        0 |      0 |   505 |    +0.9% | -418.576 |  -490932.4 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2900* |       0 |    2394 |        0 |      0 |   505 |    +0.9% | -418.387 |  -490872.2 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2910* |       0 |    2403 |        0 |      0 |   506 |    +0.9% | -418.303 |  -490804.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2920* |       0 |    2411 |        0 |      0 |   508 |    +0.9% | -418.195 |  -490659.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2930* |       0 |    2421 |        0 |      0 |   508 |    +0.9% | -418.097 |  -490559.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2940* |       0 |    2431 |        0 |      0 |   508 |    +0.9% | -418.032 |  -490541.1 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2950* |       0 |    2441 |        0 |      0 |   508 |    +0.9% | -417.974 |  -490487.2 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[0\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2960* |       0 |    2450 |        0 |      0 |   509 |    +0.9% | -417.912 |  -490396.6 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2970* |       0 |    2460 |        0 |      0 |   509 |    +0.9% | -417.831 |  -490358.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[4\].u_pe.psum_south\[25\]$_SDFFE_PP0N_/D
+    2980* |       0 |    2470 |        0 |      0 |   509 |    +0.9% | -417.733 |  -490305.5 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    2990* |       0 |    2479 |        0 |      0 |   510 |    +0.9% | -417.646 |  -490212.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3000* |       0 |    2487 |        0 |      0 |   512 |    +0.9% | -417.529 |  -490155.5 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3010* |       0 |    2495 |        0 |      0 |   514 |    +0.9% | -417.438 |  -490058.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3020* |       0 |    2504 |        0 |      0 |   515 |    +0.9% | -417.380 |  -489918.7 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[5\].u_pe.psum_south\[20\]$_SDFFE_PP0N_/D
+    3030* |       0 |    2513 |        0 |      0 |   516 |    +0.9% | -417.307 |  -489796.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3040* |       0 |    2521 |        0 |      0 |   518 |    +0.9% | -417.199 |  -489715.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3050* |       0 |    2529 |        0 |      0 |   520 |    +0.9% | -417.100 |  -489672.4 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3060* |       0 |    2537 |        0 |      0 |   522 |    +0.9% | -419.430 |  -489653.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3070* |       0 |    2542 |        0 |      0 |   527 |    +0.9% | -417.609 |  -489557.1 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3080* |       0 |    2552 |        0 |      0 |   527 |    +0.9% | -416.778 |  -489452.4 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3090* |       0 |    2560 |        0 |      0 |   529 |    +0.9% | -416.698 |  -489337.6 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[3\].u_pe.psum_south\[22\]$_SDFFE_PP0N_/D
+    3100* |       0 |    2567 |        0 |      0 |   532 |    +0.9% | -416.605 |  -489281.5 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    3110* |       0 |    2575 |        0 |      0 |   534 |    +0.9% | -416.525 |  -489258.3 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3120* |       0 |    2585 |        0 |      0 |   534 |    +0.9% | -416.420 |  -489128.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3130* |       0 |    2592 |        0 |      0 |   537 |    +0.9% | -416.379 |  -489032.3 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3140* |       0 |    2600 |        0 |      0 |   539 |    +0.9% | -416.321 |  -488922.5 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3150* |       0 |    2609 |        0 |      0 |   540 |    +0.9% | -416.211 |  -488847.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3160* |       0 |    2617 |        0 |      0 |   542 |    +0.9% | -416.093 |  -488806.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3170* |       0 |    2627 |        0 |      0 |   542 |    +0.9% | -416.731 |  -488737.7 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    3180* |       0 |    2635 |        0 |      0 |   544 |    +0.9% | -415.940 |  -488627.6 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3190* |       0 |    2644 |        0 |      0 |   545 |    +0.9% | -415.761 |  -488533.0 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3200* |       0 |    2653 |        0 |      0 |   546 |    +0.9% | -416.214 |  -488455.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[5\].u_pe.psum_south\[20\]$_SDFFE_PP0N_/D
+    3210* |       0 |    2660 |        0 |      0 |   549 |    +0.9% | -415.545 |  -488402.3 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3220* |       0 |    2667 |        0 |      0 |   552 |    +0.9% | -415.482 |  -488319.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    3230* |       0 |    2676 |        0 |      0 |   553 |    +0.9% | -415.388 |  -488210.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[0\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3240* |       0 |    2684 |        0 |      0 |   555 |    +0.9% | -415.344 |  -488127.1 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3250* |       0 |    2694 |        0 |      0 |   555 |    +0.9% | -415.235 |  -488096.1 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3260* |       0 |    2704 |        0 |      0 |   555 |    +0.9% | -415.596 |  -487977.0 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3270* |       0 |    2712 |        0 |      0 |   557 |    +0.9% | -415.095 |  -487939.7 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3280* |       0 |    2721 |        0 |      0 |   558 |    +0.9% | -414.970 |  -487889.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3290* |       0 |    2729 |        0 |      0 |   560 |    +0.9% | -414.882 |  -487815.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[3\].u_pe.psum_south\[26\]$_SDFFE_PP0N_/D
+    3300* |       0 |    2739 |        0 |      0 |   560 |    +0.9% | -414.822 |  -487726.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3310* |       0 |    2748 |        0 |      0 |   561 |    +0.9% | -414.771 |  -487659.0 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3320* |       0 |    2754 |        0 |      0 |   565 |    +0.9% | -414.709 |  -487574.0 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3330* |       0 |    2762 |        0 |      0 |   567 |    +0.9% | -414.578 |  -487502.4 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[5\].u_pe.psum_south\[20\]$_SDFFE_PP0N_/D
+    3340* |       0 |    2770 |        0 |      0 |   569 |    +0.9% | -414.479 |  -487420.5 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3350* |       0 |    2777 |        0 |      0 |   572 |    +0.9% | -414.379 |  -487353.1 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[4\].u_pe.psum_south\[25\]$_SDFFE_PP0N_/D
+    3360* |       0 |    2787 |        0 |      0 |   572 |    +1.0% | -414.305 |  -487250.5 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3370* |       0 |    2796 |        0 |      0 |   573 |    +1.0% | -414.217 |  -487207.3 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3380* |       0 |    2805 |        0 |      0 |   574 |    +1.0% | -414.300 |  -487143.3 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[2\].u_pe.psum_south\[22\]$_SDFFE_PP0N_/D
+    3390* |       0 |    2813 |        0 |      0 |   576 |    +1.0% | -414.070 |  -487069.0 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3400* |       0 |    2818 |        0 |      0 |   581 |    +1.0% | -414.034 |  -486988.3 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[3\].u_pe.psum_south\[19\]$_SDFFE_PP0N_/D
+    3410* |       0 |    2826 |        0 |      0 |   583 |    +1.0% | -413.969 |  -486872.8 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3420* |       0 |    2834 |        0 |      0 |   585 |    +1.0% | -413.813 |  -486828.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[3\].u_pe.psum_south\[26\]$_SDFFE_PP0N_/D
+    3430* |       0 |    2842 |        0 |      0 |   587 |    +1.0% | -413.740 |  -486794.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3440* |       0 |    2850 |        0 |      0 |   589 |    +1.0% | -413.669 |  -486712.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3450* |       0 |    2860 |        0 |      0 |   589 |    +1.0% | -413.599 |  -486651.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3460* |       0 |    2868 |        0 |      0 |   591 |    +1.0% | -413.551 |  -486601.0 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    3470* |       0 |    2876 |        0 |      0 |   593 |    +1.0% | -413.507 |  -486557.9 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    3480* |       0 |    2882 |        0 |      0 |   597 |    +1.0% | -414.467 |  -486528.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3490* |       0 |    2892 |        0 |      0 |   597 |    +1.0% | -413.388 |  -486453.9 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[0\].u_pe.psum_south\[19\]$_SDFFE_PP0N_/D
+    3500* |       0 |    2900 |        0 |      0 |   599 |    +1.0% | -413.303 |  -486321.1 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3510* |       0 |    2909 |        0 |      0 |   600 |    +1.0% | -413.271 |  -486283.2 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3520* |       0 |    2915 |        0 |      0 |   604 |    +1.0% | -413.190 |  -486217.3 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3530* |       0 |    2922 |        0 |      0 |   607 |    +1.0% | -413.153 |  -486180.8 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3540* |       0 |    2932 |        0 |      0 |   607 |    +1.0% | -413.052 |  -486130.2 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3550* |       0 |    2940 |        0 |      0 |   609 |    +1.0% | -412.958 |  -486038.2 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3560* |       0 |    2948 |        0 |      0 |   611 |    +1.0% | -412.876 |  -486002.7 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3570* |       0 |    2957 |        0 |      0 |   612 |    +1.0% | -412.812 |  -485895.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3580* |       0 |    2967 |        0 |      0 |   612 |    +1.0% | -412.784 |  -485814.7 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[6\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    3590* |       0 |    2975 |        0 |      0 |   614 |    +1.0% | -412.705 |  -485753.7 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    3600* |       0 |    2983 |        0 |      0 |   616 |    +1.0% | -412.661 |  -485690.0 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[0\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3610* |       0 |    2991 |        0 |      0 |   618 |    +1.0% | -412.549 |  -485609.1 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3620* |       0 |    2998 |        0 |      0 |   621 |    +1.0% | -412.673 |  -485555.6 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[5\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    3630* |       0 |    3006 |        0 |      0 |   623 |    +1.0% | -412.354 |  -485425.5 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3640* |       0 |    3014 |        0 |      0 |   625 |    +1.0% | -412.287 |  -485376.3 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    3650* |       0 |    3022 |        0 |      0 |   627 |    +1.0% | -412.825 |  -485330.7 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    3660* |       0 |    3029 |        0 |      0 |   630 |    +1.0% | -412.113 |  -485222.5 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3670* |       0 |    3038 |        0 |      0 |   631 |    +1.0% | -412.041 |  -485168.0 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3680* |       0 |    3046 |        0 |      0 |   633 |    +1.0% | -411.953 |  -485097.7 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3690* |       0 |    3053 |        0 |      0 |   636 |    +1.0% | -411.896 |  -485022.0 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[0\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    3700* |       0 |    3062 |        0 |      0 |   637 |    +1.0% | -411.818 |  -484942.9 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3710* |       0 |    3070 |        0 |      0 |   639 |    +1.0% | -411.689 |  -484921.5 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3720* |       0 |    3080 |        0 |      0 |   639 |    +1.0% | -411.647 |  -484838.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3730* |       0 |    3087 |        0 |      0 |   642 |    +1.0% | -411.619 |  -484802.5 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3740* |       0 |    3097 |        0 |      0 |   642 |    +1.0% | -411.523 |  -484767.2 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3750* |       0 |    3107 |        0 |      0 |   642 |    +1.0% | -411.430 |  -484702.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3760* |       0 |    3114 |        0 |      0 |   645 |    +1.0% | -411.353 |  -484659.2 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3770* |       0 |    3121 |        0 |      0 |   648 |    +1.0% | -413.667 |  -484655.5 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3780* |       0 |    3129 |        0 |      0 |   650 |    +1.0% | -411.186 |  -484509.4 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[0\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3790* |       0 |    3137 |        0 |      0 |   652 |    +1.0% | -411.156 |  -484478.0 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3800* |       0 |    3146 |        0 |      0 |   653 |    +1.0% | -411.071 |  -484440.4 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[5\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3810* |       0 |    3155 |        0 |      0 |   654 |    +1.0% | -411.010 |  -484368.2 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    3820* |       0 |    3163 |        0 |      0 |   656 |    +1.0% | -410.976 |  -484297.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[4\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3830* |       0 |    3171 |        0 |      0 |   658 |    +1.0% | -410.880 |  -484226.3 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3840* |       0 |    3179 |        0 |      0 |   660 |    +1.0% | -410.841 |  -484156.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3850* |       0 |    3186 |        0 |      0 |   663 |    +1.1% | -410.779 |  -484062.7 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[1\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3860* |       0 |    3194 |        0 |      0 |   665 |    +1.1% | -410.694 |  -483956.6 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3870* |       0 |    3204 |        0 |      0 |   665 |    +1.1% | -410.562 |  -483898.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3880* |       0 |    3213 |        0 |      0 |   666 |    +1.1% | -410.434 |  -483814.9 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3890* |       0 |    3222 |        0 |      0 |   667 |    +1.1% | -410.374 |  -483778.2 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[3\].u_pe.psum_south\[19\]$_SDFFE_PP0N_/D
+    3900* |       0 |    3230 |        0 |      0 |   669 |    +1.1% | -410.368 |  -483748.5 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3910* |       0 |    3238 |        0 |      0 |   671 |    +1.1% | -410.238 |  -483695.7 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3920* |       0 |    3247 |        0 |      0 |   672 |    +1.1% | -410.124 |  -483618.8 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[3\].u_pe.psum_south\[19\]$_SDFFE_PP0N_/D
+    3930* |       0 |    3255 |        0 |      0 |   674 |    +1.1% | -410.059 |  -483562.7 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+    3940* |       0 |    3263 |        0 |      0 |   676 |    +1.1% | -410.016 |  -483470.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[0\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3950* |       0 |    3269 |        0 |      0 |   680 |    +1.1% | -409.885 |  -483431.8 |   1665 | u_array.g_pe_row\[3\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    3960* |       0 |    3279 |        0 |      0 |   680 |    +1.1% | -409.831 |  -483357.0 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    3970* |       0 |    3288 |        0 |      0 |   681 |    +1.1% | -409.734 |  -483281.6 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[3\].u_pe.psum_south\[23\]$_SDFFE_PP0N_/D
+    3980* |       0 |    3295 |        0 |      0 |   684 |    +1.1% | -409.673 |  -483220.0 |   1665 | u_array.g_pe_row\[5\].g_pe_col\[4\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    3990* |       0 |    3304 |        0 |      0 |   685 |    +1.1% | -409.610 |  -483170.1 |   1665 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    4000* |       0 |    3312 |        0 |      0 |   687 |    +1.1% | -409.536 |  -483075.5 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4000* |       0 |    3312 |        0 |      0 |   687 |    +1.1% | -409.536 |  -483075.5 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4010* |       0 |    3319 |        0 |      0 |   689 |    +1.1% | -409.536 |  -483004.1 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4020* |       0 |    3327 |        0 |      0 |   691 |    +1.1% | -409.536 |  -482985.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4030* |       0 |    3336 |        0 |      0 |   692 |    +1.1% | -409.536 |  -482884.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4040* |       0 |    3343 |        0 |      0 |   695 |    +1.1% | -409.536 |  -482815.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4050* |       0 |    3351 |        0 |      0 |   697 |    +1.1% | -409.536 |  -482741.9 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4052* |       0 |    3353 |        0 |      0 |   697 |    +1.1% | -409.536 |  -482729.7 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4055* |       0 |    3355 |        0 |      0 |   697 |    +1.1% | -409.536 |  -482721.2 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4060* |       0 |    3358 |        0 |      0 |   698 |    +1.1% | -409.536 |  -482709.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4070* |       0 |    3366 |        0 |      0 |   700 |    +1.1% | -409.990 |  -482701.5 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4080* |       0 |    3374 |        0 |      0 |   702 |    +1.1% | -409.990 |  -482661.2 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4090* |       0 |    3382 |        0 |      0 |   704 |    +1.1% | -410.132 |  -482626.4 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4100* |       0 |    3389 |        0 |      0 |   707 |    +1.1% | -410.143 |  -482580.8 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4100* |       0 |    3360 |        0 |      0 |   699 |    +1.1% | -409.536 |  -482708.1 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    4100* |       0 |    3360 |        0 |      0 |   699 |    +1.1% | -409.536 |  -482708.1 |   1665 | u_array.g_pe_row\[4\].g_pe_col\[5\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    final |       0 |    6956 |        0 |      0 |   699 |    +1.1% | -407.883 |  -465755.7 |   1665 | u_array.g_pe_row\[7\].g_pe_col\[3\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 6956 instances: 2195 up, 0 up match, 0 down, 4761 VT
+[INFO RSZ-0043] Swapped pins on 699 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 64.21s
+Took 64 seconds: repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+Default units for flow
+ time 1ps
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1pW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |       (kohm/um) |          (fF/um)
+------------------------------------------------
+        M1 |        7.04e-02 |         1.00e-10
+        M2 |        2.97e-02 |         1.75e-01
+        M3 |        3.13e-02 |         1.56e-01
+        M4 |        1.80e-02 |         1.78e-01
+        M5 |        1.90e-02 |         1.64e-01
+        M6 |        1.19e-02 |         1.87e-01
+        M7 |        1.25e-02 |         1.63e-01
+        M8 |        8.45e-03 |         1.04e-01
+        M9 |        8.90e-03 |         9.28e-02
+       Pad |        0.00e+00 |         0.00e+00
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |         (kohm) 
+----------------------------
+        V1 |       1.72e-02 
+        V2 |       1.72e-02 
+        V3 |       1.72e-02 
+        V4 |       1.18e-02 
+        V5 |       1.18e-02 
+        V6 |       8.20e-03 
+        V7 |       8.20e-03 
+        V8 |       6.30e-03 
+        V9 |       6.30e-03 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 5296 um^2 61% utilization.
+write_db ./results/asap7/tpu/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/asap7/tpu/base/2_1_floorplan.sdc
+Elapsed time: 1:13.40[h:]min:sec. CPU time: user 75.77 sys 3.20 (107%). Peak memory: 528444KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb         73       79     1.08      516 f9d823d1a7
+2_1_floorplan          .sdc                                       cd3fc603c4

@@ -1,0 +1,137 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+source /OpenROAD-flow-scripts/flow/platforms/asap7/liberty_suppressions.tcl
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_LVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_LVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_LVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_LVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_LVT_FF_nldm_220123.lib
+read_db ./results/asap7/ethmac_lvt/base/1_synth.odb
+read_sdc ./results/asap7/ethmac_lvt/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/asap7/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+number instances in verilog is 56909
+initialize_floorplan -utilization 40 -aspect_ratio 1 -core_space 2 -site asap7sc7p5t
+[INFO IFP-0107] Defining die area using utilization: 40.00% and aspect ratio: 1.
+[WARNING IFP-0028] Core area lower left (2.000, 2.000) snapped to (2.052, 2.160).
+[INFO IFP-0001] Added 502 rows of 2512 site asap7sc7p5t.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 139.715 139.715 ) um
+[INFO IFP-0101] Core BBox: (  2.052  2.160 ) ( 137.700 137.700 ) um
+[INFO IFP-0102] Core area:                        18385.730 um^2
+[INFO IFP-0103] Total instances area:              7367.522 um^2
+[INFO IFP-0104] Effective utilization:                0.401
+[INFO IFP-0105] Number of instances:                  56909
+source /OpenROAD-flow-scripts/flow/platforms/asap7/openRoad/make_tracks.tcl
+source /OpenROAD-flow-scripts/flow/platforms/asap7/fastroute.tcl
+set_dont_use "*x1p*_ASAP7* *xp*_ASAP7* SDF* ICG*"
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_LVT_FF_nldm_211120/TIELOx1_ASAP7_75t_L/L
+[INFO RSZ-0042] Inserted 4 tie TIELOx1_ASAP7_75t_L instances.
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_LVT_FF_nldm_211120/TIEHIx1_ASAP7_75t_L/H
+[INFO RSZ-0042] Inserted 1241 tie TIEHIx1_ASAP7_75t_L instances.
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% | -1420.681 |  -336277.4 |    308 | maccontrol1.receivecontrol1.DetectionWindow$_DFFE_PP1P_/SETN
+       1* |       0 |       7 |        0 |      0 |     2 |    +0.0% | -477.254 |  -105893.7 |    308 | maccontrol1.receivecontrol1.DetectionWindow$_DFFE_PP1P_/SETN
+       2* |       0 |      11 |        0 |      0 |     6 |    +0.0% |  -72.325 |    -6378.0 |    307 | maccontrol1.receivecontrol1.DetectionWindow$_DFFE_PP1P_/SETN
+       3* |       0 |      16 |        0 |      0 |     9 |    +0.0% |  -69.818 |    -3490.6 |    307 | maccontrol1.receivecontrol1.SlotTimer\[5\]$_DFFE_PP0P_/D
+       4* |       0 |      19 |        0 |      0 |    11 |    +0.0% |  -63.834 |    -2709.2 |     57 | maccontrol1.receivecontrol1.SlotTimer\[4\]$_DFFE_PP0P_/D
+       5* |       0 |      21 |        0 |      0 |    14 |    +0.0% |  -63.841 |    -2677.2 |     57 | maccontrol1.receivecontrol1.SlotTimer\[2\]$_DFFE_PP0P_/D
+       6* |       0 |      22 |        0 |      0 |    14 |    +0.0% |  -34.747 |    -1310.4 |     57 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+       7* |       0 |      22 |        0 |      0 |    15 |    +0.0% |  -34.747 |    -1295.9 |     57 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+       8* |       0 |      23 |        0 |      0 |    15 |    +0.0% |  -34.747 |     -861.1 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+       9* |       0 |      24 |        0 |      0 |    15 |    +0.0% |  -34.747 |     -624.5 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      10* |       0 |      25 |        0 |      0 |    15 |    +0.0% |  -34.747 |     -581.9 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      11* |       0 |      25 |        0 |      0 |    15 |    +0.0% |  -34.747 |     -581.9 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      12* |       0 |      25 |        0 |      0 |    15 |    +0.0% |  -34.747 |     -581.9 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      13* |       0 |      25 |        0 |      0 |    16 |    +0.0% |  -34.730 |     -580.5 |     56 | maccontrol1.receivecontrol1.PauseTimer\[3\]$_DFFE_PP0P_/D
+      14* |       0 |      25 |        0 |      0 |    18 |    +0.0% |  -34.730 |     -579.2 |     56 | maccontrol1.receivecontrol1.PauseTimer\[15\]$_DFFE_PP0P_/D
+      15* |       0 |      26 |        0 |      0 |    21 |    +0.0% |  -33.263 |     -576.0 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      16* |       0 |      27 |        0 |      0 |    25 |    +0.0% |  -29.968 |     -531.5 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      17* |       0 |      28 |        0 |      0 |    28 |    +0.0% |  -25.513 |     -465.7 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      18* |       0 |      31 |        0 |      0 |    30 |    +0.0% |  -18.903 |     -429.5 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      19* |       0 |      31 |        0 |      0 |    30 |    +0.0% |  -18.903 |     -429.5 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      20* |       0 |      31 |        0 |      0 |    30 |    +0.0% |  -18.903 |     -429.5 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      21* |       0 |      31 |        0 |      0 |    30 |    +0.0% |  -18.903 |     -429.5 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      22* |       0 |      32 |        0 |      0 |    30 |    +0.0% |  -19.700 |     -424.5 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      23* |       0 |      33 |        0 |      0 |    30 |    +0.0% |  -20.208 |     -418.5 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      24* |       0 |      33 |        0 |      0 |    31 |    +0.0% |  -20.208 |     -417.6 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      25* |       0 |      33 |        0 |      0 |    32 |    +0.0% |  -20.208 |     -416.7 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      26* |       0 |      34 |        0 |      0 |    32 |    +0.0% |  -20.931 |     -420.3 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      27* |       0 |      35 |        0 |      0 |    32 |    +0.0% |  -19.100 |     -416.3 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      28* |       0 |      36 |        0 |      0 |    32 |    +0.0% |  -18.270 |     -420.1 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      29* |       0 |      37 |        0 |      0 |    32 |    +0.0% |  -18.136 |     -418.9 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      30* |       0 |      37 |        0 |      0 |    32 |    +0.0% |  -18.136 |     -418.9 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      31* |       0 |      38 |        0 |      0 |    32 |    +0.0% |  -18.519 |     -418.6 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      32* |       0 |      39 |        0 |      0 |    32 |    +0.0% |  -18.519 |     -419.4 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      33* |       0 |      40 |        0 |      0 |    32 |    +0.0% |  -18.519 |     -420.2 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      34* |       0 |      41 |        0 |      0 |    32 |    +0.0% |  -18.519 |     -421.0 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      35* |       0 |      37 |        0 |      0 |    32 |    +0.0% |  -18.136 |     -418.9 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      36* |       0 |      38 |        0 |      0 |    32 |    +0.0% |  -18.519 |     -418.6 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      37* |       0 |      39 |        0 |      0 |    32 |    +0.0% |  -18.519 |     -419.4 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      38* |       0 |      40 |        0 |      0 |    32 |    +0.0% |  -18.519 |     -420.2 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      39* |       0 |      41 |        0 |      0 |    32 |    +0.0% |  -18.519 |     -421.0 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+    final |       0 |      37 |        0 |      0 |    32 |    +0.0% |  -18.136 |     -418.9 |     56 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 37 instances: 37 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 32 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 3.91s
+Default units for flow
+ time 1ps
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1pW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |       (kohm/um) |          (fF/um)
+------------------------------------------------
+        M1 |        7.04e-02 |         1.00e-10
+        M2 |        2.97e-02 |         1.75e-01
+        M3 |        3.13e-02 |         1.56e-01
+        M4 |        1.80e-02 |         1.78e-01
+        M5 |        1.90e-02 |         1.64e-01
+        M6 |        1.19e-02 |         1.87e-01
+        M7 |        1.25e-02 |         1.63e-01
+        M8 |        8.45e-03 |         1.04e-01
+        M9 |        8.90e-03 |         9.28e-02
+       Pad |        0.00e+00 |         0.00e+00
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |         (kohm) 
+----------------------------
+        V1 |       1.72e-02 
+        V2 |       1.72e-02 
+        V3 |       1.72e-02 
+        V4 |       1.18e-02 
+        V5 |       1.18e-02 
+        V6 |       8.20e-03 
+        V7 |       8.20e-03 
+        V8 |       6.30e-03 
+        V9 |       6.30e-03 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 7424 um^2 40% utilization.
+write_db ./results/asap7/ethmac_lvt/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/asap7/ethmac_lvt/base/2_1_floorplan.sdc
+Elapsed time: 0:15.93[h:]min:sec. CPU time: user 17.84 sys 0.23 (113%). Peak memory: 401864KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb         15       18     1.13      392 e50bd7e19c
+2_1_floorplan          .sdc                                       c26e76de84

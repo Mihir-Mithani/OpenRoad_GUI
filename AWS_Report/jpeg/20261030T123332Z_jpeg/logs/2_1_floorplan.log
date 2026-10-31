@@ -1,0 +1,140 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+source /OpenROAD-flow-scripts/flow/platforms/asap7/liberty_suppressions.tcl
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_RVT_FF_nldm_220123.lib
+read_db ./results/asap7/jpeg/base/1_synth.odb
+read_sdc ./results/asap7/jpeg/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/asap7/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+Warning: There are 19 input ports missing set_input_delay.
+Warning: There are 26 output ports missing set_output_delay.
+number instances in verilog is 51636
+initialize_floorplan -utilization 70 -aspect_ratio 1 -core_space 2 -site asap7sc7p5t
+[INFO IFP-0107] Defining die area using utilization: 70.00% and aspect ratio: 1.
+[WARNING IFP-0028] Core area lower left (2.000, 2.000) snapped to (2.052, 2.160).
+[INFO IFP-0001] Added 361 rows of 1808 site asap7sc7p5t.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 101.728 101.728 ) um
+[INFO IFP-0101] Core BBox: (  2.052  2.160 ) ( 99.684 99.630 ) um
+[INFO IFP-0102] Core area:                         9516.191 um^2
+[INFO IFP-0103] Total instances area:              6685.601 um^2
+[INFO IFP-0104] Effective utilization:                0.703
+[INFO IFP-0105] Number of instances:                  51636
+source /OpenROAD-flow-scripts/flow/platforms/asap7/openRoad/make_tracks.tcl
+source /OpenROAD-flow-scripts/flow/platforms/asap7/fastroute.tcl
+set_dont_use "*x1p*_ASAP7* *xp*_ASAP7* SDF* ICG*"
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_RVT_FF_nldm_250407/TIELOx1_ASAP7_75t_R/L
+[INFO RSZ-0042] Inserted 1 tie TIELOx1_ASAP7_75t_R instances.
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_RVT_FF_nldm_250407/TIEHIx1_ASAP7_75t_R/H
+[INFO RSZ-0042] Inserted 66 tie TIEHIx1_ASAP7_75t_R instances.
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |  -84.892 |   -11681.7 |    410 | u43168/D
+       1* |       0 |     103 |        0 |      0 |   307 |    +0.1% |  -79.603 |    -9357.7 |    372 | u43168/D
+       2* |       0 |     165 |        0 |      0 |   617 |    +0.1% |  -78.067 |    -8187.6 |    354 | u17455/D
+       3* |       0 |     277 |        0 |      0 |   859 |    +0.2% |  -72.563 |    -7242.9 |    325 | u17455/D
+       4* |       0 |     424 |        0 |      0 |  1037 |    +0.3% |  -72.461 |    -6592.9 |    309 | u43168/D
+       5* |       0 |     582 |        0 |      0 |  1187 |    +0.5% |  -69.941 |    -6153.0 |    301 | u43168/D
+       6* |       0 |     640 |        0 |      0 |  1225 |    +0.5% |  -69.941 |    -6069.7 |    298 | u43168/D
+       7* |       0 |     666 |        0 |      0 |  1242 |    +0.5% |  -69.941 |    -5967.9 |    295 | u43168/D
+       8* |       0 |     683 |        0 |      0 |  1247 |    +0.6% |  -69.941 |    -5944.7 |    294 | u43168/D
+       9* |       0 |     712 |        0 |      0 |  1287 |    +0.6% |  -69.941 |    -5934.1 |    293 | u43168/D
+      10* |       0 |     726 |        0 |      0 |  1289 |    +0.6% |  -69.921 |    -5887.0 |    293 | u17455/D
+      11* |       0 |     735 |        0 |      0 |  1296 |    +0.6% |  -69.921 |    -5879.3 |    293 | u17455/D
+      12* |       0 |     740 |        0 |      0 |  1310 |    +0.6% |  -69.921 |    -5864.7 |    293 | u17455/D
+      13* |       0 |     746 |        0 |      0 |  1313 |    +0.6% |  -69.921 |    -5856.2 |    293 | u17455/D
+      14* |       0 |     759 |        0 |      0 |  1316 |    +0.6% |  -69.784 |    -5845.3 |    292 | u17455/D
+      15* |       0 |     762 |        0 |      0 |  1318 |    +0.6% |  -69.784 |    -5841.1 |    292 | u17455/D
+      16* |       0 |     762 |        0 |      0 |  1318 |    +0.6% |  -69.784 |    -5841.1 |    292 | u17455/D
+      17* |       0 |     763 |        0 |      0 |  1318 |    +0.6% |  -69.112 |    -5836.6 |    292 | u43168/D
+      18* |       0 |     765 |        0 |      0 |  1318 |    +0.6% |  -68.649 |    -5828.6 |    292 | u17455/D
+      19* |       0 |     765 |        0 |      0 |  1322 |    +0.6% |  -67.011 |    -5810.2 |    292 | u17455/D
+      20* |       0 |     765 |        0 |      0 |  1329 |    +0.6% |  -65.454 |    -5774.7 |    291 | u17455/D
+      21* |       0 |     765 |        0 |      0 |  1333 |    +0.6% |  -64.070 |    -5757.1 |    291 | u17455/D
+      22* |       0 |     765 |        0 |      0 |  1333 |    +0.6% |  -64.070 |    -5757.1 |    291 | u17455/D
+      23* |       0 |     765 |        0 |      0 |  1334 |    +0.6% |  -64.070 |    -5754.8 |    291 | u17455/D
+      24* |       0 |     765 |        0 |      0 |  1336 |    +0.6% |  -64.070 |    -5747.9 |    290 | u17455/D
+      25* |       0 |     766 |        0 |      0 |  1339 |    +0.6% |  -64.070 |    -5734.5 |    290 | u17455/D
+      26* |       0 |     766 |        0 |      0 |  1342 |    +0.6% |  -64.070 |    -5725.2 |    290 | u17455/D
+      27* |       0 |     766 |        0 |      0 |  1344 |    +0.6% |  -64.070 |    -5718.5 |    290 | u17455/D
+      28* |       0 |     766 |        0 |      0 |  1346 |    +0.6% |  -64.070 |    -5711.7 |    290 | u17455/D
+      29* |       0 |     769 |        0 |      0 |  1359 |    +0.6% |  -64.070 |    -5577.5 |    286 | u17455/D
+      30* |       0 |     769 |        0 |      0 |  1364 |    +0.6% |  -64.070 |    -5559.7 |    286 | u17455/D
+      31* |       0 |     772 |        0 |      0 |  1370 |    +0.6% |  -64.070 |    -5507.8 |    284 | u17455/D
+      32* |       0 |     772 |        0 |      0 |  1372 |    +0.6% |  -64.070 |    -5500.3 |    284 | u17455/D
+      33* |       0 |     777 |        0 |      0 |  1377 |    +0.6% |  -64.070 |    -5476.8 |    282 | u17455/D
+      34* |       0 |     777 |        0 |      0 |  1378 |    +0.6% |  -64.070 |    -5474.0 |    282 | u17455/D
+      35* |       0 |     786 |        0 |      0 |  1385 |    +0.6% |  -64.070 |    -5401.4 |    282 | u17455/D
+      36* |       0 |     793 |        0 |      0 |  1394 |    +0.6% |  -64.070 |    -5279.8 |    278 | u17455/D
+      37* |       0 |     806 |        0 |      0 |  1397 |    +0.6% |  -64.070 |    -5205.3 |    271 | u17455/D
+      38* |       0 |     813 |        0 |      0 |  1406 |    +0.6% |  -64.070 |    -5179.6 |    271 | u17455/D
+      39* |       0 |     822 |        0 |      0 |  1413 |    +0.7% |  -64.070 |    -5149.3 |    269 | u17455/D
+    final |       0 |     829 |        0 |      0 |  1422 |    +0.7% |  -64.070 |    -5117.4 |    267 | u17455/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 829 instances: 829 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 1422 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 17.60s
+Took 18 seconds: repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+Default units for flow
+ time 1ps
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1pW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |       (kohm/um) |          (fF/um)
+------------------------------------------------
+        M1 |        7.04e-02 |         1.00e-10
+        M2 |        2.97e-02 |         1.75e-01
+        M3 |        3.13e-02 |         1.56e-01
+        M4 |        1.80e-02 |         1.78e-01
+        M5 |        1.90e-02 |         1.64e-01
+        M6 |        1.19e-02 |         1.87e-01
+        M7 |        1.25e-02 |         1.63e-01
+        M8 |        8.45e-03 |         1.04e-01
+        M9 |        8.90e-03 |         9.28e-02
+       Pad |        0.00e+00 |         0.00e+00
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |         (kohm) 
+----------------------------
+        V1 |       1.72e-02 
+        V2 |       1.72e-02 
+        V3 |       1.72e-02 
+        V4 |       1.18e-02 
+        V5 |       1.18e-02 
+        V6 |       8.20e-03 
+        V7 |       8.20e-03 
+        V8 |       6.30e-03 
+        V9 |       6.30e-03 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 6733 um^2 71% utilization.
+write_db ./results/asap7/jpeg/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/asap7/jpeg/base/2_1_floorplan.sdc
+Elapsed time: 0:28.73[h:]min:sec. CPU time: user 36.28 sys 0.43 (127%). Peak memory: 390564KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb         28       37     1.28      381 2c9d28eb36
+2_1_floorplan          .sdc                                       311cf3922d

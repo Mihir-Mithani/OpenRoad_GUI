@@ -1,6 +1,6 @@
 # OpenROAD Flow GUI - Intelligence Module Development Log
 
-## Date: 2026-01-19 (Session 1) & 2026-01-20 (Session 2) & 2026-10-21 (Session 3)
+## Date: 2026-01-19 (Session 1) & 2026-01-20 (Session 2) & 2026-10-21 (Session 3) & 2026-10-28 (Session 4) & 2026-10-31 (Session 5)
 
 ---
 
@@ -338,6 +338,90 @@ python3 -m openroad_gui
 
 ---
 
+---
+
+## Session 5: AWS Cloud Data Integration & Surrogate Retraining (2026-10-31)
+
+### Sprint 5 Goals
+- **Extract real PPA metrics from AWS cloud ORFS runs** (19 designs, 13 successful)
+- **Integrate AWS data with existing local ORFS data** for surrogate retraining
+- **Retrain surrogate models** with 11 real runs (3 local + 8 AWS)
+- **Achieve significant accuracy improvement** on WNS/TNS prediction
+
+### Work Completed (2026-10-31)
+
+#### 1. AWS ORFS Data Extraction (`extract_aws_data.py`)
+- Created new extractor for AWS ORFS report format (differs from local ORFS)
+- **13 successful runs** identified from 19 designs:
+  | Design | Platform | Status | WNS (ns) | TNS (ns) | Setup Viol | Power (W) |
+  |--------|----------|--------|----------|----------|------------|-----------|
+  | aes | asap7 | success | -2.46 | -9.55 | 9 | 0.0187 |
+  | ethmac | asap7 | success | -76.88 | -1236.19 | 20 | 0.141 |
+  | gcd | asap7 | success | -33.73 | -83.14 | 4 | 0.00062 |
+  | gcd-ccs | asap7 | success | -37.10 | -90.52 | 3 | 0.00057 |
+  | ibex | asap7 | success | -13.67 | -1283.30 | 284 | 0.0112 |
+  | jpeg | asap7 | success | -81.88 | -18678.95 | 507 | 0.0701 |
+  | mock-alu | asap7 | success | -272.69 | -17744.11 | 147 | 0.0251 |
+  | riscv32i-mock-sram | asap7 | success | 0.00 | 0.00 | 0 | 0.0043 |
+  | tpu | asap7 | success | -342.86 | -412339.88 | 1844 | - |
+  | picorv32 | asap7 | success | -158.83 | -24761.60 | 720 | - |
+  | riscv32i | asap7 | success | - | - | - | - |
+  | uart | asap7 | success | - | - | - | - |
+  | swerv_wrapper | asap7 | success | - | - | - | - |
+
+- **8 runs with complete 6_finish.rpt** extracted (aes, ethmac, gcd-ccs, gcd, ibex, jpeg, mock-alu, riscv32i-mock-sram)
+- **Per-stage metrics** extracted: synth, floorplan, place, cts, route, finish
+- **Key insight**: AWS reports use `wns max -2.46` format (same as local), but some runs lack 6_finish.rpt and have metrics in 5_global_route.rpt
+
+#### 2. Data Merger & Format Unification
+- Merged 3 local ORFS runs + 8 AWS runs = **11 real runs total**
+- Converted AWS data to match existing schema for unified training
+- Added per-stage WNS/TNS tracking (synth → floorplan → place → cts → route → finish)
+
+#### 3. Surrogate Model Retraining (`train_surrogate_v2.py`)
+- **Training config**: 3000 synthetic + 11 real (10x weight), GroupKFold CV by design, ensemble (LGB + MLP)
+- **Results**:
+
+| Target | LGB R² | MLP R² | **Ensemble R²** | Improvement vs Synthetic-Only |
+|--------|--------|--------|-----------------|-------------------------------|
+| **WNS** | 0.9432 | 0.4749 | **0.7870** | 2.76x (was 0.2853) |
+| **TNS** | 0.7670 | 0.4296 | **0.6632** | 2.88x (was 0.2300) |
+| **Area** | 0.9793 | 0.9231 | **0.9748** | 1.02x (was 0.9559) |
+| **Power** | 0.9660 | 0.6868 | **0.8730** | 1.82x (was 0.4787) |
+
+- **Key improvement**: WNS/TNS now have **correct sign prediction** and ~25-30% relative error
+- **Prediction validation on real designs**:
+  - test_counter4: Pred WNS = -84 ns vs Actual = -121 ns (30% error, correct sign!)
+  - alu4: Pred WNS = -138 ns vs Actual = -180 ns (24% error, correct sign!)
+
+#### 4. Model Deployment
+- Updated `surrogate_preprocessor.pkl` with new feature engineering
+- Retrained all 4 surrogate targets (WNS, TNS, Area, Power) with LightGBM + MLP ensemble
+- Models saved to `openroad_gui/intelligence/models/saved/`
+
+### Files Created/Modified
+
+**New Files:**
+1. `extract_aws_data.py` - AWS ORFS report parser
+2. `train_surrogate_v2.py` - Real+synthetic training pipeline
+3. `train_all_v2.py` - Unified pipeline (collect + train)
+4. `MODEL_RETRAINING_SUMMARY.md` - Detailed summary
+5. `CHANGES_SUMMARY.md` - Change log
+
+**Modified Files:**
+1. `collect_real_data.py` - Enhanced parser for ORFS reports
+2. `app.py` - Improved `_build_surrogate_features()` to read synthesis reports
+3. `LOG.md` - This entry
+
+### Next Steps (Sprint 6)
+- [ ] Extract remaining AWS runs (picorv32, riscv32i, uart, swerv_wrapper, tpu) from partial reports
+- [ ] Collect sky130hd, nangate45, gf180 platform data
+- [ ] Add flow parameters (placement_density, routing_layers) as features
+- [ ] Target 20+ real runs for robust generalization
+- [ ] Add prediction confidence intervals (quantile regression)
+
+---
+
 ## Session 4: Local GUI Integration & Layout Overhaul (2026-10-28)
 
 ### Sprint 4 Goals
@@ -408,5 +492,5 @@ python3 -m openroad_gui
 
 ---
 
-**Last Updated:** 2026-10-28  
-**Status:** Sprint 4 complete — New 4-zone AI-Assisted EDA workstation layout with fully working backend
+**Last Updated:** 2026-10-31  
+**Status:** Sprint 5 complete — AWS cloud data integration + surrogate retraining with 11 real runs

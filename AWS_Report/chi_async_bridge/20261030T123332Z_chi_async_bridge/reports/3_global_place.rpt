@@ -1,0 +1,458 @@
+
+==========================================================================
+global place report_tns
+--------------------------------------------------------------------------
+tns max -15161.83
+
+==========================================================================
+global place report_wns
+--------------------------------------------------------------------------
+wns max -46.30
+
+==========================================================================
+global place report_worst_slack
+--------------------------------------------------------------------------
+worst slack max -46.30
+
+==========================================================================
+global place report_clock_min_period
+--------------------------------------------------------------------------
+clk period_min = 336.30 fmax = 2973.52
+noc_clk period_min = 670.37 fmax = 1491.72
+
+==========================================================================
+global place report_checks -path_delay min
+--------------------------------------------------------------------------
+Startpoint: noc_reset_sync.pipe_reset[0]$_DFF_PP1_
+            (rising edge-triggered flip-flop clocked by noc_clk)
+Endpoint: noc_reset_sync.pipe_reset[1]$_DFF_PP1_
+          (rising edge-triggered flip-flop clocked by noc_clk)
+Path Group: reg2reg
+Path Type: min
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                  0.00    0.00    0.00   clock noc_clk (rise edge)
+                          0.00    0.00   clock network delay (ideal)
+                  0.00    0.00    0.00 ^ noc_reset_sync.pipe_reset[0]$_DFF_PP1_/CLK (DFFASRHQNx1_ASAP7_75t_SL)
+     1    1.12   13.69   27.44   27.44 ^ noc_reset_sync.pipe_reset[0]$_DFF_PP1_/QN (DFFASRHQNx1_ASAP7_75t_SL)
+                                         _02_ (net)
+                 13.69    0.03   27.47 ^ _11_/A (INVx2_ASAP7_75t_SL)
+     1    0.64    5.11    2.74   30.22 v _11_/Y (INVx2_ASAP7_75t_SL)
+                                         noc_reset_sync.pipe_reset[0] (net)
+                  5.11    0.02   30.24 v noc_reset_sync.pipe_reset[1]$_DFF_PP1_/D (DFFASRHQNx1_ASAP7_75t_SL)
+                                 30.24   data arrival time
+
+                  0.00    0.00    0.00   clock noc_clk (rise edge)
+                          0.00    0.00   clock network delay (ideal)
+                          0.00    0.00   clock reconvergence pessimism
+                                  0.00 ^ noc_reset_sync.pipe_reset[1]$_DFF_PP1_/CLK (DFFASRHQNx1_ASAP7_75t_SL)
+                          7.79    7.79   library hold time
+                                  7.79   data required time
+-----------------------------------------------------------------------------
+                                  7.79   data required time
+                                -30.24   data arrival time
+-----------------------------------------------------------------------------
+                                 22.44   slack (MET)
+
+
+
+==========================================================================
+global place report_checks -path_delay max
+--------------------------------------------------------------------------
+Startpoint: noc_tx_req_ready (input port)
+Endpoint: noc_tx_req_flitv (output port)
+Path Group: in2out
+Path Type: max
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                          0.00    0.00 ^ input external delay
+     1    1.26    0.00    0.00    0.00 ^ noc_tx_req_ready (in)
+                                         noc_tx_req_ready (net)
+                  0.25    0.08    0.08 ^ input1259/A (BUFx3_ASAP7_75t_L)
+     2    1.44    5.55    8.80    8.88 ^ input1259/Y (BUFx3_ASAP7_75t_L)
+                                         net1227 (net)
+                  5.55    0.06    8.94 ^ sink/_102_/B (AND2x2_ASAP7_75t_R)
+     1    0.90    8.40   13.76   22.70 ^ sink/_102_/Y (AND2x2_ASAP7_75t_R)
+                                         net2324 (net)
+                  8.40    0.04   22.75 ^ output2356/A (BUFx3_ASAP7_75t_L)
+     1    0.62    4.39    9.90   32.65 ^ output2356/Y (BUFx3_ASAP7_75t_L)
+                                         noc_tx_req_flitv (net)
+                  4.39    0.04   32.68 ^ noc_tx_req_flitv (out)
+                                 32.68   data arrival time
+
+                        816.80  816.80   max_delay
+                          0.00  816.80   output external delay
+                                816.80   data required time
+-----------------------------------------------------------------------------
+                                816.80   data required time
+                                -32.68   data arrival time
+-----------------------------------------------------------------------------
+                                784.12   slack (MET)
+
+
+Startpoint: tx_req_flitv (input port)
+Endpoint: source/asyncQSource_req_flit/enq_ready$_DFF_PP0_
+          (rising edge-triggered flip-flop clocked by clk)
+Path Group: in2reg
+Path Type: max
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                          0.00    0.00 v input external delay
+     1   21.12    0.00    0.00    0.00 v tx_req_flitv (in)
+                                         tx_req_flitv (net)
+                 79.07   24.94   24.94 v input1782/A (BUFx3_ASAP7_75t_L)
+     3    2.48    9.48   23.43   48.37 v input1782/Y (BUFx3_ASAP7_75t_L)
+                                         net1750 (net)
+                  9.48    0.10   48.47 v source/shadowBuffer_req_flit/_18960_/B (OR2x2_ASAP7_75t_SL)
+     4    7.44   21.37   17.99   66.46 v source/shadowBuffer_req_flit/_18960_/Y (OR2x2_ASAP7_75t_SL)
+                                         source/req_sb_valid (net)
+                 23.45    3.50   69.97 v source/asyncQSource_req_flit/_09356_/B (AND2x4_ASAP7_75t_SL)
+     5    5.11    9.64   14.97   84.94 v source/asyncQSource_req_flit/_09356_/Y (AND2x4_ASAP7_75t_SL)
+                                         source/asyncQSource_req_flit/fire (net)
+                  9.64    0.11   85.05 v source/asyncQSource_req_flit/_13268_/B (HAxp5_ASAP7_75t_R)
+     2    1.50   22.27   13.76   98.81 ^ source/asyncQSource_req_flit/_13268_/CON (HAxp5_ASAP7_75t_R)
+                                         source/asyncQSource_req_flit/_02028_ (net)
+                 22.27    0.06   98.87 ^ source/asyncQSource_req_flit/_08659_/A (INVx1_ASAP7_75t_R)
+     2    2.15   16.03   12.61  111.48 v source/asyncQSource_req_flit/_08659_/Y (INVx1_ASAP7_75t_R)
+                                         source/asyncQSource_req_flit/_02025_ (net)
+                 16.03    0.05  111.53 v source/asyncQSource_req_flit/_13267_/B (HAxp5_ASAP7_75t_R)
+     5    4.94   86.22   67.61  179.14 v source/asyncQSource_req_flit/_13267_/SN (HAxp5_ASAP7_75t_R)
+                                         source/asyncQSource_req_flit/_02027_ (net)
+                 86.22    0.09  179.23 v source/asyncQSource_req_flit/_08665_/A (OR3x1_ASAP7_75t_R)
+     1    0.64    9.75   33.64  212.87 v source/asyncQSource_req_flit/_08665_/Y (OR3x1_ASAP7_75t_R)
+                                         source/asyncQSource_req_flit/_05592_ (net)
+                  9.75    0.02  212.89 v source/asyncQSource_req_flit/_08671_/B1 (AO221x1_ASAP7_75t_SL)
+     1    0.74    8.30   14.39  227.28 v source/asyncQSource_req_flit/_08671_/Y (AO221x1_ASAP7_75t_SL)
+                                         source/asyncQSource_req_flit/ready (net)
+                  8.30    0.02  227.31 v source/asyncQSource_req_flit/enq_ready$_DFF_PP0_/D (DFFASRHQNx1_ASAP7_75t_SL)
+                                227.31   data arrival time
+
+                        232.00  232.00   max_delay
+                         -4.73  227.27   library setup time
+                                227.27   data required time
+-----------------------------------------------------------------------------
+                                227.27   data required time
+                               -227.31   data arrival time
+-----------------------------------------------------------------------------
+                                 -0.04   slack (VIOLATED)
+
+
+Startpoint: source/asyncQSink_dat_flit/deq_bits[340]$_DFFE_PP_
+            (rising edge-triggered flip-flop clocked by clk)
+Endpoint: rx_dat_flit[340] (output port)
+Path Group: reg2out
+Path Type: max
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                  0.00    0.00    0.00 ^ source/asyncQSink_dat_flit/deq_bits[340]$_DFFE_PP_/CLK (DFFHQNx1_ASAP7_75t_SL)
+     2    7.75   45.63   40.26   40.26 ^ source/asyncQSink_dat_flit/deq_bits[340]$_DFFE_PP_/QN (DFFHQNx1_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_00348_ (net)
+                 46.77    3.88   44.14 ^ source/asyncQSink_dat_flit/_12408_/A (INVx1_ASAP7_75t_R)
+     1   14.32   83.77   44.21   88.35 v source/asyncQSink_dat_flit/_12408_/Y (INVx1_ASAP7_75t_R)
+                                         net2645 (net)
+                 94.44   15.51  103.86 v output2677/A (BUFx3_ASAP7_75t_L)
+     1    0.52    7.57   22.91  126.77 v output2677/Y (BUFx3_ASAP7_75t_L)
+                                         rx_dat_flit[340] (net)
+                  7.57    0.03  126.80 v rx_dat_flit[340] (out)
+                                126.80   data arrival time
+
+                        232.00  232.00   max_delay
+                          0.00  232.00   output external delay
+                                232.00   data required time
+-----------------------------------------------------------------------------
+                                232.00   data required time
+                               -126.80   data arrival time
+-----------------------------------------------------------------------------
+                                105.20   slack (MET)
+
+
+Startpoint: source/asyncQSink_dat_flit/deq_valid$_DFF_PP0_
+            (rising edge-triggered flip-flop clocked by clk)
+Endpoint: source/asyncQSink_dat_flit/deq_bits[318]$_DFFE_PP_
+          (rising edge-triggered flip-flop clocked by clk)
+Path Group: reg2reg
+Path Type: max
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                  0.00    0.00    0.00   clock clk (rise edge)
+                          0.00    0.00   clock network delay (ideal)
+                  0.00    0.00    0.00 ^ source/asyncQSink_dat_flit/deq_valid$_DFF_PP0_/CLK (DFFASRHQNx1_ASAP7_75t_SL)
+     1    0.83   12.39   26.54   26.54 ^ source/asyncQSink_dat_flit/deq_valid$_DFF_PP0_/QN (DFFASRHQNx1_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_00005_ (net)
+                 12.39    0.04   26.57 ^ source/asyncQSink_dat_flit/_12065_/A (INVx1_ASAP7_75t_R)
+     2    1.57   10.94    8.76   35.34 v source/asyncQSink_dat_flit/_12065_/Y (INVx1_ASAP7_75t_R)
+                                         net2763 (net)
+                 10.95    0.09   35.43 v source/asyncQSink_dat_flit/_24087_/A (AND2x2_ASAP7_75t_R)
+     1    1.28    6.83   16.54   51.96 v source/asyncQSink_dat_flit/_24087_/Y (AND2x2_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/fire (net)
+                  6.84    0.07   52.03 v source/asyncQSink_dat_flit/_24119_/A (HAxp5_ASAP7_75t_R)
+     2    1.71   23.87   14.15   66.19 ^ source/asyncQSink_dat_flit/_24119_/CON (HAxp5_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_00410_ (net)
+                 23.87    0.08   66.26 ^ source/asyncQSink_dat_flit/_24086_/A (INVx1_ASAP7_75t_R)
+     1    1.24   11.91    9.87   76.13 v source/asyncQSink_dat_flit/_24086_/Y (INVx1_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_00412_ (net)
+                 11.91    0.07   76.20 v source/asyncQSink_dat_flit/_24120_/B (HAxp5_ASAP7_75t_R)
+     2    1.67   31.57   31.82  108.02 v source/asyncQSink_dat_flit/_24120_/SN (HAxp5_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_00414_ (net)
+                 31.57    0.07  108.10 v source/asyncQSink_dat_flit/place16670/A (BUFx3_ASAP7_75t_L)
+     2    2.75    8.24   17.19  125.29 v source/asyncQSink_dat_flit/place16670/Y (BUFx3_ASAP7_75t_L)
+                                         source/asyncQSink_dat_flit/net16638 (net)
+                  8.25    0.11  125.40 v source/asyncQSink_dat_flit/_12513_/A (XNOR2x1_ASAP7_75t_SL)
+     4    4.86   35.91   14.13  139.53 ^ source/asyncQSink_dat_flit/_12513_/Y (XNOR2x1_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_09952_ (net)
+                 35.91    0.27  139.80 ^ source/asyncQSink_dat_flit/_12514_/A (INVx2_ASAP7_75t_SL)
+     3    5.06   19.62    9.86  149.66 v source/asyncQSink_dat_flit/_12514_/Y (INVx2_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_09953_ (net)
+                 19.69    0.69  150.35 v source/asyncQSink_dat_flit/place15909/A (BUFx3_ASAP7_75t_L)
+     4   13.67   26.51   19.70  170.06 v source/asyncQSink_dat_flit/place15909/Y (BUFx3_ASAP7_75t_L)
+                                         source/asyncQSink_dat_flit/net15877 (net)
+                 36.96    8.78  178.84 v source/asyncQSink_dat_flit/place15888/A (BUFx3_ASAP7_75t_L)
+     6   10.70   21.73   23.24  202.08 v source/asyncQSink_dat_flit/place15888/Y (BUFx3_ASAP7_75t_L)
+                                         source/asyncQSink_dat_flit/net15856 (net)
+                 21.99    1.40  203.48 v source/asyncQSink_dat_flit/place15884/A (BUFx3_ASAP7_75t_L)
+    30   20.63   37.13   26.63  230.11 v source/asyncQSink_dat_flit/place15884/Y (BUFx3_ASAP7_75t_L)
+                                         source/asyncQSink_dat_flit/net15852 (net)
+                 38.83    4.29  234.40 v source/asyncQSink_dat_flit/_14907_/B (AND2x2_ASAP7_75t_R)
+     1    0.58    6.21   21.88  256.27 v source/asyncQSink_dat_flit/_14907_/Y (AND2x2_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_01019_ (net)
+                  6.21    0.02  256.29 v source/asyncQSink_dat_flit/_14908_/C (AO221x1_ASAP7_75t_R)
+     1    0.48    8.27   20.40  276.69 v source/asyncQSink_dat_flit/_14908_/Y (AO221x1_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_01020_ (net)
+                  8.27    0.02  276.71 v source/asyncQSink_dat_flit/_14909_/B (OA211x2_ASAP7_75t_R)
+     1    0.94   10.52   25.60  302.30 v source/asyncQSink_dat_flit/_14909_/Y (OA211x2_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_01021_ (net)
+                 10.52    0.05  302.36 v source/asyncQSink_dat_flit/_14910_/D (OR4x1_ASAP7_75t_SL)
+     1    0.90    9.53   18.06  320.42 v source/asyncQSink_dat_flit/_14910_/Y (OR4x1_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_01022_ (net)
+                  9.53    0.05  320.46 v source/asyncQSink_dat_flit/_14912_/A2 (OA21x2_ASAP7_75t_SL)
+     1    0.77    6.71   12.46  332.93 v source/asyncQSink_dat_flit/_14912_/Y (OA21x2_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_00481_ (net)
+                  6.71    0.03  332.95 v source/asyncQSink_dat_flit/deq_bits[318]$_DFFE_PP_/D (DFFHQNx1_ASAP7_75t_SL)
+                                332.95   data arrival time
+
+                  0.00  290.00  290.00   clock clk (rise edge)
+                          0.00  290.00   clock network delay (ideal)
+                          0.00  290.00   clock reconvergence pessimism
+                                290.00 ^ source/asyncQSink_dat_flit/deq_bits[318]$_DFFE_PP_/CLK (DFFHQNx1_ASAP7_75t_SL)
+                         -3.35  286.65   library setup time
+                                286.65   data required time
+-----------------------------------------------------------------------------
+                                286.65   data required time
+                               -332.95   data arrival time
+-----------------------------------------------------------------------------
+                                -46.30   slack (VIOLATED)
+
+
+
+==========================================================================
+global place report_checks -unconstrained
+--------------------------------------------------------------------------
+Startpoint: noc_tx_req_ready (input port)
+Endpoint: noc_tx_req_flitv (output port)
+Path Group: in2out
+Path Type: max
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                          0.00    0.00 ^ input external delay
+     1    1.26    0.00    0.00    0.00 ^ noc_tx_req_ready (in)
+                                         noc_tx_req_ready (net)
+                  0.25    0.08    0.08 ^ input1259/A (BUFx3_ASAP7_75t_L)
+     2    1.44    5.55    8.80    8.88 ^ input1259/Y (BUFx3_ASAP7_75t_L)
+                                         net1227 (net)
+                  5.55    0.06    8.94 ^ sink/_102_/B (AND2x2_ASAP7_75t_R)
+     1    0.90    8.40   13.76   22.70 ^ sink/_102_/Y (AND2x2_ASAP7_75t_R)
+                                         net2324 (net)
+                  8.40    0.04   22.75 ^ output2356/A (BUFx3_ASAP7_75t_L)
+     1    0.62    4.39    9.90   32.65 ^ output2356/Y (BUFx3_ASAP7_75t_L)
+                                         noc_tx_req_flitv (net)
+                  4.39    0.04   32.68 ^ noc_tx_req_flitv (out)
+                                 32.68   data arrival time
+
+                        816.80  816.80   max_delay
+                          0.00  816.80   output external delay
+                                816.80   data required time
+-----------------------------------------------------------------------------
+                                816.80   data required time
+                                -32.68   data arrival time
+-----------------------------------------------------------------------------
+                                784.12   slack (MET)
+
+
+Startpoint: tx_req_flitv (input port)
+Endpoint: source/asyncQSource_req_flit/enq_ready$_DFF_PP0_
+          (rising edge-triggered flip-flop clocked by clk)
+Path Group: in2reg
+Path Type: max
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                          0.00    0.00 v input external delay
+     1   21.12    0.00    0.00    0.00 v tx_req_flitv (in)
+                                         tx_req_flitv (net)
+                 79.07   24.94   24.94 v input1782/A (BUFx3_ASAP7_75t_L)
+     3    2.48    9.48   23.43   48.37 v input1782/Y (BUFx3_ASAP7_75t_L)
+                                         net1750 (net)
+                  9.48    0.10   48.47 v source/shadowBuffer_req_flit/_18960_/B (OR2x2_ASAP7_75t_SL)
+     4    7.44   21.37   17.99   66.46 v source/shadowBuffer_req_flit/_18960_/Y (OR2x2_ASAP7_75t_SL)
+                                         source/req_sb_valid (net)
+                 23.45    3.50   69.97 v source/asyncQSource_req_flit/_09356_/B (AND2x4_ASAP7_75t_SL)
+     5    5.11    9.64   14.97   84.94 v source/asyncQSource_req_flit/_09356_/Y (AND2x4_ASAP7_75t_SL)
+                                         source/asyncQSource_req_flit/fire (net)
+                  9.64    0.11   85.05 v source/asyncQSource_req_flit/_13268_/B (HAxp5_ASAP7_75t_R)
+     2    1.50   22.27   13.76   98.81 ^ source/asyncQSource_req_flit/_13268_/CON (HAxp5_ASAP7_75t_R)
+                                         source/asyncQSource_req_flit/_02028_ (net)
+                 22.27    0.06   98.87 ^ source/asyncQSource_req_flit/_08659_/A (INVx1_ASAP7_75t_R)
+     2    2.15   16.03   12.61  111.48 v source/asyncQSource_req_flit/_08659_/Y (INVx1_ASAP7_75t_R)
+                                         source/asyncQSource_req_flit/_02025_ (net)
+                 16.03    0.05  111.53 v source/asyncQSource_req_flit/_13267_/B (HAxp5_ASAP7_75t_R)
+     5    4.94   86.22   67.61  179.14 v source/asyncQSource_req_flit/_13267_/SN (HAxp5_ASAP7_75t_R)
+                                         source/asyncQSource_req_flit/_02027_ (net)
+                 86.22    0.09  179.23 v source/asyncQSource_req_flit/_08665_/A (OR3x1_ASAP7_75t_R)
+     1    0.64    9.75   33.64  212.87 v source/asyncQSource_req_flit/_08665_/Y (OR3x1_ASAP7_75t_R)
+                                         source/asyncQSource_req_flit/_05592_ (net)
+                  9.75    0.02  212.89 v source/asyncQSource_req_flit/_08671_/B1 (AO221x1_ASAP7_75t_SL)
+     1    0.74    8.30   14.39  227.28 v source/asyncQSource_req_flit/_08671_/Y (AO221x1_ASAP7_75t_SL)
+                                         source/asyncQSource_req_flit/ready (net)
+                  8.30    0.02  227.31 v source/asyncQSource_req_flit/enq_ready$_DFF_PP0_/D (DFFASRHQNx1_ASAP7_75t_SL)
+                                227.31   data arrival time
+
+                        232.00  232.00   max_delay
+                         -4.73  227.27   library setup time
+                                227.27   data required time
+-----------------------------------------------------------------------------
+                                227.27   data required time
+                               -227.31   data arrival time
+-----------------------------------------------------------------------------
+                                 -0.04   slack (VIOLATED)
+
+
+Startpoint: source/asyncQSink_dat_flit/deq_bits[340]$_DFFE_PP_
+            (rising edge-triggered flip-flop clocked by clk)
+Endpoint: rx_dat_flit[340] (output port)
+Path Group: reg2out
+Path Type: max
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                  0.00    0.00    0.00 ^ source/asyncQSink_dat_flit/deq_bits[340]$_DFFE_PP_/CLK (DFFHQNx1_ASAP7_75t_SL)
+     2    7.75   45.63   40.26   40.26 ^ source/asyncQSink_dat_flit/deq_bits[340]$_DFFE_PP_/QN (DFFHQNx1_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_00348_ (net)
+                 46.77    3.88   44.14 ^ source/asyncQSink_dat_flit/_12408_/A (INVx1_ASAP7_75t_R)
+     1   14.32   83.77   44.21   88.35 v source/asyncQSink_dat_flit/_12408_/Y (INVx1_ASAP7_75t_R)
+                                         net2645 (net)
+                 94.44   15.51  103.86 v output2677/A (BUFx3_ASAP7_75t_L)
+     1    0.52    7.57   22.91  126.77 v output2677/Y (BUFx3_ASAP7_75t_L)
+                                         rx_dat_flit[340] (net)
+                  7.57    0.03  126.80 v rx_dat_flit[340] (out)
+                                126.80   data arrival time
+
+                        232.00  232.00   max_delay
+                          0.00  232.00   output external delay
+                                232.00   data required time
+-----------------------------------------------------------------------------
+                                232.00   data required time
+                               -126.80   data arrival time
+-----------------------------------------------------------------------------
+                                105.20   slack (MET)
+
+
+Startpoint: source/asyncQSink_dat_flit/deq_valid$_DFF_PP0_
+            (rising edge-triggered flip-flop clocked by clk)
+Endpoint: source/asyncQSink_dat_flit/deq_bits[318]$_DFFE_PP_
+          (rising edge-triggered flip-flop clocked by clk)
+Path Group: reg2reg
+Path Type: max
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                  0.00    0.00    0.00   clock clk (rise edge)
+                          0.00    0.00   clock network delay (ideal)
+                  0.00    0.00    0.00 ^ source/asyncQSink_dat_flit/deq_valid$_DFF_PP0_/CLK (DFFASRHQNx1_ASAP7_75t_SL)
+     1    0.83   12.39   26.54   26.54 ^ source/asyncQSink_dat_flit/deq_valid$_DFF_PP0_/QN (DFFASRHQNx1_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_00005_ (net)
+                 12.39    0.04   26.57 ^ source/asyncQSink_dat_flit/_12065_/A (INVx1_ASAP7_75t_R)
+     2    1.57   10.94    8.76   35.34 v source/asyncQSink_dat_flit/_12065_/Y (INVx1_ASAP7_75t_R)
+                                         net2763 (net)
+                 10.95    0.09   35.43 v source/asyncQSink_dat_flit/_24087_/A (AND2x2_ASAP7_75t_R)
+     1    1.28    6.83   16.54   51.96 v source/asyncQSink_dat_flit/_24087_/Y (AND2x2_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/fire (net)
+                  6.84    0.07   52.03 v source/asyncQSink_dat_flit/_24119_/A (HAxp5_ASAP7_75t_R)
+     2    1.71   23.87   14.15   66.19 ^ source/asyncQSink_dat_flit/_24119_/CON (HAxp5_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_00410_ (net)
+                 23.87    0.08   66.26 ^ source/asyncQSink_dat_flit/_24086_/A (INVx1_ASAP7_75t_R)
+     1    1.24   11.91    9.87   76.13 v source/asyncQSink_dat_flit/_24086_/Y (INVx1_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_00412_ (net)
+                 11.91    0.07   76.20 v source/asyncQSink_dat_flit/_24120_/B (HAxp5_ASAP7_75t_R)
+     2    1.67   31.57   31.82  108.02 v source/asyncQSink_dat_flit/_24120_/SN (HAxp5_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_00414_ (net)
+                 31.57    0.07  108.10 v source/asyncQSink_dat_flit/place16670/A (BUFx3_ASAP7_75t_L)
+     2    2.75    8.24   17.19  125.29 v source/asyncQSink_dat_flit/place16670/Y (BUFx3_ASAP7_75t_L)
+                                         source/asyncQSink_dat_flit/net16638 (net)
+                  8.25    0.11  125.40 v source/asyncQSink_dat_flit/_12513_/A (XNOR2x1_ASAP7_75t_SL)
+     4    4.86   35.91   14.13  139.53 ^ source/asyncQSink_dat_flit/_12513_/Y (XNOR2x1_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_09952_ (net)
+                 35.91    0.27  139.80 ^ source/asyncQSink_dat_flit/_12514_/A (INVx2_ASAP7_75t_SL)
+     3    5.06   19.62    9.86  149.66 v source/asyncQSink_dat_flit/_12514_/Y (INVx2_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_09953_ (net)
+                 19.69    0.69  150.35 v source/asyncQSink_dat_flit/place15909/A (BUFx3_ASAP7_75t_L)
+     4   13.67   26.51   19.70  170.06 v source/asyncQSink_dat_flit/place15909/Y (BUFx3_ASAP7_75t_L)
+                                         source/asyncQSink_dat_flit/net15877 (net)
+                 36.96    8.78  178.84 v source/asyncQSink_dat_flit/place15888/A (BUFx3_ASAP7_75t_L)
+     6   10.70   21.73   23.24  202.08 v source/asyncQSink_dat_flit/place15888/Y (BUFx3_ASAP7_75t_L)
+                                         source/asyncQSink_dat_flit/net15856 (net)
+                 21.99    1.40  203.48 v source/asyncQSink_dat_flit/place15884/A (BUFx3_ASAP7_75t_L)
+    30   20.63   37.13   26.63  230.11 v source/asyncQSink_dat_flit/place15884/Y (BUFx3_ASAP7_75t_L)
+                                         source/asyncQSink_dat_flit/net15852 (net)
+                 38.83    4.29  234.40 v source/asyncQSink_dat_flit/_14907_/B (AND2x2_ASAP7_75t_R)
+     1    0.58    6.21   21.88  256.27 v source/asyncQSink_dat_flit/_14907_/Y (AND2x2_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_01019_ (net)
+                  6.21    0.02  256.29 v source/asyncQSink_dat_flit/_14908_/C (AO221x1_ASAP7_75t_R)
+     1    0.48    8.27   20.40  276.69 v source/asyncQSink_dat_flit/_14908_/Y (AO221x1_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_01020_ (net)
+                  8.27    0.02  276.71 v source/asyncQSink_dat_flit/_14909_/B (OA211x2_ASAP7_75t_R)
+     1    0.94   10.52   25.60  302.30 v source/asyncQSink_dat_flit/_14909_/Y (OA211x2_ASAP7_75t_R)
+                                         source/asyncQSink_dat_flit/_01021_ (net)
+                 10.52    0.05  302.36 v source/asyncQSink_dat_flit/_14910_/D (OR4x1_ASAP7_75t_SL)
+     1    0.90    9.53   18.06  320.42 v source/asyncQSink_dat_flit/_14910_/Y (OR4x1_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_01022_ (net)
+                  9.53    0.05  320.46 v source/asyncQSink_dat_flit/_14912_/A2 (OA21x2_ASAP7_75t_SL)
+     1    0.77    6.71   12.46  332.93 v source/asyncQSink_dat_flit/_14912_/Y (OA21x2_ASAP7_75t_SL)
+                                         source/asyncQSink_dat_flit/_00481_ (net)
+                  6.71    0.03  332.95 v source/asyncQSink_dat_flit/deq_bits[318]$_DFFE_PP_/D (DFFHQNx1_ASAP7_75t_SL)
+                                332.95   data arrival time
+
+                  0.00  290.00  290.00   clock clk (rise edge)
+                          0.00  290.00   clock network delay (ideal)
+                          0.00  290.00   clock reconvergence pessimism
+                                290.00 ^ source/asyncQSink_dat_flit/deq_bits[318]$_DFFE_PP_/CLK (DFFHQNx1_ASAP7_75t_SL)
+                         -3.35  286.65   library setup time
+                                286.65   data required time
+-----------------------------------------------------------------------------
+                                286.65   data required time
+                               -332.95   data arrival time
+-----------------------------------------------------------------------------
+                                -46.30   slack (VIOLATED)
+
+
+
+==========================================================================
+global place report_power
+--------------------------------------------------------------------------
+[WARNING STA-2402] power activity propagation through registers did not converge after 50 passes.
+Group                  Internal  Switching    Leakage      Total
+                          Power      Power      Power      Power (Watts)
+----------------------------------------------------------------
+Sequential             2.02e-01   2.35e-02   5.13e-04   2.26e-01  58.8%
+Combinational          8.46e-02   7.31e-02   1.87e-04   1.58e-01  41.2%
+Clock                  0.00e+00   0.00e+00   0.00e+00   0.00e+00   0.0%
+Macro                  0.00e+00   0.00e+00   0.00e+00   0.00e+00   0.0%
+Pad                    0.00e+00   0.00e+00   0.00e+00   0.00e+00   0.0%
+----------------------------------------------------------------
+Total                  2.86e-01   9.66e-02   6.99e-04   3.83e-01 100.0%
+                          74.6%      25.2%       0.2%

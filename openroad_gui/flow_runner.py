@@ -21,6 +21,9 @@ class FlowStage(Enum):
     CTS = ("cts", "Clock Tree Synthesis")
     ROUTE = ("route", "Routing & DRC")
     GDS = ("gds", "GDSII Generation")
+    # Sign-off checks: run through the same runner but NOT part of FULL_PIPELINE
+    DRC = ("drc", "DRC Check (KLayout)")
+    LVS = ("lvs", "LVS Check (KLayout)")
 
     def __init__(self, make_target: str, label: str) -> None:
         self.make_target = make_target

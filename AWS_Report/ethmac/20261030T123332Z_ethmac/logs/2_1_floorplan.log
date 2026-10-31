@@ -1,0 +1,521 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+source /OpenROAD-flow-scripts/flow/platforms/asap7/liberty_suppressions.tcl
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_RVT_FF_nldm_220123.lib
+read_db ./results/asap7/ethmac/base/1_synth.odb
+read_sdc ./results/asap7/ethmac/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/asap7/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+number instances in verilog is 55999
+initialize_floorplan -utilization 70 -aspect_ratio 1 -core_space 2 -site asap7sc7p5t
+[INFO IFP-0107] Defining die area using utilization: 70.00% and aspect ratio: 1.
+[WARNING IFP-0028] Core area lower left (2.000, 2.000) snapped to (2.052, 2.160).
+[INFO IFP-0001] Added 378 rows of 1894 site asap7sc7p5t.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 106.329 106.329 ) um
+[INFO IFP-0101] Core BBox: (  2.052  2.160 ) ( 104.328 104.220 ) um
+[INFO IFP-0102] Core area:                        10438.289 um^2
+[INFO IFP-0103] Total instances area:              7329.905 um^2
+[INFO IFP-0104] Effective utilization:                0.702
+[INFO IFP-0105] Number of instances:                  55999
+source /OpenROAD-flow-scripts/flow/platforms/asap7/openRoad/make_tracks.tcl
+source /OpenROAD-flow-scripts/flow/platforms/asap7/fastroute.tcl
+set_dont_use "*x1p*_ASAP7* *xp*_ASAP7* SDF* ICG*"
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_RVT_FF_nldm_250407/TIELOx1_ASAP7_75t_R/L
+[INFO RSZ-0042] Inserted 4 tie TIELOx1_ASAP7_75t_R instances.
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_RVT_FF_nldm_250407/TIEHIx1_ASAP7_75t_R/H
+[INFO RSZ-0042] Inserted 1241 tie TIEHIx1_ASAP7_75t_R instances.
+repair_timing -setup_margin 0 -hold_margin -10 -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[INFO RSZ-0100] Repair move sequence: UnbufferMove SizeUpMove SwapPinsMove 
+[INFO RSZ-0094] Found 373 endpoints with setup violations.
+[INFO RSZ-0099] Repairing 373 out of 373 (100.00%) violating endpoints...
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% | -3111.825 |  -704703.6 |    373 | maccontrol1.receivecontrol1.DetectionWindow$_DFFE_PP1P_/SETN
+      10* |       0 |       9 |        0 |      0 |     0 |    +0.0% | -105.893 |    -4678.2 |    373 | maccontrol1.receivecontrol1.PauseTimer\[15\]$_DFFE_PP0P_/D
+      20* |       0 |      15 |        0 |      0 |     4 |    +0.0% |  -89.710 |    -4473.2 |    373 | maccontrol1.receivecontrol1.PauseTimer\[4\]$_DFFE_PP0P_/D
+      28* |       0 |      19 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -3518.6 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      30* |       0 |      20 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -3223.4 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      31* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      32* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      33* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      34* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      35* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      36* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      37* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      38* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      39* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      40* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      40* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      41* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      42* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      43* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      44* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      45* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      46* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      47* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      48* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      49* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      50* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      50* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      51* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      52* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      53* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      54* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      55* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      56* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      57* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      58* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      59* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      60* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      60* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      61* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      62* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      63* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      64* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      65* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      66* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      68* |       0 |      21 |        0 |      0 |     8 |    +0.0% |  -83.972 |    -2972.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      70* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      70* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      72* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      74* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      75* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      76* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      77* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      78* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      79* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      80* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      80* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      81* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      82* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      83* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      84* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      85* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      86* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      87* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      88* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      89* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      90* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      90* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      91* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      92* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      93* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      94* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      95* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      96* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      97* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      98* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+      99* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     100* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     100* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     101* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     102* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     103* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     104* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     105* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     106* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     107* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     108* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     109* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     110* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     110* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     111* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     112* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     113* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     114* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     115* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     116* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     117* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     118* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     119* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     120* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     120* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     121* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     122* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     123* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     124* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     125* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     126* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     127* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     128* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     129* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     130* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     130* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     131* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     132* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     133* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     134* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     135* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     136* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     137* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     138* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     139* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     140* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     140* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     141* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     142* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     143* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     144* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     145* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     146* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     147* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     148* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     149* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     150* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     150* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     151* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     152* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     153* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     154* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     155* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     156* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     157* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     158* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     159* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     160* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     160* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     161* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     162* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     163* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     164* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     165* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     166* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     167* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     168* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     169* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     170* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     170* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     171* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     172* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     173* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     174* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     175* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     176* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     177* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     178* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     179* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     180* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     180* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     181* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     182* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     183* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     184* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     185* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     186* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     187* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     188* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     189* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     190* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     190* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     191* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     192* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     193* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     194* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     195* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     196* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     197* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     198* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     199* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     200* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     200* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     201* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     202* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     203* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     204* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     205* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     206* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     207* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     208* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     209* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     210* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     210* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     211* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     212* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     213* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     214* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     215* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     216* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     217* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     218* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     219* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     220* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     220* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     221* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     222* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     223* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     224* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     225* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     226* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     227* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     228* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     229* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     230* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     230* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     231* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     232* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     233* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     234* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     235* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     236* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     237* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     238* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     239* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     240* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     240* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     241* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     242* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     243* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     244* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     245* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     246* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     247* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     248* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     249* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     250* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     250* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     251* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     252* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     253* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     254* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     255* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     256* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     257* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     258* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     259* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     260* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     260* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     261* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     262* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     263* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     264* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     265* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     266* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     267* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     268* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     269* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     270* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     270* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     271* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     272* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     273* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     274* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     275* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     276* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     277* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     278* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     279* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     280* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     280* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     281* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     282* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     283* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     284* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     285* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     286* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     287* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     288* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     289* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     290* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     290* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     291* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     292* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     293* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     294* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     295* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     296* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     297* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     298* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     299* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     300* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     300* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     301* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     302* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     303* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     304* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     305* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     306* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     307* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     308* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     309* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     310* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     310* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     311* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     312* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     313* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     314* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     315* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     316* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     317* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     318* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     319* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     320* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     320* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     321* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     322* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     323* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     324* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     325* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     326* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     327* |       0 |      21 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2961.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     330* |       0 |      23 |        0 |      0 |     9 |    +0.0% |  -85.130 |    -2977.9 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     330* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     331* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     332* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     333* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     334* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     335* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     336* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     338* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     340* |       0 |      23 |        0 |      0 |     9 |    +0.0% |  -84.243 |    -2926.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     346* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     348* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     350* |       0 |      23 |        0 |      0 |     9 |    +0.0% |  -84.243 |    -2926.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     350* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     354* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     358* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     360* |       0 |      23 |        0 |      0 |     9 |    +0.0% |  -84.243 |    -2926.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     361* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     363* |       0 |      22 |        0 |      0 |     9 |    +0.0% |  -83.972 |    -2960.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     370* |       0 |      27 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1949.4 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     374* |       0 |      31 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1837.4 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     375* |       0 |      31 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1837.4 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     377* |       0 |      32 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1835.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     378* |       0 |      32 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1835.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     379* |       0 |      32 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1835.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     380* |       0 |      32 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1835.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     380* |       0 |      32 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1835.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     381* |       0 |      32 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1835.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     382* |       0 |      32 |        0 |      0 |    10 |    +0.0% |  -83.972 |    -1835.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     389* |       0 |      35 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1808.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     390* |       0 |      35 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1808.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     390* |       0 |      35 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1808.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     392* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     393* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     394* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     395* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     396* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     397* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     398* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     399* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     400* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     400* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     401* |       0 |      36 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1807.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     403* |       0 |      37 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1775.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     404* |       0 |      37 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1775.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     405* |       0 |      37 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1775.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     406* |       0 |      37 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1775.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     407* |       0 |      37 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1775.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     410* |       0 |      39 |        0 |      0 |    13 |    +0.0% |  -83.972 |    -1699.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     414* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     415* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     416* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     417* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     418* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     419* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     420* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     420* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     421* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     422* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     423* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     424* |       0 |      42 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1688.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     426* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     427* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     428* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     429* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     430* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     430* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     431* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     432* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     433* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     434* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     435* |       0 |      43 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1683.8 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     437* |       0 |      44 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1676.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     438* |       0 |      44 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1676.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     439* |       0 |      44 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1676.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     440* |       0 |      44 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1676.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     440* |       0 |      44 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1676.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     441* |       0 |      44 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1676.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     449* |       0 |      44 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1676.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     450* |       0 |      44 |        0 |      0 |    14 |    +0.0% |  -83.972 |    -1676.1 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     453* |       0 |      46 |        0 |      0 |    15 |    +0.0% |  -83.972 |    -1652.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     455* |       0 |      46 |        0 |      0 |    16 |    +0.0% |  -83.972 |    -1650.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     457* |       0 |      46 |        0 |      0 |    17 |    +0.0% |  -83.972 |    -1648.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     459* |       0 |      46 |        0 |      0 |    18 |    +0.0% |  -83.972 |    -1647.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     460* |       0 |      46 |        0 |      0 |    18 |    +0.0% |  -83.972 |    -1647.0 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     461* |       0 |      46 |        0 |      0 |    19 |    +0.0% |  -83.972 |    -1645.2 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     463* |       0 |      46 |        0 |      0 |    20 |    +0.0% |  -83.972 |    -1643.4 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     465* |       0 |      46 |        0 |      0 |    21 |    +0.0% |  -83.972 |    -1641.6 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     467* |       0 |      46 |        0 |      0 |    22 |    +0.0% |  -83.972 |    -1639.6 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     469* |       0 |      46 |        0 |      0 |    23 |    +0.0% |  -83.972 |    -1637.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     470* |       0 |      46 |        0 |      0 |    23 |    +0.0% |  -83.972 |    -1637.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     470* |       0 |      46 |        0 |      0 |    23 |    +0.0% |  -83.972 |    -1637.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     471* |       0 |      46 |        0 |      0 |    23 |    +0.0% |  -83.972 |    -1637.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     472* |       0 |      46 |        0 |      0 |    23 |    +0.0% |  -83.972 |    -1637.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+     472* |       0 |      46 |        0 |      0 |    23 |    +0.0% |  -83.972 |    -1637.7 |    373 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+    final |       0 |      46 |        0 |      0 |    23 |    +0.0% |  -83.972 |    -1637.7 |     70 | maccontrol1.receivecontrol1.PauseTimer\[2\]$_DFFE_PP0P_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 46 instances: 46 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 23 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 3.50s
+Default units for flow
+ time 1ps
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1pW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |       (kohm/um) |          (fF/um)
+------------------------------------------------
+        M1 |        7.04e-02 |         1.00e-10
+        M2 |        2.97e-02 |         1.75e-01
+        M3 |        3.13e-02 |         1.56e-01
+        M4 |        1.80e-02 |         1.78e-01
+        M5 |        1.90e-02 |         1.64e-01
+        M6 |        1.19e-02 |         1.87e-01
+        M7 |        1.25e-02 |         1.63e-01
+        M8 |        8.45e-03 |         1.04e-01
+        M9 |        8.90e-03 |         9.28e-02
+       Pad |        0.00e+00 |         0.00e+00
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |         (kohm) 
+----------------------------
+        V1 |       1.72e-02 
+        V2 |       1.72e-02 
+        V3 |       1.72e-02 
+        V4 |       1.18e-02 
+        V5 |       1.18e-02 
+        V6 |       8.20e-03 
+        V7 |       8.20e-03 
+        V8 |       6.30e-03 
+        V9 |       6.30e-03 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 7386 um^2 71% utilization.
+write_db ./results/asap7/ethmac/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/asap7/ethmac/base/2_1_floorplan.sdc
+Elapsed time: 0:15.22[h:]min:sec. CPU time: user 17.30 sys 0.26 (115%). Peak memory: 406692KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb         15       18     1.15      397 7599c0802c
+2_1_floorplan          .sdc                                       9ec5ae68be
