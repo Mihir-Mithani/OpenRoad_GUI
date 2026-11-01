@@ -345,7 +345,17 @@ def extract_aws_run(run_dir: Path) -> Optional[AWSRunRecord]:
 
 
 def main():
-    aws_report_root = Path("/Users/mihirmithani/Downloads/OpenRoad GUI/AWS_Report")
+    import argparse
+    parser = argparse.ArgumentParser(description="Extract AWS ORFS report data")
+    parser.add_argument("--aws-root", type=Path, default=Path("/Users/mihirmithani/Downloads/OpenRoad GUI/AWS_Report"),
+                        help="AWS_Report root directory")
+    parser.add_argument("--platform", type=str, default=None,
+                        help="Platform to filter (e.g., asap7, gf180). If not specified, uses metadata from run.")
+    parser.add_argument("--output", type=Path, default=Path("openroad_gui/intelligence/data/aws_real_runs.json"),
+                        help="Output JSON file")
+    args = parser.parse_args()
+
+    aws_report_root = args.aws_root
 
     if not aws_report_root.exists():
         print(f"AWS_Report not found at {aws_report_root}")
@@ -353,21 +363,50 @@ def main():
 
     all_records = []
 
-    for design_dir in sorted(aws_report_root.iterdir()):
-        if not design_dir.is_dir() or design_dir.name.startswith(".") or design_dir.name.startswith("drive-download"):
-            continue
-
-        design = design_dir.name
-        print(f"\nProcessing {design}...")
-
-        # Find completed runs (has 6_finish.rpt)
-        for run_dir in design_dir.iterdir():
-            if not run_dir.is_dir():
+    def find_run_dirs(root: Path) -> List[Path]:
+        """Find all run directories (containing 6_finish.rpt) under a platform root."""
+        run_dirs = []
+        for item in root.iterdir():
+            if not item.is_dir():
                 continue
+            # Check if this item itself is a run dir (has reports/6_finish.rpt)
+            if (item / "reports" / "6_finish.rpt").exists():
+                run_dirs.append(item)
+            else:
+                # Check if it's a design dir containing run dirs
+                for sub_item in item.iterdir():
+                    if sub_item.is_dir() and (sub_item / "reports" / "6_finish.rpt").exists():
+                        run_dirs.append(sub_item)
+        return run_dirs
 
+    # Determine which platform directories to process
+    if args.platform:
+        platform_dirs = [aws_report_root / args.platform]
+        if not platform_dirs[0].exists():
+            print(f"Platform directory not found: {platform_dirs[0]}")
+            return
+    else:
+        platform_dirs = [p for p in sorted(aws_report_root.iterdir())
+                         if p.is_dir() and not p.name.startswith(".") and not p.name.startswith("drive-download")]
+
+    for platform_dir in platform_dirs:
+        print(f"\nProcessing platform: {platform_dir.name}...")
+
+        # Find all run dirs (handles both flat and nested structures)
+        run_dirs = find_run_dirs(platform_dir)
+
+        for run_dir in run_dirs:
             finish_report = run_dir / "reports" / "6_finish.rpt"
             if not finish_report.exists():
                 continue
+
+            # Check platform filter (double-check from metadata)
+            if args.platform:
+                metadata_path = run_dir / "run_metadata.json"
+                if metadata_path.exists():
+                    metadata = json.loads(metadata_path.read_text())
+                    if metadata.get("platform", "") != args.platform:
+                        continue
 
             record = extract_aws_run(run_dir)
             if record:
@@ -378,9 +417,8 @@ def main():
                 print(f"  ✅ {record.run_id}: WNS={wns}, TNS={tns}, Setup={record.final_setup_violations}, Power={power}")
 
     # Save to JSON
-    output_path = Path("openroad_gui/intelligence/data/aws_real_runs.json")
+    output_path = args.output
     output_path.parent.mkdir(parents=True, exist_ok=True)
-
     output_data = [asdict(r) for r in all_records]
     output_path.write_text(json.dumps(output_data, indent=2, default=str))
 
@@ -394,8 +432,7 @@ def main():
             wns = r.final_wns_ns if r.final_wns_ns is not None else "N/A"
             tns = r.final_tns_ns if r.final_tns_ns is not None else "N/A"
             power = r.final_power_w if r.final_power_w is not None else "N/A"
-            print(f"  {r.design_name} ({r.platform}): WNS={wns}, TNS={tns}, "
-                  f"SetupViol={r.final_setup_violations}, Power={power}")
+            print(f"  {r.design_name} ({r.platform}): WNS={wns}, TNS={tns}, SetupViol={r.final_setup_violations}, Power={power}")
 
 
 if __name__ == "__main__":

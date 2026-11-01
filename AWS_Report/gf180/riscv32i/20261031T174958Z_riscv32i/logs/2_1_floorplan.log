@@ -1,0 +1,185 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/gf180/lib/gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50.lib.gz
+read_db -hier ./results/gf180/riscv32i/base/1_synth.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/gf180/riscv32i/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/gf180/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+number instances in verilog is 6033
+initialize_floorplan -utilization 55 -aspect_ratio 1.0 -core_space 1.0 -site GF018hv5v_green_sc9
+[INFO IFP-0107] Defining die area using utilization: 55.00% and aspect ratio: 1.
+[WARNING IFP-0028] Core area lower left (1.000, 1.000) snapped to (1.120, 5.040).
+[INFO IFP-0001] Added 146 rows of 1322 site GF018hv5v_green_sc9.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 742.575 742.575 ) um
+[INFO IFP-0101] Core BBox: (  1.120  5.040 ) ( 741.440 740.880 ) um
+[INFO IFP-0102] Core area:                       544757.069 um^2
+[INFO IFP-0103] Total instances area:            301649.645 um^2
+[INFO IFP-0104] Effective utilization:                0.554
+[INFO IFP-0105] Number of instances:                   6031
+make_tracks
+source /OpenROAD-flow-scripts/flow/platforms/gf180/fastroute.tcl
+set_dont_use *_1
+repair_tie_fanout -separation 0 gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50/gf180mcu_fd_sc_mcu9t5v0__tiel/ZN
+[INFO RSZ-0042] Inserted 3 tie gf180mcu_fd_sc_mcu9t5v0__tiel instances.
+repair_tie_fanout -separation 0 gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50/gf180mcu_fd_sc_mcu9t5v0__tieh/Z
+replace_arith_modules
+replace_arith_modules -path_count 1000 -target setup -slack_threshold 0.0
+[INFO RSZ-0151] Starting arithmetic module replacement to optimize 'setup' target
+[INFO RSZ-0152] Analyzing 1000 critical paths with slack < 0.00
+[INFO RSZ-0153] Identified 1056 violating endpoints
+[INFO RSZ-0154] Identified 2 critical arithmetic instances
+[INFO ODB-0496] swapMaster sanity check passed (0 failures)
+[INFO ODB-0496] swapMaster sanity check passed (0 failures)
+[INFO RSZ-0160] 2 arithmetic instances have swapped to improve 'setup' target
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -skip_gate_cloning -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -9.158 |    -8070.0 |   1056 | dp.rf.rf\[10\]\[31\]$_DFFE_PP_/D
+       1* |       0 |      34 |        0 |      0 |     2 |    +0.3% |   -5.187 |    -4105.3 |   1056 | aluout[19]
+       2* |       0 |      46 |        0 |      0 |     6 |    +0.4% |   -4.182 |    -3369.9 |   1056 | aluout[0]
+       3* |       0 |      56 |        0 |      0 |    12 |    +0.5% |   -4.057 |    -3184.9 |   1056 | aluout[0]
+       4* |       0 |      69 |        0 |      0 |    15 |    +0.6% |   -3.915 |    -3009.6 |   1056 | aluout[0]
+       5* |       0 |      83 |        0 |      0 |    17 |    +0.7% |   -3.756 |    -2830.2 |   1056 | aluout[0]
+       6* |       0 |      90 |        0 |      0 |    20 |    +0.8% |   -3.752 |    -2828.1 |   1056 | aluout[0]
+       7* |       0 |      94 |        0 |      0 |    21 |    +0.8% |   -3.748 |    -2820.8 |   1056 | aluout[0]
+       8* |       0 |      95 |        0 |      0 |    22 |    +0.8% |   -3.744 |    -2815.9 |   1056 | aluout[0]
+       9* |       0 |      95 |        0 |      0 |    23 |    +0.8% |   -3.740 |    -2810.5 |   1056 | aluout[0]
+      10* |       0 |      97 |        0 |      0 |    24 |    +0.8% |   -3.736 |    -2804.6 |   1056 | aluout[0]
+      11* |       0 |      98 |        0 |      0 |    26 |    +0.8% |   -3.732 |    -2800.8 |   1056 | aluout[0]
+      12* |       0 |      98 |        0 |      0 |    27 |    +0.8% |   -3.728 |    -2796.4 |   1056 | aluout[0]
+      13* |       0 |      98 |        0 |      0 |    28 |    +0.8% |   -3.724 |    -2792.0 |   1056 | aluout[0]
+      14* |       0 |      99 |        0 |      0 |    29 |    +0.9% |   -3.720 |    -2786.3 |   1056 | aluout[0]
+      15* |       0 |     100 |        0 |      0 |    30 |    +0.9% |   -3.716 |    -2775.3 |   1056 | aluout[0]
+      16* |       0 |     102 |        0 |      0 |    32 |    +0.9% |   -3.665 |    -2741.2 |   1056 | aluout[0]
+      17* |       0 |     102 |        0 |      0 |    34 |    +0.9% |   -3.565 |    -2700.9 |   1056 | aluout[0]
+      18* |       0 |     108 |        0 |      0 |    34 |    +0.9% |   -3.565 |    -2699.4 |   1056 | aluout[0]
+      19* |       0 |     110 |        0 |      0 |    35 |    +0.9% |   -3.561 |    -2694.3 |   1056 | aluout[0]
+      20* |       0 |     110 |        0 |      0 |    36 |    +0.9% |   -3.557 |    -2690.1 |   1056 | aluout[0]
+      21* |       0 |     110 |        0 |      0 |    37 |    +0.9% |   -3.553 |    -2685.7 |   1056 | aluout[0]
+      22* |       0 |     110 |        0 |      0 |    38 |    +0.9% |   -3.549 |    -2679.1 |   1056 | aluout[0]
+      23* |       0 |     110 |        0 |      0 |    39 |    +0.9% |   -3.545 |    -2674.4 |   1056 | aluout[0]
+      24* |       0 |     110 |        0 |      0 |    40 |    +0.9% |   -3.541 |    -2670.1 |   1056 | aluout[0]
+      25* |       0 |     110 |        0 |      0 |    41 |    +0.9% |   -3.536 |    -2665.7 |   1056 | aluout[0]
+      26* |       0 |     110 |        0 |      0 |    42 |    +0.9% |   -3.532 |    -2658.4 |   1056 | aluout[0]
+      27* |       0 |     110 |        0 |      0 |    42 |    +0.9% |   -3.532 |    -2658.4 |   1056 | aluout[0]
+      28* |       0 |     110 |        0 |      0 |    42 |    +0.9% |   -3.532 |    -2658.4 |   1056 | aluout[0]
+      29* |       0 |     110 |        0 |      0 |    42 |    +0.9% |   -3.532 |    -2658.4 |   1056 | aluout[0]
+      30* |       0 |     110 |        0 |      0 |    43 |    +0.9% |   -3.516 |    -2640.9 |   1056 | aluout[0]
+      31* |       0 |     110 |        0 |      0 |    43 |    +0.9% |   -3.516 |    -2640.9 |   1056 | aluout[0]
+      32* |       0 |     110 |        0 |      0 |    44 |    +0.9% |   -3.516 |    -2635.4 |   1056 | aluout[0]
+      33* |       0 |     110 |        0 |      0 |    44 |    +0.9% |   -3.516 |    -2635.4 |   1056 | aluout[0]
+      34* |       0 |     110 |        0 |      0 |    44 |    +0.9% |   -3.516 |    -2635.4 |   1056 | aluout[0]
+      35* |       0 |     110 |        0 |      0 |    45 |    +0.9% |   -3.502 |    -2635.2 |   1056 | aluout[0]
+      36* |       0 |     111 |        0 |      0 |    46 |    +1.0% |   -3.489 |    -2617.0 |   1056 | aluout[0]
+      37* |       0 |     112 |        0 |      0 |    47 |    +1.0% |   -3.489 |    -2616.2 |   1056 | aluout[0]
+      38* |       0 |     114 |        0 |      0 |    48 |    +1.0% |   -3.466 |    -2627.0 |   1056 | aluout[0]
+      39* |       0 |     114 |        0 |      0 |    49 |    +1.0% |   -3.503 |    -2627.6 |   1056 | aluout[0]
+      40* |       0 |     114 |        0 |      0 |    50 |    +1.0% |   -3.518 |    -2629.6 |   1056 | aluout[0]
+      41* |       0 |     114 |        0 |      0 |    51 |    +1.0% |   -3.540 |    -2635.2 |   1056 | aluout[0]
+      42* |       0 |     114 |        0 |      0 |    52 |    +1.0% |   -3.965 |    -3069.0 |   1056 | aluout[0]
+      43* |       0 |     115 |        0 |      0 |    52 |    +1.0% |   -3.955 |    -3067.3 |   1056 | aluout[0]
+      44* |       0 |     112 |        0 |      0 |    47 |    +1.0% |   -3.489 |    -2616.2 |   1056 | aluout[0]
+      45* |       0 |     112 |        0 |      0 |    48 |    +1.0% |   -3.491 |    -2617.8 |   1056 | aluout[0]
+      46* |       0 |     113 |        0 |      0 |    48 |    +1.0% |   -3.514 |    -2617.4 |   1056 | aluout[0]
+      47* |       0 |     114 |        0 |      0 |    48 |    +1.0% |   -3.514 |    -2617.4 |   1056 | aluout[0]
+      48* |       0 |     114 |        0 |      0 |    49 |    +1.0% |   -3.514 |    -2617.5 |   1056 | aluout[0]
+      49* |       0 |     114 |        0 |      0 |    50 |    +1.0% |   -3.514 |    -2617.5 |   1056 | aluout[0]
+      50* |       0 |     115 |        0 |      0 |    50 |    +1.0% |   -3.514 |    -2618.9 |   1056 | aluout[0]
+      51* |       0 |     112 |        0 |      0 |    47 |    +1.0% |   -3.489 |    -2616.2 |   1056 | aluout[0]
+      52* |       0 |     113 |        0 |      0 |    47 |    +1.0% |   -3.489 |    -2619.9 |   1056 | aluout[0]
+      53* |       0 |     114 |        0 |      0 |    47 |    +1.0% |   -3.419 |    -2620.0 |   1056 | aluout[0]
+      54* |       0 |     115 |        0 |      0 |    47 |    +1.0% |   -3.438 |    -2614.7 |   1056 | aluout[0]
+      55* |       0 |     115 |        0 |      0 |    49 |    +1.0% |   -3.438 |    -2614.7 |   1056 | aluout[0]
+      56* |       0 |     115 |        0 |      0 |    51 |    +1.0% |   -3.438 |    -2608.5 |   1056 | aluout[0]
+      57* |       0 |     115 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.1 |   1056 | aluout[0]
+      58* |       0 |     116 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.2 |   1056 | aluout[0]
+      59* |       0 |     117 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.9 |   1056 | aluout[0]
+      60* |       0 |     118 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2601.1 |   1056 | aluout[0]
+      61* |       0 |     119 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2601.2 |   1056 | aluout[0]
+      62* |       0 |     120 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.3 |   1056 | aluout[0]
+      63* |       0 |     121 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2602.6 |   1056 | aluout[0]
+      64* |       0 |     115 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.1 |   1056 | aluout[0]
+      65* |       0 |     115 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.1 |   1056 | aluout[0]
+      66* |       0 |     116 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2600.3 |   1056 | aluout[0]
+      67* |       0 |     117 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2600.4 |   1056 | aluout[0]
+      68* |       0 |     118 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2600.5 |   1056 | aluout[0]
+      69* |       0 |     119 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.8 |   1056 | aluout[0]
+      70* |       0 |     120 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.8 |   1056 | aluout[0]
+      71* |       0 |     121 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.8 |   1056 | aluout[0]
+      72* |       0 |     115 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.1 |   1056 | aluout[0]
+      73* |       0 |     115 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.1 |   1056 | aluout[0]
+      74* |       0 |     116 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2600.3 |   1056 | aluout[0]
+      75* |       0 |     117 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2600.4 |   1056 | aluout[0]
+      76* |       0 |     118 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2600.5 |   1056 | aluout[0]
+      77* |       0 |     119 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.8 |   1056 | aluout[0]
+      78* |       0 |     120 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.8 |   1056 | aluout[0]
+      79* |       0 |     121 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.8 |   1056 | aluout[0]
+      80* |       0 |     115 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.1 |   1056 | aluout[0]
+      81* |       0 |     115 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.1 |   1056 | aluout[0]
+      82* |       0 |     116 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2600.3 |   1056 | aluout[0]
+      83* |       0 |     117 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2600.4 |   1056 | aluout[0]
+      84* |       0 |     118 |        0 |      0 |    52 |    +1.0% |   -3.467 |    -2600.5 |   1056 | aluout[0]
+      85* |       0 |     119 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.8 |   1056 | aluout[0]
+      86* |       0 |     120 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.8 |   1056 | aluout[0]
+      87* |       0 |     121 |        0 |      0 |    52 |    +1.1% |   -3.467 |    -2601.8 |   1056 | aluout[0]
+      88* |       0 |     115 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2601.1 |   1056 | aluout[0]
+      89* |       0 |     116 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2599.2 |   1056 | aluout[0]
+      90* |       0 |     116 |        0 |      0 |    53 |    +1.0% |   -3.438 |    -2599.8 |   1056 | aluout[0]
+      91* |       0 |     117 |        0 |      0 |    53 |    +1.0% |   -3.438 |    -2601.3 |   1056 | aluout[0]
+    final |       0 |     116 |        0 |      0 |    52 |    +1.0% |   -3.438 |    -2599.2 |   1056 | aluout[0]
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 116 instances: 116 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 52 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 13.85s
+Took 14 seconds: repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -skip_gate_cloning -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+Default units for flow
+ time 1ns
+ capacitance 1pF
+ resistance 1ohm
+ voltage 1v
+ current 1mA
+ power 1uW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |        (ohm/um) |          (pF/um)
+------------------------------------------------
+    Metal1 |        3.91e-01 |         9.06e-06
+    Metal2 |        2.26e-04 |         1.35e-04
+    Metal3 |        2.26e-04 |         1.46e-04
+    Metal4 |        2.26e-04 |         1.51e-04
+    Metal5 |        5.86e-05 |         1.56e-04
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |          (ohm) 
+----------------------------
+      Via1 |       4.23e+00 
+      Via2 |       4.23e+00 
+      Via3 |       4.23e+00 
+      Via4 |       4.23e+00 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 310032 um^2 57% utilization.
+source /OpenROAD-flow-scripts/flow/designs/gf180/riscv32i/io.tcl
+write_db ./results/gf180/riscv32i/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/gf180/riscv32i/base/2_1_floorplan.sdc
+Elapsed time: 0:17.26[h:]min:sec. CPU time: user 21.54 sys 0.27 (126%). Peak memory: 168444KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb         17       22     1.26      164 7f1e7948d5
+2_1_floorplan          .sdc                                       f3bf968e42
