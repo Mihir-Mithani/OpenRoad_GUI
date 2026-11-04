@@ -1,3 +1,117 @@
+# OpenROAD Flow GUI - Development Progress Log
+
+## Summary of Changes (Session 1 - 2026-07-23)
+
+### Layout Restructuring & Resizable Log Window
+
+#### 1. Vertical Paned Window for Preview & Log
+**File:** `openroad_gui/app.py`
+
+- Added a vertical `ttk.PanedWindow` on the right side containing:
+  - Preview Panel (weight=3, 75% vertical space)
+  - Log Viewer (weight=1, 25% vertical space)
+- Users can now drag the divider between preview and log to resize them
+
+**Before:** Fixed layout with `expand=False` on log viewer  
+**After:** Resizable paned window with configurable weights
+
+#### 2. Action Buttons Bar
+**File:** `openroad_gui/app.py`
+
+Added fixed action button bar above the paned window:
+- Open in Editor
+- Use as Active config.mk
+- View GDS in KLayout
+- Preview Layout
+- OpenROAD GUI
+- **Open Reports Folder** (NEW)
+- **Export Log...** (NEW)
+
+#### 3. Open Reports Folder Feature
+**Files:** `openroad_gui/app.py`, `openroad_gui/widgets/flow_panel.py`
+
+- **App-level:** `OpenRoadGUI._open_reports_folder()` - opens `results/<pdk>/<design>/reports/` in system file manager
+- **FlowPanel-level:** `FlowPanel._open_reports_folder()` - uses `get_config` callback to access current design config
+- Cross-platform support: macOS (`open`), Windows (`explorer`), Linux (`xdg-open`)
+
+#### 4. Export Log Feature
+**Files:** `openroad_gui/app.py`, `openroad_gui/widgets/log_viewer.py`
+
+- **LogViewer:** Added "Export Log..." button in toolbar + `get_text()` method
+- **App-level:** `OpenRoadGUI._export_log()` - saves log to timestamped text file via file dialog
+- FlowPanel also has "Export Log..." button in action bar
+
+#### 5. Tooltips for Flow Stage Buttons
+**File:** `openroad_gui/widgets/flow_panel.py`
+
+Added `ToolTip` class and tooltips to all 12 buttons:
+
+**Flow Stage Buttons (6):**
+| Stage | Tooltip |
+|-------|---------|
+| Synthesis (Yosys) | "Run logic synthesis with Yosys\nConverts RTL to gate-level netlist" |
+| Floorplan / Macro Placement | "Floorplan and macro placement\nDefines die/core area, places macros and I/O pins" |
+| Core Placement | "Standard cell placement\nPlaces and optimizes standard cells" |
+| Clock Tree Synthesis | "Clock Tree Synthesis\nBuilds clock distribution network" |
+| Routing & DRC | "Detailed routing & DRC\nRoutes signals and fixes design rule violations" |
+| GDSII Generation | "GDSII stream-out\nGenerates final GDSII for fabrication" |
+
+**OpenROAD GUI Buttons (6):**
+| Stage | Tooltip |
+|-------|---------|
+| Synthesis | "Open OpenROAD GUI at synthesis stage\nView synthesized netlist and reports" |
+| Floorplan | "Open OpenROAD GUI at floorplan stage\nInspect macro placement and power grid" |
+| Placement | "Open OpenROAD GUI at placement stage\nView cell placement and congestion" |
+| CTS | "Open OpenROAD GUI at CTS stage\nInspect clock tree and skew reports" |
+| Routing | "Open OpenROAD GUI at routing stage\nView routing layers and DRC violations" |
+| Final | "Open OpenROAD GUI at final stage\nFull design view with sign-off checks" |
+
+#### 6. Flow Stage Layout: 2 Rows × 3 Columns
+**File:** `openroad_gui/widgets/flow_panel.py`
+
+Changed stage button grid from 3 rows × 2 columns to 2 rows × 3 columns:
+
+```
+Row 0: [Synthesis] [Floorplan] [Place]
+Row 1: [CTS]      [Route]      [GDS]
+```
+
+---
+
+## Testing
+
+- All 90 existing unit tests pass
+- Syntax validation successful for all modified files
+- Import verification successful
+
+---
+
+## Files Modified
+
+1. `openroad_gui/app.py` - Main window layout, action buttons, new methods
+2. `openroad_gui/widgets/flow_panel.py` - Tooltip class, tooltips, layout change, new callback
+3. `openroad_gui/widgets/log_viewer.py` - Export button, get_text() method
+
+---
+
+## Future Enhancements (Planned)
+
+See [ENHANCEMENTS.md](ENHANCEMENTS.md) for detailed roadmap including:
+- Real-time flow progress with deterministic progress bars
+- Design validation on create/edit
+- DRC/LVS report viewer
+- Resume from failed stage
+- Dark/Light theme toggle
+- Run history with SQLite
+- Metrics dashboard
+- PyPI packaging
+- Remote SSH execution
+- AI-assisted flow tuning
+
+---
+
+---
+
 # OpenROAD Flow GUI - Intelligence Module Development Log
 
 ## Date: 2025-01-19 (Session 1) & 2025-01-20 (Session 2)
@@ -223,6 +337,7 @@ print(df.select(['platform', 'design_name', 'final_wns_ns', 'final_tns_ns', 'fin
 ---
 
 ---
+
 ## Session 6 - 2025-10-26: Complete Intelligence Pipeline with Real ORFS Data Grounding
 
 ### Summary
@@ -230,18 +345,18 @@ Built a complete end-to-end intelligence pipeline that blends real ORFS run data
 
 ---
 
-### Issues Fixed (Session 6)
+## Issues Fixed (Session 6)
 
-#### 1. Config.gds_target() API Fix (`openroad_gui/config.py`)
+### 1. Config.gds_target() API Fix (`openroad_gui/config.py`)
 - Changed `gds_target` from `@property` to method for consistent API with flow_runner.py
 - Fixed test_config.py to call as method
 
-#### 2. Real ORFS Data Collection (`openroad_gui/intelligence/data/collect_real_data.py`)
+### 2. Real ORFS Data Collection (`openroad_gui/intelligence/data/collect_real_data.py`)
 - Collects real PPA metrics from completed ORFS runs across multi-platform
 - Successfully collected **42 real runs** from 4 platforms (asap7: 31, sky130hd: 7, nangate45: 3, ihp-sg13g2: 1)
 - Parses config.mk, stage reports, finish reports, 6_report.json, and logs
 
-#### 3. Blended Synthetic Dataset Generator (`dataset_genration/generate_dataset_v2.py`)
+### 3. Blended Synthetic Dataset Generator (`dataset_genration/generate_dataset_v2.py`)
 - **Key Innovation**: Blends real data distributions with SPEC validation targets
 - Learns platform weights, tier distributions, aspect ratios, margins from real data
 - Enforces SPEC targets for: platform mix (30/30/20/20), closure rate (30%), DRC clean (85%)
@@ -249,7 +364,7 @@ Built a complete end-to-end intelligence pipeline that blends real ORFS run data
 - 11 aspect ratios (0.5-3.0), expanded margin/util ranges
 - **All 13 validation checks pass** on 3000-row dataset
 
-#### 4. Surrogate Models (LightGBM + PyTorch MLP Ensemble) (`openroad_gui/intelligence/training/train_surrogate.py`)
+### 4. Surrogate Models (LightGBM + PyTorch MLP Ensemble) (`openroad_gui/intelligence/training/train_surrogate.py`)
 - Regression for 4 PPA targets: WNS, TNS, Area, Power
 - LightGBM + MLP ensemble with early stopping
 - Results on new dataset:
@@ -258,24 +373,24 @@ Built a complete end-to-end intelligence pipeline that blends real ORFS run data
   - WNS: R²=0.190
   - TNS: R²=0.156
 
-#### 5. Failure Predictor (`openroad_gui/intelligence/training/train_failure_predictor.py`)
+### 5. Failure Predictor (`openroad_gui/intelligence/training/train_failure_predictor.py`)
 - LightGBM binary classification
 - Timing closure AUC: 0.737 (production ready)
 - DRC clean AUC: 0.522 (needs more data)
 - Preprocessor saved for inference
 
-#### 6. ONNX Export (`openroad_gui/intelligence/utils/onnx_export.py`)
+### 6. ONNX Export (`openroad_gui/intelligence/utils/onnx_export.py`)
 - Fixed LightGBM export with `onnxmltools.convert_lightgbm` API (zipmap=False)
 - Fixed PyTorch MLP export with `weights_only=False` + safe globals handling
 - Exported 8 models (4 LightGBM + 4 MLP) to ONNX opset 18
 - SurrogateInference class for joblib-based inference (no ONNX required)
 
-#### 7. Pipeline Orchestrator (`run_full_pipeline.py`)
+### 7. Pipeline Orchestrator (`run_full_pipeline.py`)
 - 5-step pipeline: collect → generate → train surrogate → train failure → export ONNX
 - `--steps` flag for selective execution
 - Real data collection from multi-platform ORFS runs
 
-#### 7. GUI Integration (`openroad_gui/app.py`, `openroad_gui/intelligence/__init__.py`)
+### 7. GUI Integration (`openroad_gui/app.py`, `openroad_gui/intelligence/__init__.py`)
 - Initialize SurrogateInference in main app
 - `_show_surrogate_predictions()` with real ensemble predictions
 - `_build_surrogate_features()` extracts config.mk parameters
@@ -283,7 +398,7 @@ Built a complete end-to-end intelligence pipeline that blends real ORFS run data
 
 ---
 
-### Validation Results
+## Validation Results
 
 | Metric | Target | Achieved |
 |--------|--------|----------|
@@ -297,7 +412,7 @@ Built a complete end-to-end intelligence pipeline that blends real ORFS run data
 
 ---
 
-### Files Created/Modified
+## Files Created/Modified
 
 **New Files:**
 - `openroad_gui/intelligence/data/collect_real_data.py` - Real ORFS data collector
@@ -320,7 +435,7 @@ Built a complete end-to-end intelligence pipeline that blends real ORFS run data
 
 ---
 
-### Git Commits (8 Phases)
+## Git Commits (8 Phases)
 
 | Phase | Commit | Description |
 |-------|--------|-------------|
@@ -335,7 +450,7 @@ Built a complete end-to-end intelligence pipeline that blends real ORFS run data
 
 ---
 
-### Session 8 - 2025-11-03: AWS_Report Data Extraction & Cleanup
+## Session 8 - 2025-11-03: AWS_Report Data Extraction & Cleanup
 
 ### Summary
 Processed AWS ORFS run data from AWS_Report directory for 3 platforms (asap7, gf180, nangate45), extracted 24 successful runs, cleaned up 17.8 GB of unnecessary files, and generated visualizations.
@@ -405,12 +520,12 @@ Processed AWS ORFS run data from AWS_Report directory for 3 platforms (asap7, gf
 
 ## Session 7 - 2025-10-27: Complete GUI Integration & Deployment
 
-#### Summary
+### Summary
 Successfully integrated the complete RL pipeline into the GUI with full tkinter support on macOS.
 
-#### Issues Fixed (Session 7)
+### Issues Fixed (Session 7)
 
-##### 1. macOS tkinter Support
+#### 1. macOS tkinter Support
 - **Problem**: MacPorts Python 3.13 venv missing tkinter (`_tkinter` module not found)
 - **Root Cause**: `py313-tkinter` port installed Python bindings but `tk8-quartz` port installs Tk library to `/opt/local/lib/tk8-quartz/tk8.6/` (non-standard path)
 - **Solution**: 
@@ -422,12 +537,12 @@ Successfully integrated the complete RL pipeline into the GUI with full tkinter 
     ```
   - Add to `.venv/bin/activate` for persistence
 
-##### 2. SurrogateInference Preprocessor Path Issue
+#### 2. SurrogateInference Preprocessor Path Issue
 - **Problem**: GUI callback used cached `SurrogateInference` instance created before preprocessor was copied
 - **Error**: `ValueError: Preprocessor not loaded`
 - **Solution**: Restart GUI after preprocessor is in place, or force recreate in callback
 
-##### 3. ONNX Export for PPO Policy
+#### 3. ONNX Export for PPO Policy
 - **Problem**: PyTorch 2.x Dynamo exporter fails on SB3's `DiagGaussianDistribution` (data-dependent shapes)
 - **Solution**: Use legacy exporter with `dynamo=False`:
   ```python
@@ -438,11 +553,11 @@ Successfully integrated the complete RL pipeline into the GUI with full tkinter 
   )
   ```
 
-##### 4. sklearn Version Mismatch
+#### 4. sklearn Version Mismatch
 - **Problem**: Preprocessor pickled with sklearn 1.9.1, Colab has 1.6.1
 - **Fix**: Install matching version in Colab: `pip install scikit-learn==1.9.1`
 
-#### Session 7 Results
+### Session 7 Results
 
 | Component | Status |
 |-----------|--------|
@@ -455,7 +570,7 @@ Successfully integrated the complete RL pipeline into the GUI with full tkinter 
 | Surrogate Models | ✅ LightGBM + MLP ensemble |
 | GUI Integration | ✅ Intelligence menu with live predictions |
 
-#### Complete Model Stack in `openroad_gui/intelligence/models/saved/`
+### Complete Model Stack in `openroad_gui/intelligence/models/saved/`
 
 | File | Purpose | Status |
 |------|---------|--------|
@@ -468,7 +583,7 @@ Successfully integrated the complete RL pipeline into the GUI with full tkinter 
 | `timing_closure_lgb.pkl` | Failure Predictor | ✅ AUC 0.74 |
 | `drc_clean_lgb.pkl` | Failure Predictor | ✅ AUC 0.52 |
 
-#### Updated Files Created/Modified (Session 7)
+### Updated Files Created/Modified (Session 7)
 
 **New Files:**
 - `colab_rl_package/run_colab_training.py` - One-click Colab training script
@@ -479,14 +594,14 @@ Successfully integrated the complete RL pipeline into the GUI with full tkinter 
 - `.venv/bin/activate` - Added TCL/TK library paths for tkinter
 - `pyproject.toml` - Added project metadata for editable install
 
-#### Next Steps
+### Next Steps
 
 1. **Commit remaining Phase 4** - Add `train_failure_predictor.py`
 2. **Force-add ignored directories** for `dataset_genration/` and `intelligence/data/`
 3. **Retrain with expanded real data** - Run more ORFS configs (vary utilization, aspect ratio, margin)
 4. **ONNX Runtime inference** - Integrate `ONNXInferenceEngine` for faster inference
 5. **GUI Analytics tab** - Add congestion heatmaps, PPA trend plots
-6. **Documentation** - Update README with model usage and ONNX schema
+7. **Documentation** - Update README with model usage and ONNX schema
 6. **Cloud training** - Export features to Parquet for Colab/Kaggle/Lambda Labs PPO training
 
 ## Session 5 - 2025-10-24: Complete Dataset Expansion (60 Designs)
@@ -534,3 +649,113 @@ Successfully integrated the complete RL pipeline into the GUI with full tkinter 
 2. Fix finish stage issue for new designs
 3. Retrain with expanded dataset
 
+---
+
+## Session 9 - 2025-11-04 (Wednesday): New Parameter Sweep Extraction & Dataset Expansion
+
+### Summary
+Processed new AWS ORFS parameter sweep data from `AWS_Report/parameter_sweep/ip-172-31-47-219/` for **asap7** and **gf180** platforms. Extracted **24 new runs** (23 asap7/riscv32i-mock-sram + 1 gf180/jpeg), merged into master dataset bringing total to **80 runs**, and generated updated visualizations.
+
+---
+
+### New Parameter Sweep Extraction
+
+#### Source
+`AWS_Report/parameter_sweep/ip-172-31-47-219/` with new IP format (different from previous `ip-172-31-32-99` sweep).
+
+#### New Sweep Runs Extracted: **24 runs**
+
+| Platform | Design | New Runs | Description |
+|----------|--------|----------|-------------|
+| **asap7** | **riscv32i-mock-sram** | **23** | Full parameter sweep |
+| **gf180** | **jpeg** | **1** | Additional config |
+
+#### asap7/riscv32i-mock-sram Sweep Details (23 runs)
+| Util | Aspect Ratio | Margin | Density | WNS (ns) | TNS (ns) | Closure |
+|------|--------------|--------|---------|----------|----------|---------|
+| 20% | 0.5 | 4 | 0.4 | -1.71 | -6.01 | ❌ |
+| 20% | 0.5 | 6 | 0.55 | -1.71 | -6.01 | ❌ |
+| 20% | 1.0 | 4 | 0.55 | -1.71 | -6.01 | ❌ |
+| 20% | 1.0 | 6 | 0.7 | 0.0 | 0.0 | ✅ |
+| 20% | 2.0 | 6 | 0.55 | -1.87 | -5.66 | ❌ |
+| 30% | 0.5 | 4 | 0.4 | -1.71 | -6.01 | ❌ |
+| 30% | 1.0 | 4 | 0.55 | 0.0 | 0.0 | ✅ |
+| 30% | 1.0 | 6 | 0.7 | 0.0 | 0.0 | ✅ |
+| 30% | 2.0 | 6 | 0.55 | -1.87 | -5.66 | ❌ |
+| 40% | 0.5 | 4 | 0.55 | -1.71 | -6.01 | ❌ |
+| 40% | 1.0 | 4 | 0.55 | 0.0 | 0.0 | ✅ |
+| 40% | 1.0 | 6 | 0.7 | 0.0 | 0.0 | ✅ |
+| 40% | 2.0 | 6 | 0.55 | -1.87 | -5.66 | ❌ |
+| 50% | 1.0 | 4 | 0.55 | 0.0 | 0.0 | ✅ |
+| 50% | 1.0 | 6 | 0.7 | 0.0 | 0.0 | ✅ |
+| 50% | 2.0 | 6 | 0.55 | -1.87 | -5.66 | ❌ |
+| 60% | 1.0 | 6 | 0.55 | 0.0 | 0.0 | ✅ |
+| 60% | 1.0 | 8 | 0.55 | 0.0 | 0.0 | ✅ |
+| 70% | 1.0 | 8 | 0.4 | 0.0 | 0.0 | ✅ |
+
+**Key Finding**: **riscv32i-mock-sram achieves timing closure at 1.0 aspect ratio with 6% margin and 0.55-0.7 density**, even at high utilization (up to 70%)!
+
+#### gf180/jpeg (1 new run)
+- u20_ar0.5_m4_d0.4: WNS=-0.04, TNS=-0.11, Power=None (near closure)
+
+---
+
+### Updated Master Dataset: **80 Total Runs**
+
+| Platform | Complete Runs | Partial/Failed Runs | Total | Timing Closure |
+|----------|---------------|---------------------|-------|----------------|
+| **asap7** | 24 | 16 | **40** | 15/40 (37.5%) |
+| **nangate45** | 9 | 23 | **32** | 9/32 (28%) |
+| **gf180** | 8 | 0 | **8** | 2/8 (25%) |
+| **Total** | **32** | **16** | **80** | **20/80 (25%)** |
+
+---
+
+### Files Created/Updated
+
+| File | Description |
+|------|-------------|
+| `aws_real_runs.json` | **80 runs** (master dataset, merged) |
+| `real_runs_export.csv` | 80 runs CSV for analysis |
+| `aws_real_runs_ip172_31_47_219.json` | 24 new runs from new IP sweep |
+| `extract_ip172_31_47_219_sweep.py` | Reusable extractor for this sweep format |
+| `real_data_plots/*.png` | Updated visualizations (5 new plots) |
+| `real_data_plots/nangate45/*.png` | Updated nangate45-specific plots |
+
+### Key Insights from New Data
+
+| Finding | Impact |
+|---------|--------|
+| **riscv32i-mock-sram closes at 1.0 AR, 6% margin, 0.55-0.7 density** | Optimal config for timing closure |
+| **High utilization (70%) can close** | With right AR/margin/density |
+| **Aspect ratio 2.0 consistently fails** | Avoid AR=2.0 for this design |
+| **asap7 now has 40 runs (15 closure)** | Much better for ML training |
+
+### Updated Visualizations
+- `all_platforms_wns_vs_violations.png` - 80 runs
+- `platform_comparison_all.png` - 3-panel comparison
+- `all_platforms_tns_wns.png` - TNS vs WNS log scale
+- `util_vs_wns_all.png` - Utilization vs WNS
+- `power_vs_util_all.png` - Power vs utilization
+
+---
+
+### All Tests Pass ✅
+All **91 unit tests pass** (config, flow_runner, templates, gds_info).
+
+---
+
+### Files Created/Modified
+
+| File | Description |
+|------|-------------|
+| `extract_ip172_31_47_219_sweep.py` | New extractor for ip-172-31-47-219 format |
+| `aws_real_runs_ip172_31_47_219.json` | 24 new runs from new IP sweep |
+| `aws_real_runs.json` | **80 runs** (master dataset) |
+| `real_runs_export.csv` | Updated CSV with 80 runs |
+| `real_data_plots/*.png` | Updated visualizations (5 plots) |
+
+---
+
+### Tests
+All **91 unit tests pass** (config, flow_runner, templates, gds_info).
