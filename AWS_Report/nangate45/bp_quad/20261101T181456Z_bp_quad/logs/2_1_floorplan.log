@@ -1,0 +1,253 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/NangateOpenCellLibrary_typical.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_256x48.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_32x32.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_64x124.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_512x64.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_64x62.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_128x116.lib
+read_db ./results/nangate45/bp_quad/base/1_synth.odb
+read_sdc ./results/nangate45/bp_quad/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+Warning: There are 5 input ports missing set_input_delay.
+Warning: There are 22 output ports missing set_output_delay.
+Warning: There are 22 unconstrained endpoints.
+number instances in verilog is 1172739
+[WARNING IFP-0028] Core area lower left (10.000, 12.000) snapped to (10.070, 12.600).
+[INFO IFP-0001] Added 2555 rows of 18841 site FreePDK45_38x28_10R_NP_162NW_34O.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 3600.000 3600.000 ) um
+[INFO IFP-0101] Core BBox: ( 10.070 12.600 ) ( 3589.860 3589.600 ) um
+[INFO IFP-0102] Core area:                     12804908.830 um^2
+[INFO IFP-0103] Total instances area:           4875182.488 um^2
+[INFO IFP-0104] Effective utilization:                0.381
+[INFO IFP-0105] Number of instances:                1172739
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/make_tracks.tcl
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/fastroute.tcl
+set_dont_use "TAPCELL_X1 FILLCELL_X1 AOI211_X1 OAI211_X1"
+repair_tie_fanout -separation 0 NangateOpenCellLibrary/LOGIC0_X1/Z
+[INFO RSZ-0042] Inserted 11337 tie LOGIC0_X1 instances.
+repair_tie_fanout -separation 0 NangateOpenCellLibrary/LOGIC1_X1/Z
+[INFO RSZ-0042] Inserted 407 tie LOGIC1_X1 instances.
+repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[INFO RSZ-0100] Repair move sequence: UnbufferMove SizeUpMove SwapPinsMove 
+[INFO RSZ-0094] Found 259747 endpoints with setup violations.
+[INFO RSZ-0099] Repairing 259747 out of 259747 (100.00%) violating endpoints...
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% | -150.083 | -38462916.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+      10* |       0 |       8 |        0 |      0 |     1 |    +0.0% | -150.036 | -38461936.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+      20* |       0 |      15 |        0 |      0 |     4 |    +0.0% | -150.022 | -38461760.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_88_sv2v_reg$_DFFE_PP_/D
+      30* |       0 |      25 |        0 |      0 |     4 |    +0.0% | -150.019 | -38461760.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_1_sv2v_reg$_DFFE_PP_/D
+      40* |       0 |      35 |        0 |      0 |     4 |    +0.0% | -150.019 | -38461760.0 | 259747 | bp_processor.cc.y_1__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_79_sv2v_reg$_DFFE_PP_/D
+      50* |       0 |      45 |        0 |      0 |     4 |    +0.0% | -150.006 | -38461504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_166_sv2v_reg$_DFFE_PP_/D
+      60* |       0 |      55 |        0 |      0 |     4 |    +0.0% | -150.006 | -38461496.0 | 259747 | bp_processor.cc.y_1__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_88_sv2v_reg$_DFFE_PP_/D
+      70* |       0 |      65 |        0 |      0 |     4 |    +0.0% | -149.984 | -38461248.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+      80* |       0 |      75 |        0 |      0 |     4 |    +0.0% | -149.962 | -38460740.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_10_sv2v_reg$_DFFE_PP_/D
+      90* |       0 |      85 |        0 |      0 |     4 |    +0.0% | -149.941 | -38460380.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+     100* |       0 |      95 |        0 |      0 |     4 |    +0.0% | -149.932 | -38460160.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_10_sv2v_reg$_DFFE_PP_/D
+     110* |       0 |     105 |        0 |      0 |     4 |    +0.0% | -149.930 | -38459908.0 | 259747 | bp_processor.cc.y_1__x_0__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+     120* |       0 |     115 |        0 |      0 |     4 |    +0.0% | -149.910 | -38459692.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_10_sv2v_reg$_DFFE_PP_/D
+     130* |       0 |     121 |        0 |      0 |     8 |    +0.0% | -149.896 | -38459276.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_10_sv2v_reg$_DFFE_PP_/D
+     140* |       0 |     131 |        0 |      0 |     8 |    +0.0% | -149.882 | -38458780.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+     150* |       0 |     141 |        0 |      0 |     8 |    +0.0% | -149.865 | -38458668.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+     160* |       0 |     151 |        0 |      0 |     8 |    +0.0% | -149.864 | -38458596.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+     170* |       0 |     161 |        0 |      0 |     8 |    +0.0% | -149.863 | -38458536.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_1_sv2v_reg$_DFFE_PP_/D
+     180* |       0 |     171 |        0 |      0 |     8 |    +0.0% | -149.863 | -38458536.0 | 259747 | bp_processor.cc.y_1__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_157_sv2v_reg$_DFFE_PP_/D
+     190* |       0 |     181 |        0 |      0 |     8 |    +0.0% | -149.863 | -38458536.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_235_sv2v_reg$_DFFE_PP_/D
+     200* |       0 |     187 |        0 |      0 |    12 |    +0.0% | -149.858 | -38458280.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_79_sv2v_reg$_DFFE_PP_/D
+     210* |       0 |     197 |        0 |      0 |    12 |    +0.0% | -149.853 | -38458276.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_1_sv2v_reg$_DFFE_PP_/D
+     220* |       0 |     207 |        0 |      0 |    12 |    +0.0% | -149.844 | -38458260.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+     230* |       0 |     217 |        0 |      0 |    12 |    +0.0% | -149.825 | -38458080.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_1_sv2v_reg$_DFFE_PP_/D
+     240* |       0 |     227 |        0 |      0 |    12 |    +0.0% | -149.825 | -38458080.0 | 259747 | bp_processor.cc.y_1__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_79_sv2v_reg$_DFFE_PP_/D
+     250* |       0 |     234 |        0 |      0 |    15 |    +0.0% | -149.824 | -38458056.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+     260* |       0 |     239 |        0 |      0 |    20 |    +0.0% | -149.823 | -38457868.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+     270* |       0 |     249 |        0 |      0 |    20 |    +0.0% | -149.806 | -38457568.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_100_sv2v_reg$_DFFE_PP_/D
+     280* |       0 |     259 |        0 |      0 |    20 |    +0.0% | -149.799 | -38457316.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.be/be_mem.dcache/lce.lce_cmd_inst/counter.count_o_4_sv2v_reg$_SDFF_PP0_/D
+     290* |       0 |     265 |        0 |      0 |    24 |    +0.0% | -149.790 | -38457240.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_108_sv2v_reg$_DFFE_PP_/D
+     300* |       0 |     275 |        0 |      0 |    24 |    +0.0% | -149.790 | -38457236.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_30_sv2v_reg$_DFFE_PP_/D
+     310* |       0 |     285 |        0 |      0 |    24 |    +0.0% | -149.790 | -38457236.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_108_sv2v_reg$_DFFE_PP_/D
+     320* |       0 |     295 |        0 |      0 |    24 |    +0.0% | -149.790 | -38457232.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_30_sv2v_reg$_DFFE_PP_/D
+     330* |       0 |     305 |        0 |      0 |    24 |    +0.0% | -149.790 | -38457232.0 | 259747 | bp_processor.cc.y_1__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_108_sv2v_reg$_DFFE_PP_/D
+     340* |       0 |     315 |        0 |      0 |    24 |    +0.0% | -149.790 | -38457228.0 | 259747 | bp_processor.cc.y_1__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_30_sv2v_reg$_DFFE_PP_/D
+     344* |       0 |     269 |        0 |      0 |    24 |    +0.0% | -149.790 | -38457240.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     350* |       0 |     273 |        0 |      0 |    25 |    +0.0% | -149.790 | -38457068.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     360* |       0 |     282 |        0 |      0 |    26 |    +0.0% | -149.790 | -38456844.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     370* |       0 |     291 |        0 |      0 |    27 |    +0.0% | -149.790 | -38456752.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     380* |       0 |     299 |        0 |      0 |    29 |    +0.0% | -149.790 | -38456704.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     390* |       0 |     308 |        0 |      0 |    30 |    +0.0% | -149.790 | -38456624.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     400* |       0 |     318 |        0 |      0 |    30 |    +0.0% | -149.790 | -38456536.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     410* |       0 |     326 |        0 |      0 |    32 |    +0.0% | -149.790 | -38456508.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     420* |       0 |     334 |        0 |      0 |    34 |    +0.0% | -149.790 | -38456436.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     430* |       0 |     342 |        0 |      0 |    36 |    +0.0% | -149.790 | -38456404.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     440* |       0 |     351 |        0 |      0 |    37 |    +0.0% | -149.790 | -38456364.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     450* |       0 |     360 |        0 |      0 |    38 |    +0.0% | -149.790 | -38456328.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     460* |       0 |     369 |        0 |      0 |    39 |    +0.0% | -149.790 | -38456324.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     462* |       0 |     362 |        0 |      0 |    38 |    +0.0% | -149.790 | -38456320.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     470* |       0 |     368 |        0 |      0 |    39 |    +0.0% | -149.790 | -38456124.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     480* |       0 |     377 |        0 |      0 |    40 |    +0.0% | -149.790 | -38455928.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     490* |       0 |     386 |        0 |      0 |    41 |    +0.0% | -149.790 | -38455784.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     500* |       0 |     394 |        0 |      0 |    43 |    +0.0% | -149.790 | -38455796.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     510* |       0 |     403 |        0 |      0 |    44 |    +0.0% | -149.790 | -38455732.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     520* |       0 |     413 |        0 |      0 |    44 |    +0.0% | -149.790 | -38455624.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     530* |       0 |     421 |        0 |      0 |    46 |    +0.0% | -149.790 | -38455580.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     540* |       0 |     429 |        0 |      0 |    48 |    +0.0% | -149.790 | -38455512.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     550* |       0 |     437 |        0 |      0 |    50 |    +0.0% | -149.790 | -38455480.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     560* |       0 |     446 |        0 |      0 |    51 |    +0.0% | -149.790 | -38455460.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     570* |       0 |     455 |        0 |      0 |    52 |    +0.0% | -149.790 | -38455408.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     580* |       0 |     464 |        0 |      0 |    53 |    +0.0% | -149.790 | -38455416.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     580* |       0 |     455 |        0 |      0 |    52 |    +0.0% | -149.790 | -38455408.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     590* |       0 |     463 |        0 |      0 |    53 |    +0.0% | -149.790 | -38455132.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     600* |       0 |     472 |        0 |      0 |    54 |    +0.0% | -149.790 | -38454968.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     610* |       0 |     481 |        0 |      0 |    55 |    +0.0% | -149.790 | -38454880.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     620* |       0 |     488 |        0 |      0 |    58 |    +0.0% | -149.790 | -38454828.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     630* |       0 |     498 |        0 |      0 |    58 |    +0.0% | -149.790 | -38454784.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     640* |       0 |     508 |        0 |      0 |    58 |    +0.0% | -149.790 | -38454704.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     650* |       0 |     516 |        0 |      0 |    60 |    +0.0% | -149.790 | -38454664.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     660* |       0 |     523 |        0 |      0 |    63 |    +0.0% | -149.790 | -38454596.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     670* |       0 |     532 |        0 |      0 |    64 |    +0.0% | -149.790 | -38454556.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     680* |       0 |     541 |        0 |      0 |    65 |    +0.0% | -149.790 | -38454540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     690* |       0 |     550 |        0 |      0 |    66 |    +0.0% | -149.790 | -38454496.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     698* |       0 |     548 |        0 |      0 |    66 |    +0.0% | -149.790 | -38454496.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     700* |       0 |     549 |        0 |      0 |    66 |    +0.0% | -149.782 | -38454448.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     710* |       0 |     557 |        0 |      0 |    68 |    +0.0% | -149.779 | -38454164.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     720* |       0 |     567 |        0 |      0 |    68 |    +0.0% | -149.762 | -38454056.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     730* |       0 |     575 |        0 |      0 |    70 |    +0.0% | -149.746 | -38453956.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     740* |       0 |     583 |        0 |      0 |    72 |    +0.0% | -149.751 | -38453884.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     750* |       0 |     593 |        0 |      0 |    72 |    +0.0% | -149.749 | -38453864.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     760* |       0 |     603 |        0 |      0 |    72 |    +0.0% | -149.741 | -38453796.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     770* |       0 |     610 |        0 |      0 |    75 |    +0.0% | -149.744 | -38453724.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     780* |       0 |     618 |        0 |      0 |    77 |    +0.0% | -149.730 | -38453664.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     790* |       0 |     627 |        0 |      0 |    78 |    +0.0% | -149.720 | -38453620.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     800* |       0 |     636 |        0 |      0 |    79 |    +0.0% | -149.718 | -38453616.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     810* |       0 |     646 |        0 |      0 |    79 |    +0.0% | -149.716 | -38453588.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     815* |       0 |     641 |        0 |      0 |    79 |    +0.0% | -149.716 | -38453584.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     820* |       0 |     643 |        0 |      0 |    81 |    +0.0% | -149.716 | -38453584.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     829* |       0 |     643 |        0 |      0 |    81 |    +0.0% | -149.716 | -38453584.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     830* |       0 |     643 |        0 |      0 |    81 |    +0.0% | -149.716 | -38453584.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     840* |       0 |     651 |        0 |      0 |    83 |    +0.0% | -149.723 | -38453580.0 | 259747 | bp_processor.cc.y_1__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_100_sv2v_reg$_DFFE_PP_/D
+     843* |       0 |     645 |        0 |      0 |    83 |    +0.0% | -149.716 | -38453584.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     850* |       0 |     649 |        0 |      0 |    85 |    +0.0% | -149.716 | -38453584.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     857* |       0 |     647 |        0 |      0 |    85 |    +0.0% | -149.716 | -38453584.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     860* |       0 |     648 |        0 |      0 |    86 |    +0.0% | -149.716 | -38453572.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     870* |       0 |     657 |        0 |      0 |    87 |    +0.0% | -149.716 | -38453576.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     874* |       0 |     652 |        0 |      0 |    87 |    +0.0% | -149.716 | -38453572.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     880* |       0 |     656 |        0 |      0 |    88 |    +0.0% | -149.716 | -38453560.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     890* |       0 |     665 |        0 |      0 |    89 |    +0.0% | -149.723 | -38453564.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_100_sv2v_reg$_DFFE_PP_/D
+     890* |       0 |     656 |        0 |      0 |    89 |    +0.0% | -149.716 | -38453560.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     900* |       0 |     663 |        0 |      0 |    91 |    +0.0% | -149.716 | -38453552.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     906* |       0 |     660 |        0 |      0 |    91 |    +0.0% | -149.716 | -38453552.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     910* |       0 |     662 |        0 |      0 |    92 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     920* |       0 |     671 |        0 |      0 |    93 |    +0.0% | -149.723 | -38453544.0 | 259747 | bp_processor.cc.y_1__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_100_sv2v_reg$_DFFE_PP_/D
+     922* |       0 |     664 |        0 |      0 |    93 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     930* |       0 |     668 |        0 |      0 |    96 |    +0.0% | -149.716 | -38453544.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     937* |       0 |     666 |        0 |      0 |    96 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     940* |       0 |     666 |        0 |      0 |    98 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     950* |       0 |     675 |        0 |      0 |    99 |    +0.0% | -149.723 | -38453544.0 | 259747 | bp_processor.cc.y_0__x_1__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_100_sv2v_reg$_DFFE_PP_/D
+     951* |       0 |     667 |        0 |      0 |    99 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     960* |       0 |     672 |        0 |      0 |   102 |    +0.0% | -149.716 | -38453544.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     965* |       0 |     668 |        0 |      0 |   102 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     970* |       0 |     669 |        0 |      0 |   105 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     979* |       0 |     669 |        0 |      0 |   105 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     980* |       0 |     669 |        0 |      0 |   105 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     990* |       0 |     676 |        0 |      0 |   108 |    +0.0% | -149.716 | -38453544.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+     994* |       0 |     671 |        0 |      0 |   108 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1000* |       0 |     673 |        0 |      0 |   111 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1009* |       0 |     673 |        0 |      0 |   111 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1010* |       0 |     673 |        0 |      0 |   111 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1020* |       0 |     680 |        0 |      0 |   114 |    +0.0% | -149.716 | -38453544.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1024* |       0 |     675 |        0 |      0 |   114 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1030* |       0 |     677 |        0 |      0 |   117 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1039* |       0 |     677 |        0 |      0 |   117 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1040* |       0 |     677 |        0 |      0 |   117 |    +0.0% | -149.716 | -38453540.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1050* |       0 |     687 |        0 |      0 |   117 |    +0.0% | -149.716 | -38453532.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1060* |       0 |     697 |        0 |      0 |   117 |    +0.0% | -149.716 | -38453512.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1070* |       0 |     706 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1080* |       0 |     716 |        0 |      0 |   118 |    +0.0% | -149.723 | -38453508.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1085* |       0 |     707 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1090* |       0 |     711 |        0 |      0 |   118 |    +0.0% | -149.723 | -38453500.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1100* |       0 |     721 |        0 |      0 |   118 |    +0.0% | -149.723 | -38453512.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1100* |       0 |     707 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1110* |       0 |     716 |        0 |      0 |   118 |    +0.0% | -149.723 | -38453508.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1115* |       0 |     707 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1120* |       0 |     711 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1130* |       0 |     721 |        0 |      0 |   118 |    +0.0% | -149.723 | -38453512.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1133* |       0 |     714 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1140* |       0 |     720 |        0 |      0 |   118 |    +0.0% | -149.723 | -38453508.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1144* |       0 |     714 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1150* |       0 |     719 |        0 |      0 |   118 |    +0.0% | -149.723 | -38453508.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1155* |       0 |     714 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1160* |       0 |     718 |        0 |      0 |   118 |    +0.0% | -149.723 | -38453500.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1166* |       0 |     714 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1170* |       0 |     717 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453504.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1180* |       0 |     727 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453488.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1190* |       0 |     737 |        0 |      0 |   118 |    +0.0% | -149.716 | -38453472.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1200* |       0 |     746 |        0 |      0 |   119 |    +0.0% | -149.716 | -38453472.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1200* |       0 |     744 |        0 |      0 |   119 |    +0.0% | -149.716 | -38453472.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    1200* |       0 |     744 |        0 |      0 |   119 |    +0.0% | -149.716 | -38453472.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+    final |       0 |     744 |        0 |      0 |   119 |    +0.0% | -149.716 | -38453472.0 | 259747 | bp_processor.cc.y_0__x_0__tile_node/tile/core.fe_cmd_fifo.unhardened_fifo.mem_1r1w.synth.mem_176_sv2v_reg$_DFFE_PP_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 744 instances: 744 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 119 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 410.88s
+Took 411 seconds: repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+Default units for flow
+ time 1ns
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1nW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |       (kohm/um) |          (fF/um)
+------------------------------------------------
+    metal1 |        5.43e-03 |         7.42e-02
+    metal2 |        3.57e-03 |         8.34e-02
+    metal3 |        3.57e-03 |         1.04e-01
+    metal4 |        1.50e-03 |         1.19e-01
+    metal5 |        1.50e-03 |         1.09e-01
+    metal6 |        1.50e-03 |         1.14e-01
+    metal7 |        1.88e-04 |         1.17e-01
+    metal8 |        1.88e-04 |         9.45e-02
+    metal9 |        3.75e-05 |         1.06e-01
+   metal10 |        3.75e-05 |         7.37e-01
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |         (kohm) 
+----------------------------
+      via1 |       5.00e-03 
+      via2 |       5.00e-03 
+      via3 |       5.00e-03 
+      via4 |       3.00e-03 
+      via5 |       3.00e-03 
+      via6 |       3.00e-03 
+      via7 |       1.00e-03 
+      via8 |       1.00e-03 
+      via9 |       5.00e-04 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 4882315 um^2 38% utilization.
+source /OpenROAD-flow-scripts/flow/designs/nangate45/bp_quad/io.tcl
+write_db ./results/nangate45/bp_quad/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/nangate45/bp_quad/base/2_1_floorplan.sdc
+Elapsed time: 9:21.12[h:]min:sec. CPU time: user 663.40 sys 6.03 (119%). Peak memory: 5308420KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb        561      669     1.19     5184 4dc356852b
+2_1_floorplan          .sdc                                       93ab0e736e

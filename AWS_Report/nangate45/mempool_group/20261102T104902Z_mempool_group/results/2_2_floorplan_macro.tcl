@@ -1,0 +1,21 @@
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[0\].mem_bank.genblk1.sram_instance} -location {10.21 766.045} -orientation R180
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[10\].mem_bank.genblk1.sram_instance} -location {10.21 12.775} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[11\].mem_bank.genblk1.sram_instance} -location {365.41 12.775} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[12\].mem_bank.genblk1.sram_instance} -location {454.21 12.775} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[13\].mem_bank.genblk1.sram_instance} -location {10.21 206.815} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[14\].mem_bank.genblk1.sram_instance} -location {10.21 895.405} -orientation R180
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[15\].mem_bank.genblk1.sram_instance} -location {99.01 12.775} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[1\].mem_bank.genblk1.sram_instance} -location {187.81 12.775} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[2\].mem_bank.genblk1.sram_instance} -location {10.21 271.495} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[3\].mem_bank.genblk1.sram_instance} -location {10.21 77.455} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[4\].mem_bank.genblk1.sram_instance} -location {10.21 701.295} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[5\].mem_bank.genblk1.sram_instance} -location {10.21 142.135} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[6\].mem_bank.genblk1.sram_instance} -location {10.21 960.085} -orientation R180
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[7\].mem_bank.genblk1.sram_instance} -location {10.21 1024.765} -orientation R180
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[8\].mem_bank.genblk1.sram_instance} -location {276.61 12.775} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_banks\[9\].mem_bank.genblk1.sram_instance} -location {10.21 830.655} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_caches\[0\].i_snitch_icache/i_lookup.i_data/genblk1.fr_sp_instance0} -location {816.99 12.775} -orientation R0
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_caches\[0\].i_snitch_icache/i_lookup.i_data/genblk1.fr_sp_instance1} -location {640.91 12.775} -orientation R0
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_caches\[0\].i_snitch_icache/i_lookup.i_data/genblk1.fr_sp_instance2} -location {543.01 12.775} -orientation MY
+place_macro -macro_name {gen_tiles\[0\].i_tile.i_tile/gen_caches\[0\].i_snitch_icache/i_lookup.i_data/genblk1.fr_sp_instance3} -location {728.95 12.775} -orientation R0
+

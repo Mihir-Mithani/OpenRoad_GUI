@@ -1,0 +1,220 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/NangateOpenCellLibrary_typical.lib
+read_db ./results/nangate45/gcd/base/1_synth.odb
+read_sdc ./results/nangate45/gcd/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+number instances in verilog is 513
+initialize_floorplan -utilization 55 -aspect_ratio 1.0 -core_space 1.0 -site FreePDK45_38x28_10R_NP_162NW_34O
+[INFO IFP-0107] Defining die area using utilization: 55.00% and aspect ratio: 1.
+[WARNING IFP-0028] Core area lower left (1.000, 1.000) snapped to (1.140, 1.400).
+[INFO IFP-0001] Added 23 rows of 176 site FreePDK45_38x28_10R_NP_162NW_34O.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 35.755 35.755 ) um
+[INFO IFP-0101] Core BBox: (  1.140  1.400 ) ( 34.580 33.600 ) um
+[INFO IFP-0102] Core area:                         1076.768 um^2
+[INFO IFP-0103] Total instances area:               626.696 um^2
+[INFO IFP-0104] Effective utilization:                0.582
+[INFO IFP-0105] Number of instances:                    513
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/make_tracks.tcl
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/fastroute.tcl
+set_dont_use "TAPCELL_X1 FILLCELL_X1 AOI211_X1 OAI211_X1"
+repair_tie_fanout -separation 0 NangateOpenCellLibrary/LOGIC0_X1/Z
+repair_tie_fanout -separation 0 NangateOpenCellLibrary/LOGIC1_X1/Z
+repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[INFO RSZ-0100] Repair move sequence: UnbufferMove SizeUpMove SwapPinsMove 
+[INFO RSZ-0094] Found 51 endpoints with setup violations.
+[INFO RSZ-0099] Repairing 51 out of 51 (100.00%) violating endpoints...
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -0.160 |       -6.3 |     51 | dpath.b_reg.out\[9\]$_DFFE_PP_/D
+      10* |       0 |       8 |        0 |      0 |     1 |    +0.8% |   -0.157 |       -6.2 |     51 | dpath.b_reg.out\[9\]$_DFFE_PP_/D
+      20* |       0 |      18 |        0 |      0 |     1 |    +1.9% |   -0.153 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      30* |       0 |      27 |        0 |      0 |     2 |    +3.1% |   -0.153 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      40* |       0 |      36 |        0 |      0 |     3 |    +4.1% |   -0.159 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      50* |       0 |      45 |        0 |      0 |     4 |    +5.4% |   -0.158 |       -6.2 |     51 | dpath.a_reg.out\[6\]$_DFFE_PP_/D
+      50* |       0 |      29 |        0 |      0 |     2 |    +3.3% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      60* |       0 |      37 |        0 |      0 |     3 |    +4.7% |   -0.155 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      63* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      70* |       0 |      36 |        0 |      0 |     3 |    +4.6% |   -0.155 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      74* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      80* |       0 |      35 |        0 |      0 |     3 |    +4.5% |   -0.155 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      85* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      90* |       0 |      34 |        0 |      0 |     3 |    +4.4% |   -0.155 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+      96* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     100* |       0 |      33 |        0 |      0 |     3 |    +3.9% |   -0.155 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     107* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     110* |       0 |      32 |        0 |      0 |     3 |    +3.7% |   -0.155 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     118* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     120* |       0 |      31 |        0 |      0 |     3 |    +3.5% |   -0.159 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     128* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     130* |       0 |      31 |        0 |      0 |     3 |    +3.5% |   -0.159 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     138* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     140* |       0 |      31 |        0 |      0 |     3 |    +3.5% |   -0.159 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     150* |       0 |      39 |        0 |      0 |     5 |    +5.2% |   -0.159 |       -6.3 |     51 | dpath.b_reg.out\[9\]$_DFFE_PP_/D
+     156* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     160* |       0 |      33 |        0 |      0 |     3 |    +3.9% |   -0.159 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     170* |       0 |      42 |        0 |      0 |     4 |    +6.0% |   -0.159 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     174* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     180* |       0 |      35 |        0 |      0 |     3 |    +4.2% |   -0.159 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     190* |       0 |      44 |        0 |      0 |     4 |    +6.2% |   -0.159 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     192* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     200* |       0 |      37 |        0 |      0 |     3 |    +4.4% |   -0.160 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     201* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     210* |       0 |      38 |        0 |      0 |     3 |    +4.7% |   -0.162 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     210* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     215* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     220* |       0 |      33 |        0 |      0 |     4 |    +3.8% |   -0.161 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     220* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     225* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     230* |       0 |      33 |        0 |      0 |     4 |    +3.8% |   -0.161 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     230* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     235* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     240* |       0 |      34 |        0 |      0 |     3 |    +3.9% |   -0.161 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     242* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     249* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     250* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     259* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     260* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     270* |       0 |      40 |        0 |      0 |     3 |    +4.8% |   -0.164 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     273* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     280* |       0 |      36 |        0 |      0 |     3 |    +4.1% |   -0.160 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     286* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     290* |       0 |      33 |        0 |      0 |     3 |    +3.8% |   -0.154 |       -6.1 |     51 | dpath.b_reg.out\[9\]$_DFFE_PP_/D
+     300* |       0 |      42 |        0 |      0 |     4 |    +4.9% |   -0.165 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     300* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     310* |       0 |      39 |        0 |      0 |     3 |    +4.6% |   -0.164 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     314* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     320* |       0 |      35 |        0 |      0 |     3 |    +3.9% |   -0.154 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     327* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     330* |       0 |      32 |        0 |      0 |     3 |    +3.7% |   -0.160 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     336* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     340* |       0 |      33 |        0 |      0 |     3 |    +3.9% |   -0.155 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     345* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     350* |       0 |      34 |        0 |      0 |     3 |    +3.9% |   -0.155 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     354* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     360* |       0 |      35 |        0 |      0 |     3 |    +4.0% |   -0.155 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     363* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     370* |       0 |      36 |        0 |      0 |     3 |    +4.2% |   -0.155 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     372* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     375* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     378* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     380* |       0 |      31 |        0 |      0 |     3 |    +3.4% |   -0.153 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     390* |       0 |      40 |        0 |      0 |     4 |    +4.4% |   -0.159 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     400* |       0 |      49 |        0 |      0 |     5 |    +5.4% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     410* |       0 |      58 |        0 |      0 |     6 |    +6.5% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     420* |       0 |      66 |        0 |      0 |     8 |    +7.2% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     429* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     430* |       0 |      30 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     440* |       0 |      40 |        0 |      0 |     3 |    +4.5% |   -0.159 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     450* |       0 |      50 |        0 |      0 |     3 |    +5.5% |   -0.160 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     460* |       0 |      59 |        0 |      0 |     4 |    +6.5% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     470* |       0 |      67 |        0 |      0 |     6 |    +7.3% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     480* |       0 |      77 |        0 |      0 |     6 |    +8.5% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     481* |       0 |      31 |        0 |      0 |     3 |    +3.4% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     490* |       0 |      39 |        0 |      0 |     3 |    +4.3% |   -0.159 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     500* |       0 |      49 |        0 |      0 |     3 |    +5.3% |   -0.160 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     510* |       0 |      59 |        0 |      0 |     3 |    +6.5% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     520* |       0 |      69 |        0 |      0 |     3 |    +7.5% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     530* |       0 |      77 |        0 |      0 |     5 |    +8.4% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     533* |       0 |      32 |        0 |      0 |     3 |    +3.5% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     540* |       0 |      37 |        0 |      0 |     4 |    +4.0% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     550* |       0 |      46 |        0 |      0 |     5 |    +4.8% |   -0.155 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     560* |       0 |      56 |        0 |      0 |     5 |    +6.3% |   -0.160 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     562* |       0 |      41 |        0 |      0 |     5 |    +4.3% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     570* |       0 |      48 |        0 |      0 |     5 |    +5.1% |   -0.153 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     580* |       0 |      57 |        0 |      0 |     6 |    +6.2% |   -0.162 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     590* |       0 |      63 |        0 |      0 |    10 |    +6.8% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     595* |       0 |      44 |        0 |      0 |     5 |    +4.7% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     600* |       0 |      48 |        0 |      0 |     5 |    +5.1% |   -0.159 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     610* |       0 |      58 |        0 |      0 |     5 |    +6.2% |   -0.160 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     620* |       0 |      68 |        0 |      0 |     5 |    +7.2% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     625* |       0 |      44 |        0 |      0 |     5 |    +4.7% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     630* |       0 |      48 |        0 |      0 |     5 |    +5.1% |   -0.162 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     639* |       0 |      44 |        0 |      0 |     5 |    +4.7% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     640* |       0 |      44 |        0 |      0 |     5 |    +4.7% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     650* |       0 |      54 |        0 |      0 |     5 |    +5.8% |   -0.160 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     660* |       0 |      64 |        0 |      0 |     5 |    +6.9% |   -0.160 |       -6.2 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     670* |       0 |      74 |        0 |      0 |     5 |    +8.1% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     680* |       0 |      83 |        0 |      0 |     6 |    +9.0% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     690* |       0 |      90 |        0 |      0 |     9 |    +9.7% |   -0.164 |       -6.3 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     690* |       0 |      45 |        0 |      0 |     5 |    +4.8% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     699* |       0 |      45 |        0 |      0 |     5 |    +4.8% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     700* |       0 |      45 |        0 |      0 |     5 |    +4.8% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     702* |       0 |      45 |        0 |      0 |     5 |    +4.8% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     710* |       0 |      52 |        0 |      0 |     5 |    +5.5% |   -0.153 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     720* |       0 |      62 |        0 |      0 |     5 |    +6.6% |   -0.155 |       -6.1 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     729* |       0 |      49 |        0 |      0 |     5 |    +5.2% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     730* |       0 |      49 |        0 |      0 |     5 |    +5.2% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     740* |       0 |      59 |        0 |      0 |     5 |    +6.4% |   -0.165 |       -6.4 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     742* |       0 |      49 |        0 |      0 |     5 |    +5.2% |   -0.152 |       -6.0 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     750* |       0 |      55 |        0 |      0 |     6 |    +5.9% |   -0.152 |       -5.9 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     752* |       0 |      57 |        0 |      0 |     6 |    +6.0% |   -0.152 |       -5.9 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     755* |       0 |      57 |        0 |      0 |     6 |    +6.0% |   -0.152 |       -5.9 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     756* |       0 |      57 |        0 |      0 |     6 |    +6.0% |   -0.152 |       -5.9 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     758* |       0 |      57 |        0 |      0 |     6 |    +6.0% |   -0.152 |       -5.9 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     759* |       0 |      57 |        0 |      0 |     6 |    +6.0% |   -0.152 |       -5.9 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+     759* |       0 |      57 |        0 |      0 |     6 |    +6.0% |   -0.152 |       -5.9 |     51 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+    final |       0 |      57 |        0 |      0 |     6 |    +6.0% |   -0.152 |       -5.9 |     48 | dpath.a_reg.out\[7\]$_DFFE_PP_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 57 instances: 57 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 6 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 2.43s
+Default units for flow
+ time 1ns
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1nW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |       (kohm/um) |          (fF/um)
+------------------------------------------------
+    metal1 |        5.43e-03 |         7.42e-02
+    metal2 |        3.57e-03 |         8.34e-02
+    metal3 |        3.57e-03 |         1.04e-01
+    metal4 |        1.50e-03 |         1.19e-01
+    metal5 |        1.50e-03 |         1.09e-01
+    metal6 |        1.50e-03 |         1.14e-01
+    metal7 |        1.88e-04 |         1.17e-01
+    metal8 |        1.88e-04 |         9.45e-02
+    metal9 |        3.75e-05 |         1.06e-01
+   metal10 |        3.75e-05 |         7.37e-01
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |         (kohm) 
+----------------------------
+      via1 |       5.00e-03 
+      via2 |       5.00e-03 
+      via3 |       5.00e-03 
+      via4 |       3.00e-03 
+      via5 |       3.00e-03 
+      via6 |       3.00e-03 
+      via7 |       1.00e-03 
+      via8 |       1.00e-03 
+      via9 |       5.00e-04 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 664 um^2 62% utilization.
+write_db ./results/nangate45/gcd/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/nangate45/gcd/base/2_1_floorplan.sdc
+Elapsed time: 0:02.76[h:]min:sec. CPU time: user 2.56 sys 0.30 (103%). Peak memory: 131512KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb          2        3     1.04      128 16cb59d900
+2_1_floorplan          .sdc                                       94157332ad

@@ -1,0 +1,471 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/NangateOpenCellLibrary_typical.lib
+read_db ./results/nangate45/tpu/base/3_place.odb
+read_sdc ./results/nangate45/tpu/base/3_place.sdc
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets
+[INFO CTS-0050] Root buffer is CLKBUF_X3.
+[INFO CTS-0051] Sink buffer is CLKBUF_X3.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    CLKBUF_X3
+[INFO CTS-0049] Characterization buffer is CLKBUF_X3.
+[INFO CTS-0007] Net "clk" found for clock "core_clock".
+[INFO CTS-0010]  Clock net "clk" has 3895 sinks.
+[INFO CTS-0008] TritonCTS found 1 clock nets.
+[INFO CTS-0097] Characterization used 1 buffer(s) types.
+[INFO CTS-0201] 0 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 3895.
+[INFO CTS-0060]  Register sinks will be clustered in groups of up to 16 and based on buffer max cap.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 14000  dbu (7 um).
+[INFO CTS-0204] A clustering solution was found from clustering size of 16 and max clustering diameter of 55.
+[INFO CTS-0205] Better solution may be possible if either -sink_clustering_size, -sink_clustering_max_diameter, or both options are omitted to enable automatic clustering.
+[INFO CTS-0019]  Total number of sinks after clustering: 583.
+[INFO CTS-0024]  Normalized sink region: [(0.624286, 0.793929), (49.5402, 49.3589)].
+[INFO CTS-0025]     Width:  48.9160.
+[INFO CTS-0026]     Height: 48.5650.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 292
+    Sub-region size: 24.4580 X 48.5650
+[INFO CTS-0034]     Segment length (rounded): 12.
+ Level 2
+    Direction: Vertical
+    Sinks per sub-region: 146
+    Sub-region size: 24.4580 X 24.2825
+[INFO CTS-0034]     Segment length (rounded): 12.
+ Level 3
+    Direction: Horizontal
+    Sinks per sub-region: 73
+    Sub-region size: 12.2290 X 24.2825
+[INFO CTS-0034]     Segment length (rounded): 6.
+ Level 4
+    Direction: Vertical
+    Sinks per sub-region: 37
+    Sub-region size: 12.2290 X 12.1412
+[INFO CTS-0034]     Segment length (rounded): 6.
+ Level 5
+    Direction: Horizontal
+    Sinks per sub-region: 19
+    Sub-region size: 6.1145 X 12.1412
+[INFO CTS-0034]     Segment length (rounded): 4.
+ Level 6
+    Direction: Vertical
+    Sinks per sub-region: 10
+    Sub-region size: 6.1145 X 6.0706
+[INFO CTS-0034]     Segment length (rounded): 4.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (591.189 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 583.
+[INFO CTS-0018]     Created 652 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 4.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 4.
+[INFO CTS-0015]     Created 652 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 3:9, 4:34, 5:69, 6:110, 7:204, 8:178, 9:22, 10:8, 11:2, 12:3, 13:2, 14:2, 15:1, 17:1, 18:2..
+[INFO CTS-0017]     Max level of the clock tree: 6.
+[INFO CTS-0098] Clock net "clk"
+[INFO CTS-0099]  Sinks 4352
+[INFO CTS-0100]  Leaf buffers 583
+[INFO CTS-0101]  Average sink wire length 609.10 um
+[INFO CTS-0102]  Path depth 3 - 4
+[INFO CTS-0207]  Dummy loads inserted 457
+[INFO CTS-0500] Runtime: 3.10s
+estimate_parasitics -placement
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 28811 moves: displacement total 14044.2 u, max 7.7 u; HPWL 351532.7 -> 358363.5 u (+1.9 %).
+[INFO DPL-0500] Runtime: 0.63s
+estimate_parasitics -placement
+repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -verbose
+[INFO RSZ-0100] Repair move sequence: UnbufferMove SizeUpMove SwapPinsMove BufferMove CloneMove SplitLoadMove 
+[INFO RSZ-0094] Found 1247 endpoints with setup violations.
+[INFO RSZ-0099] Repairing 1247 out of 1247 (100.00%) violating endpoints...
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -0.426 |     -339.7 |   1247 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+      10* |       0 |       6 |        3 |      0 |     0 |    +0.0% |   -0.429 |     -339.7 |   1247 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+      20* |       0 |      12 |        4 |      0 |     3 |    +0.0% |   -0.414 |     -339.6 |   1247 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+      30* |       0 |      18 |        5 |      0 |     6 |    +0.0% |   -0.412 |     -339.6 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[22\]$_SDFFE_PP0N_/D
+      40* |       0 |      24 |        7 |      0 |     8 |    +0.0% |   -0.411 |     -339.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+      50* |       0 |      31 |        7 |      0 |    11 |    +0.0% |   -0.408 |     -339.2 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+      60* |       0 |      38 |        8 |      0 |    13 |    +0.1% |   -0.407 |     -339.1 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+      70* |       0 |      45 |       11 |      0 |    14 |    +0.1% |   -0.408 |     -338.9 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+      80* |       0 |      51 |       11 |      0 |    18 |    +0.1% |   -0.408 |     -338.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+      90* |       0 |      57 |       14 |      0 |    20 |    +0.1% |   -0.403 |     -338.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     100* |       0 |      59 |       15 |      0 |    27 |    +0.1% |   -0.411 |     -338.8 |   1247 | u_array.g_pe_row\[4\].g_pe_col\[7\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     110* |       0 |      64 |       15 |      0 |    32 |    +0.1% |   -0.402 |     -338.6 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     120* |       0 |      71 |       17 |      0 |    33 |    +0.1% |   -0.401 |     -338.5 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[5\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     130* |       0 |      76 |       18 |      0 |    37 |    +0.1% |   -0.402 |     -338.5 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[5\].u_pe.psum_south\[25\]$_SDFFE_PP0N_/D
+     140* |       0 |      77 |       22 |      0 |    43 |    +0.1% |   -0.400 |     -338.5 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     150* |       0 |      82 |       22 |      0 |    48 |    +0.1% |   -0.403 |     -338.5 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     160* |       0 |      86 |       24 |      0 |    52 |    +0.1% |   -0.400 |     -338.4 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     170* |       0 |      94 |       24 |      0 |    54 |    +0.1% |   -0.401 |     -338.3 |   1247 | u_array.g_pe_row\[3\].g_pe_col\[7\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     180* |       0 |      99 |       26 |      0 |    57 |    +0.1% |   -0.409 |     -338.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     190* |       0 |     103 |       28 |      0 |    61 |    +0.1% |   -0.406 |     -338.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     200* |       0 |     108 |       28 |      0 |    66 |    +0.1% |   -0.419 |     -338.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     210* |       1 |     111 |       31 |      0 |    69 |    +0.2% |   -0.404 |     -338.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[26\]$_SDFFE_PP0N_/D
+     220* |       1 |     116 |       31 |      0 |    74 |    +0.2% |   -0.403 |     -338.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     224* |       0 |      97 |       24 |      0 |    55 |    +0.1% |   -0.398 |     -338.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     230* |       0 |      97 |       24 |      0 |    60 |    +0.1% |   -0.398 |     -338.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     240* |       0 |      98 |       26 |      0 |    67 |    +0.1% |   -0.398 |     -338.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     250* |       0 |     105 |       26 |      0 |    70 |    +0.1% |   -0.398 |     -338.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     260* |       0 |     110 |       27 |      0 |    74 |    +0.1% |   -0.398 |     -338.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     270* |       0 |     116 |       28 |      0 |    77 |    +0.2% |   -0.398 |     -338.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     280* |       0 |     122 |       30 |      0 |    79 |    +0.2% |   -0.398 |     -338.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     290* |       0 |     126 |       31 |      0 |    84 |    +0.2% |   -0.398 |     -338.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     300* |       0 |     134 |       32 |      0 |    85 |    +0.2% |   -0.398 |     -338.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     310* |       0 |     138 |       33 |      0 |    90 |    +0.2% |   -0.398 |     -338.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     320* |       1 |     141 |       36 |      0 |    93 |    +0.2% |   -0.398 |     -338.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     328* |       0 |     127 |       31 |      0 |    85 |    +0.2% |   -0.398 |     -338.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     330* |       0 |     127 |       31 |      0 |    86 |    +0.2% |   -0.398 |     -338.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     340* |       0 |     133 |       33 |      0 |    88 |    +0.2% |   -0.398 |     -338.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     350* |       0 |     138 |       33 |      0 |    93 |    +0.2% |   -0.400 |     -338.3 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     360* |       0 |     140 |       35 |      0 |    99 |    +0.2% |   -0.400 |     -338.3 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[2\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     370* |       0 |     146 |       36 |      0 |   102 |    +0.2% |   -0.398 |     -338.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     380* |       0 |     149 |       40 |      0 |   106 |    +0.2% |   -0.398 |     -338.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     390* |       0 |     154 |       41 |      0 |   110 |    +0.2% |   -0.398 |     -338.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     400* |       0 |     158 |       43 |      0 |   114 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     410* |       0 |     164 |       44 |      0 |   117 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     420* |       0 |     169 |       44 |      0 |   122 |    +0.2% |   -0.398 |     -338.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     430* |       0 |     176 |       45 |      0 |   124 |    +0.2% |   -0.398 |     -338.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     440* |       0 |     184 |       46 |      0 |   125 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     442* |       0 |     155 |       41 |      0 |   111 |    +0.2% |   -0.398 |     -337.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     450* |       0 |     161 |       42 |      0 |   111 |    +0.2% |   -0.398 |     -338.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     460* |       0 |     168 |       44 |      0 |   112 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     470* |       0 |     177 |       44 |      0 |   113 |    +0.2% |   -0.398 |     -337.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     470* |       0 |     169 |       44 |      0 |   113 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     480* |       0 |     170 |       45 |      0 |   120 |    +0.2% |   -0.400 |     -337.8 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     490* |       1 |     174 |       47 |      0 |   123 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     500* |       6 |     174 |       52 |      0 |   123 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     510* |      11 |     174 |       57 |      0 |   123 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     520* |      16 |     174 |       62 |      0 |   123 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     530* |      21 |     174 |       67 |      0 |   123 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     540* |      26 |     174 |       72 |      0 |   123 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     540* |       1 |     174 |       47 |      0 |   123 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     550* |       1 |     179 |       47 |      0 |   127 |    +0.2% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     560* |       1 |     183 |       49 |      0 |   131 |    +0.2% |   -0.402 |     -338.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+     570* |       1 |     187 |       50 |      0 |   136 |    +0.2% |   -0.398 |     -337.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     580* |       1 |     189 |       55 |      0 |   140 |    +0.3% |   -0.398 |     -337.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     590* |       1 |     192 |       55 |      0 |   147 |    +0.3% |   -0.398 |     -337.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     600* |       1 |     195 |       58 |      0 |   152 |    +0.3% |   -0.398 |     -337.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     610* |       1 |     203 |       59 |      0 |   153 |    +0.3% |   -0.401 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[6\].u_pe.psum_south\[27\]$_SDFFE_PP0N_/D
+     620* |       1 |     208 |       62 |      0 |   156 |    +0.3% |   -0.398 |     -337.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     630* |       1 |     215 |       62 |      0 |   159 |    +0.3% |   -0.398 |     -337.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     640* |       1 |     221 |       63 |      0 |   162 |    +0.3% |   -0.398 |     -337.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     650* |       1 |     226 |       64 |      0 |   166 |    +0.3% |   -0.398 |     -337.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     660* |       1 |     231 |       67 |      0 |   168 |    +0.3% |   -0.398 |     -337.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     670* |       1 |     235 |       70 |      0 |   171 |    +0.3% |   -0.398 |     -337.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     678* |       1 |     221 |       63 |      0 |   163 |    +0.3% |   -0.398 |     -337.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     680* |       1 |     221 |       63 |      0 |   164 |    +0.3% |   -0.398 |     -337.5 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     690* |       1 |     225 |       65 |      0 |   168 |    +0.3% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     700* |       1 |     234 |       65 |      0 |   169 |    +0.3% |   -0.398 |     -337.5 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     710* |       1 |     242 |       66 |      0 |   170 |    +0.3% |   -0.398 |     -337.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     720* |       1 |     249 |       68 |      0 |   171 |    +0.3% |   -0.398 |     -337.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     730* |       1 |     257 |       69 |      0 |   172 |    +0.3% |   -0.398 |     -338.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     740* |       6 |     257 |       74 |      0 |   172 |    +0.3% |   -0.398 |     -338.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     740* |       1 |     225 |       65 |      0 |   168 |    +0.3% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     750* |       6 |     225 |       69 |      0 |   168 |    +0.3% |   -0.401 |     -337.5 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     760* |      11 |     225 |       74 |      0 |   168 |    +0.3% |   -0.401 |     -337.5 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     770* |      16 |     225 |       79 |      0 |   168 |    +0.3% |   -0.401 |     -337.5 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     780* |      21 |     225 |       84 |      0 |   168 |    +0.3% |   -0.401 |     -337.5 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     790* |      26 |     225 |       89 |      0 |   168 |    +0.3% |   -0.401 |     -337.5 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[0\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+     791* |       1 |     225 |       65 |      0 |   168 |    +0.3% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     800* |       1 |     233 |       65 |      0 |   168 |    +0.3% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     810* |       1 |     241 |       67 |      0 |   168 |    +0.3% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     820* |       1 |     250 |       68 |      0 |   168 |    +0.3% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     830* |       1 |     257 |       71 |      0 |   169 |    +0.3% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     840* |       1 |     266 |       72 |      0 |   169 |    +0.4% |   -0.398 |     -337.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     850* |       1 |     271 |       73 |      0 |   173 |    +0.4% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     860* |       1 |     279 |       73 |      0 |   175 |    +0.4% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     870* |       1 |     285 |       74 |      0 |   178 |    +0.4% |   -0.398 |     -337.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     871* |       1 |     265 |       72 |      0 |   169 |    +0.4% |   -0.398 |     -337.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     880* |       1 |     270 |       72 |      0 |   172 |    +0.4% |   -0.398 |     -337.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     890* |       1 |     277 |       72 |      0 |   175 |    +0.4% |   -0.399 |     -337.3 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+     900* |       1 |     285 |       74 |      0 |   175 |    +0.4% |   -0.398 |     -337.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     910* |       1 |     288 |       75 |      0 |   181 |    +0.4% |   -0.398 |     -337.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     920* |       1 |     293 |       76 |      0 |   185 |    +0.4% |   -0.398 |     -337.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     930* |       1 |     300 |       77 |      0 |   187 |    +0.4% |   -0.398 |     -337.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     940* |       1 |     305 |       78 |      0 |   191 |    +0.4% |   -0.398 |     -337.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     950* |       1 |     312 |       78 |      0 |   194 |    +0.4% |   -0.398 |     -337.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     960* |       1 |     318 |       78 |      0 |   198 |    +0.4% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     970* |       1 |     324 |       80 |      0 |   200 |    +0.4% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     980* |       1 |     331 |       81 |      0 |   202 |    +0.4% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+     990* |       1 |     340 |       81 |      0 |   203 |    +0.4% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1000* |       1 |     348 |       81 |      0 |   205 |    +0.4% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1010* |       1 |     351 |       82 |      0 |   211 |    +0.4% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1020* |       1 |     355 |       85 |      0 |   214 |    +0.5% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1030* |       1 |     361 |       88 |      0 |   216 |    +0.5% |   -0.398 |     -337.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1033* |       1 |     354 |       83 |      0 |   212 |    +0.5% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1040* |       1 |     360 |       83 |      0 |   212 |    +0.5% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1050* |       4 |     364 |       86 |      0 |   212 |    +0.5% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1060* |       9 |     364 |       91 |      0 |   212 |    +0.5% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1070* |      14 |     364 |       96 |      0 |   212 |    +0.5% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1080* |      19 |     364 |      101 |      0 |   212 |    +0.5% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1090* |      24 |     364 |      106 |      0 |   212 |    +0.5% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1093* |       1 |     363 |       83 |      0 |   212 |    +0.5% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1100* |       1 |     369 |       83 |      0 |   212 |    +0.5% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1100* |       1 |     369 |       83 |      0 |   212 |    +0.5% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1110* |       1 |     374 |       87 |      0 |   212 |    +0.5% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1120* |       1 |     382 |       87 |      0 |   214 |    +0.5% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1125* |       1 |     382 |       87 |      0 |   214 |    +0.5% |   -0.398 |     -337.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1130* |       1 |     384 |       87 |      0 |   216 |    +0.5% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1140* |       1 |     389 |       88 |      0 |   220 |    +0.5% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1150* |       1 |     393 |       89 |      0 |   225 |    +0.5% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1160* |       1 |     397 |       89 |      0 |   231 |    +0.5% |   -0.398 |     -336.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1170* |       1 |     405 |       89 |      0 |   233 |    +0.5% |   -0.398 |     -336.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1180* |       1 |     413 |       91 |      0 |   233 |    +0.5% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1190* |       1 |     420 |       91 |      0 |   236 |    +0.5% |   -0.398 |     -336.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1200* |       1 |     425 |       91 |      0 |   241 |    +0.5% |   -0.398 |     -336.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1210* |       1 |     430 |       92 |      0 |   245 |    +0.5% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1220* |       1 |     434 |       94 |      0 |   249 |    +0.5% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1230* |       1 |     440 |       95 |      0 |   252 |    +0.6% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1240* |       2 |     447 |       96 |      0 |   253 |    +0.6% |   -0.398 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1240* |       1 |     435 |       94 |      0 |   250 |    +0.5% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1250* |       1 |     444 |       94 |      0 |   250 |    +0.6% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1257* |       1 |     449 |       94 |      0 |   252 |    +0.6% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1260* |       1 |     450 |       94 |      0 |   253 |    +0.6% |   -0.400 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1270* |       1 |     455 |       95 |      0 |   257 |    +0.6% |   -0.407 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1280* |       1 |     456 |       99 |      0 |   262 |    +0.6% |   -0.404 |     -336.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[31\]$_SDFFE_PP0N_/D
+    1290* |       1 |     459 |      100 |      0 |   268 |    +0.6% |   -0.398 |     -336.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1300* |       1 |     465 |      101 |      0 |   271 |    +0.6% |   -0.398 |     -336.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1300* |       1 |     459 |      100 |      0 |   269 |    +0.6% |   -0.398 |     -336.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1310* |       1 |     464 |      101 |      0 |   272 |    +0.6% |   -0.398 |     -336.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1320* |       1 |     470 |      101 |      0 |   276 |    +0.6% |   -0.398 |     -336.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1330* |       1 |     474 |      101 |      0 |   282 |    +0.6% |   -0.398 |     -336.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1340* |       1 |     476 |      101 |      0 |   290 |    +0.6% |   -0.398 |     -336.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1350* |       1 |     483 |      101 |      0 |   293 |    +0.6% |   -0.398 |     -336.5 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1360* |       1 |     489 |      103 |      0 |   296 |    +0.6% |   -0.398 |     -336.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1370* |       1 |     497 |      104 |      0 |   297 |    +0.6% |   -0.398 |     -336.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1380* |       1 |     499 |      105 |      0 |   304 |    +0.6% |   -0.398 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1390* |       1 |     504 |      106 |      0 |   308 |    +0.6% |   -0.398 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1400* |       1 |     510 |      108 |      0 |   310 |    +0.6% |   -0.398 |     -336.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1410* |       1 |     515 |      109 |      0 |   314 |    +0.7% |   -0.398 |     -336.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1420* |       1 |     522 |      111 |      0 |   315 |    +0.7% |   -0.398 |     -336.4 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1430* |       1 |     526 |      113 |      0 |   319 |    +0.7% |   -0.398 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1440* |       1 |     532 |      114 |      0 |   322 |    +0.7% |   -0.398 |     -336.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1446* |       1 |     528 |      113 |      0 |   321 |    +0.7% |   -0.398 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1450* |       1 |     530 |      113 |      0 |   322 |    +0.7% |   -0.398 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1460* |       1 |     540 |      113 |      0 |   322 |    +0.7% |   -0.398 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1470* |       1 |     545 |      116 |      0 |   324 |    +0.7% |   -0.398 |     -336.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1480* |       1 |     554 |      117 |      0 |   324 |    +0.7% |   -0.398 |     -336.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1490* |       1 |     560 |      118 |      0 |   327 |    +0.7% |   -0.398 |     -336.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1500* |       1 |     569 |      118 |      0 |   328 |    +0.7% |   -0.398 |     -336.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1500* |       1 |     545 |      114 |      0 |   323 |    +0.7% |   -0.398 |     -336.3 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1510* |       1 |     548 |      115 |      0 |   328 |    +0.7% |   -0.398 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1520* |       1 |     554 |      116 |      0 |   331 |    +0.7% |   -0.398 |     -336.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1530* |       1 |     559 |      116 |      0 |   336 |    +0.7% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1540* |       1 |     564 |      117 |      0 |   340 |    +0.7% |   -0.398 |     -336.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1550* |       1 |     569 |      118 |      0 |   344 |    +0.7% |   -0.398 |     -336.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1560* |       1 |     576 |      120 |      0 |   345 |    +0.7% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1570* |       1 |     581 |      120 |      0 |   350 |    +0.7% |   -0.398 |     -336.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1580* |       1 |     587 |      120 |      0 |   354 |    +0.7% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1590* |       1 |     593 |      120 |      0 |   358 |    +0.7% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1600* |       1 |     600 |      120 |      0 |   361 |    +0.8% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1610* |       1 |     604 |      123 |      0 |   364 |    +0.8% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1620* |       1 |     610 |      124 |      0 |   367 |    +0.8% |   -0.398 |     -335.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1629* |       1 |     614 |      127 |      0 |   370 |    +0.8% |   -0.398 |     -335.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1630* |       1 |     614 |      127 |      0 |   370 |    +0.8% |   -0.398 |     -335.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1640* |       1 |     623 |      128 |      0 |   370 |    +0.8% |   -0.398 |     -335.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1650* |       1 |     630 |      129 |      0 |   372 |    +0.8% |   -0.398 |     -335.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1660* |       1 |     638 |      129 |      0 |   374 |    +0.8% |   -0.398 |     -335.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1670* |       1 |     644 |      131 |      0 |   376 |    +0.8% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1680* |       1 |     651 |      134 |      0 |   377 |    +0.8% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1690* |       1 |     655 |      137 |      0 |   380 |    +0.8% |   -0.398 |     -336.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1700* |       1 |     662 |      137 |      0 |   383 |    +0.9% |   -0.398 |     -336.1 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1700* |       1 |     637 |      129 |      0 |   374 |    +0.8% |   -0.398 |     -335.5 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1710* |       1 |     642 |      130 |      0 |   377 |    +0.8% |   -0.398 |     -335.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1720* |       1 |     648 |      132 |      0 |   379 |    +0.8% |   -0.398 |     -335.6 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1730* |       1 |     658 |      132 |      0 |   379 |    +0.8% |   -0.398 |     -335.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1740* |       1 |     661 |      133 |      0 |   385 |    +0.8% |   -0.398 |     -335.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1750* |       1 |     665 |      136 |      0 |   389 |    +0.9% |   -0.398 |     -335.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1760* |       1 |     671 |      138 |      0 |   392 |    +0.9% |   -0.398 |     -335.7 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1770* |       1 |     678 |      141 |      0 |   392 |    +0.9% |   -0.398 |     -335.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1780* |       1 |     684 |      144 |      0 |   393 |    +0.9% |   -0.398 |     -335.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1790* |       1 |     690 |      146 |      0 |   395 |    +0.9% |   -0.403 |     -336.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1800* |       1 |     696 |      147 |      0 |   398 |    +0.9% |   -0.401 |     -336.0 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[1\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1801* |       1 |     687 |      144 |      0 |   395 |    +0.9% |   -0.398 |     -335.8 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1810* |       1 |     694 |      145 |      0 |   395 |    +0.9% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1820* |       1 |     697 |      149 |      0 |   398 |    +0.9% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1829* |       1 |     703 |      149 |      0 |   401 |    +0.9% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1830* |       1 |     703 |      149 |      0 |   401 |    +0.9% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1840* |       1 |     712 |      149 |      0 |   402 |    +0.9% |   -0.403 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1850* |       1 |     719 |      150 |      0 |   404 |    +0.9% |   -0.401 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1860* |       1 |     725 |      152 |      0 |   406 |    +0.9% |   -0.400 |     -335.9 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1870* |       1 |     732 |      152 |      0 |   409 |    +0.9% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1880* |       1 |     737 |      155 |      0 |   411 |    +1.0% |   -0.409 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1890* |       2 |     741 |      159 |      0 |   412 |    +1.0% |   -0.405 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1900* |       2 |     747 |      162 |      0 |   413 |    +1.0% |   -0.405 |     -336.2 |   1247 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    1900* |       1 |     733 |      152 |      0 |   409 |    +0.9% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1910* |       1 |     739 |      153 |      0 |   411 |    +1.0% |   -0.398 |     -336.0 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1920* |       1 |     747 |      154 |      0 |   412 |    +1.0% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1930* |       1 |     753 |      155 |      0 |   415 |    +1.0% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1940* |       1 |     760 |      157 |      0 |   416 |    +1.0% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1950* |       1 |     766 |      158 |      0 |   419 |    +1.0% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1960* |       1 |     772 |      159 |      0 |   422 |    +1.0% |   -0.398 |     -335.9 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1962* |       1 |     773 |      159 |      0 |   423 |    +1.0% |   -0.398 |     -335.8 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    1970* |       1 |     774 |      161 |      0 |   428 |    +1.0% |   -0.401 |     -335.9 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[26\]$_SDFFE_PP0N_/D
+    1980* |       1 |     783 |      161 |      0 |   429 |    +1.0% |   -0.410 |     -336.0 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    1990* |       1 |     785 |      161 |      0 |   437 |    +1.0% |   -0.410 |     -336.0 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2000* |       1 |     787 |      166 |      0 |   441 |    +1.0% |   -0.418 |     -336.3 |   1247 | u_array.g_pe_row\[7\].g_pe_col\[6\].u_pe.psum_south\[30\]$_SDFFE_PP0N_/D
+    2000* |       1 |     773 |      159 |      0 |   426 |    +1.0% |   -0.398 |     -335.8 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2000* |       1 |     773 |      159 |      0 |   426 |    +1.0% |   -0.398 |     -335.8 |   1247 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2000+ |       1 |     773 |      159 |      0 |   426 |    +1.0% |   -0.398 |     -335.8 |   1249 | u_array.g_pe_row\[5\].g_pe_col\[7\].u_pe.psum_south\[29\]$_SDFFE_PP0N_/D
+    2005+ |       1 |     774 |      159 |      0 |   429 |    +1.0% |   -0.397 |     -335.8 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2006+ |       1 |     774 |      159 |      0 |   429 |    +1.0% |   -0.397 |     -335.8 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2007+ |       1 |     774 |      159 |      0 |   429 |    +1.0% |   -0.397 |     -335.8 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2010+ |       1 |     774 |      159 |      0 |   431 |    +1.0% |   -0.397 |     -335.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2010+ |       1 |     774 |      159 |      0 |   431 |    +1.0% |   -0.397 |     -335.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2011+ |       1 |     774 |      159 |      0 |   431 |    +1.0% |   -0.397 |     -335.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2013+ |       1 |     774 |      159 |      0 |   432 |    +1.0% |   -0.397 |     -335.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2016+ |       1 |     776 |      159 |      0 |   432 |    +1.0% |   -0.397 |     -335.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2020+ |       1 |     779 |      159 |      0 |   432 |    +1.0% |   -0.397 |     -335.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2020+ |       1 |     779 |      159 |      0 |   432 |    +1.0% |   -0.397 |     -335.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2021+ |       1 |     779 |      159 |      0 |   432 |    +1.0% |   -0.397 |     -335.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2024+ |       1 |     779 |      159 |      0 |   434 |    +1.0% |   -0.397 |     -335.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2030+ |       1 |     783 |      159 |      0 |   435 |    +1.0% |   -0.397 |     -335.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2031+ |       1 |     783 |      159 |      0 |   436 |    +1.0% |   -0.397 |     -335.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2032+ |       1 |     783 |      159 |      0 |   436 |    +1.0% |   -0.397 |     -335.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2034+ |       1 |     784 |      159 |      0 |   436 |    +1.0% |   -0.397 |     -335.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2036+ |       1 |     785 |      159 |      0 |   436 |    +1.0% |   -0.397 |     -335.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2037+ |       1 |     785 |      159 |      0 |   436 |    +1.0% |   -0.397 |     -335.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2038+ |       1 |     785 |      159 |      0 |   436 |    +1.0% |   -0.397 |     -335.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2039+ |       1 |     785 |      159 |      0 |   436 |    +1.0% |   -0.397 |     -335.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2040+ |       1 |     785 |      159 |      0 |   436 |    +1.0% |   -0.397 |     -335.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2044+ |       1 |     787 |      159 |      0 |   438 |    +1.0% |   -0.397 |     -335.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2045+ |       1 |     787 |      159 |      0 |   438 |    +1.0% |   -0.397 |     -335.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2048+ |       1 |     788 |      159 |      0 |   439 |    +1.0% |   -0.397 |     -335.4 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2049+ |       1 |     788 |      159 |      0 |   439 |    +1.0% |   -0.397 |     -335.4 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2050+ |       1 |     788 |      159 |      0 |   439 |    +1.0% |   -0.397 |     -335.4 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2050+ |       1 |     788 |      159 |      0 |   439 |    +1.0% |   -0.397 |     -335.4 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2051+ |       1 |     788 |      159 |      0 |   439 |    +1.0% |   -0.397 |     -335.4 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2055+ |       1 |     790 |      159 |      0 |   440 |    +1.0% |   -0.397 |     -335.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2057+ |       1 |     790 |      159 |      0 |   441 |    +1.0% |   -0.397 |     -335.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2059+ |       1 |     790 |      159 |      0 |   442 |    +1.0% |   -0.397 |     -335.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2060+ |       1 |     790 |      159 |      0 |   442 |    +1.0% |   -0.397 |     -335.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2061+ |       1 |     791 |      159 |      0 |   442 |    +1.0% |   -0.397 |     -335.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2062+ |       1 |     791 |      159 |      0 |   442 |    +1.0% |   -0.397 |     -335.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2065+ |       1 |     793 |      159 |      0 |   442 |    +1.0% |   -0.397 |     -335.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2070+ |       1 |     796 |      159 |      0 |   443 |    +1.0% |   -0.397 |     -335.2 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2074+ |       1 |     798 |      159 |      0 |   445 |    +1.0% |   -0.397 |     -335.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2075+ |       1 |     798 |      159 |      0 |   445 |    +1.0% |   -0.397 |     -335.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2076+ |       1 |     798 |      159 |      0 |   445 |    +1.0% |   -0.397 |     -335.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2077+ |       1 |     798 |      159 |      0 |   445 |    +1.0% |   -0.397 |     -335.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2078+ |       1 |     798 |      159 |      0 |   445 |    +1.0% |   -0.397 |     -335.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2080+ |       1 |     799 |      159 |      0 |   445 |    +1.0% |   -0.397 |     -335.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2082+ |       1 |     801 |      159 |      0 |   445 |    +1.0% |   -0.397 |     -335.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2084+ |       1 |     801 |      159 |      0 |   446 |    +1.0% |   -0.397 |     -335.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2085+ |       1 |     801 |      159 |      0 |   446 |    +1.0% |   -0.397 |     -335.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2088+ |       1 |     802 |      159 |      0 |   447 |    +1.0% |   -0.397 |     -335.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2089+ |       1 |     802 |      159 |      0 |   447 |    +1.0% |   -0.397 |     -335.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2090+ |       1 |     802 |      159 |      0 |   447 |    +1.0% |   -0.397 |     -335.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2095+ |       1 |     807 |      159 |      0 |   447 |    +1.0% |   -0.397 |     -334.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2097+ |       1 |     807 |      159 |      0 |   448 |    +1.0% |   -0.397 |     -334.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2098+ |       1 |     807 |      159 |      0 |   448 |    +1.0% |   -0.397 |     -334.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2099+ |       1 |     807 |      159 |      0 |   448 |    +1.0% |   -0.397 |     -334.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2100+ |       1 |     807 |      159 |      0 |   448 |    +1.0% |   -0.397 |     -334.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2101+ |       1 |     807 |      159 |      0 |   448 |    +1.0% |   -0.397 |     -334.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2102+ |       1 |     807 |      159 |      0 |   448 |    +1.0% |   -0.397 |     -334.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2110+ |       1 |     809 |      159 |      0 |   453 |    +1.0% |   -0.397 |     -334.8 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2110+ |       1 |     809 |      159 |      0 |   453 |    +1.0% |   -0.397 |     -334.8 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2115+ |       1 |     810 |      159 |      0 |   456 |    +1.0% |   -0.397 |     -334.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2116+ |       1 |     810 |      159 |      0 |   456 |    +1.0% |   -0.397 |     -334.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2118+ |       1 |     811 |      159 |      0 |   456 |    +1.0% |   -0.397 |     -334.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2120+ |       1 |     812 |      159 |      0 |   456 |    +1.0% |   -0.397 |     -334.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2120+ |       1 |     812 |      159 |      0 |   456 |    +1.0% |   -0.397 |     -334.5 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2123+ |       1 |     813 |      159 |      0 |   457 |    +1.0% |   -0.397 |     -334.4 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2127+ |       1 |     815 |      159 |      0 |   458 |    +1.0% |   -0.397 |     -334.4 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2128+ |       1 |     815 |      159 |      0 |   458 |    +1.0% |   -0.397 |     -334.4 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2130+ |       1 |     816 |      159 |      0 |   458 |    +1.0% |   -0.397 |     -334.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2130+ |       1 |     816 |      159 |      0 |   458 |    +1.0% |   -0.397 |     -334.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2133+ |       1 |     817 |      159 |      0 |   459 |    +1.0% |   -0.397 |     -334.3 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2135+ |       1 |     818 |      159 |      0 |   459 |    +1.0% |   -0.397 |     -334.2 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2136+ |       1 |     818 |      159 |      0 |   459 |    +1.0% |   -0.397 |     -334.2 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2138+ |       1 |     819 |      159 |      0 |   459 |    +1.0% |   -0.397 |     -334.2 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2140+ |       1 |     820 |      159 |      0 |   459 |    +1.0% |   -0.397 |     -334.2 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2142+ |       1 |     821 |      159 |      0 |   460 |    +1.0% |   -0.397 |     -334.2 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2144+ |       1 |     822 |      159 |      0 |   460 |    +1.0% |   -0.397 |     -334.2 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2146+ |       1 |     823 |      159 |      0 |   460 |    +1.0% |   -0.397 |     -334.2 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2150+ |       1 |     825 |      159 |      0 |   461 |    +1.0% |   -0.397 |     -334.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2150+ |       1 |     825 |      159 |      0 |   461 |    +1.0% |   -0.397 |     -334.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2151+ |       1 |     825 |      159 |      0 |   461 |    +1.0% |   -0.397 |     -334.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2153+ |       1 |     826 |      159 |      0 |   461 |    +1.0% |   -0.397 |     -334.1 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2156+ |       1 |     828 |      159 |      0 |   461 |    +1.0% |   -0.397 |     -334.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2157+ |       1 |     828 |      159 |      0 |   461 |    +1.0% |   -0.397 |     -334.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2158+ |       1 |     828 |      159 |      0 |   461 |    +1.0% |   -0.397 |     -334.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2160+ |       1 |     829 |      159 |      0 |   461 |    +1.0% |   -0.397 |     -334.0 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2161+ |       1 |     829 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2162+ |       1 |     829 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2163+ |       1 |     829 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2167+ |       1 |     832 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2169+ |       1 |     833 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2170+ |       1 |     833 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2170+ |       1 |     833 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2172+ |       1 |     834 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2173+ |       1 |     834 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2174+ |       1 |     834 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2175+ |       1 |     834 |      159 |      0 |   462 |    +1.0% |   -0.397 |     -333.9 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2180+ |       1 |     837 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.8 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2181+ |       1 |     838 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.8 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2183+ |       1 |     839 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2184+ |       1 |     839 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2185+ |       1 |     839 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.7 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2189+ |       1 |     842 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2190+ |       1 |     842 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2190+ |       1 |     842 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2191+ |       1 |     842 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2192+ |       1 |     842 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2193+ |       1 |     842 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2194+ |       1 |     842 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2195+ |       1 |     842 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2196+ |       1 |     842 |      159 |      0 |   463 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    2200+ |       1 |     844 |      159 |      0 |   464 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+    final |       1 |     844 |      159 |      0 |   464 |    +1.1% |   -0.397 |     -333.6 |   1249 | u_array.g_pe_row\[6\].g_pe_col\[2\].u_pe.psum_south\[28\]$_SDFFE_PP0N_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0059] Removed 1 buffers.
+[INFO RSZ-0045] Inserted 159 buffers, 1 to split loads.
+[INFO RSZ-0051] Resized 844 instances: 844 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 464 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 25.83s
+[INFO RSZ-0046] Found 120 endpoints with hold violations.
+Iteration | Resized | Buffers | Cloned Gates |   Area   |   WNS   |   TNS   | Endpoint
+--------------------------------------------------------------------------------------
+        0 |       0 |       0 |            0 |    +0.0% |  -0.059 |  -6.048 | g_skew[4].g_skewn.sr[0][0]$_SDFFCE_PN0P_/D
+       10 |       0 |      27 |            0 |    +0.0% |  -0.059 |  -5.517 | g_skew[5].g_skewn.sr[0][6]$_SDFFCE_PN0P_/D
+       20 |       0 |      57 |            0 |    +0.1% |  -0.058 |  -4.932 | g_skew[5].g_skewn.sr[0][7]$_SDFFCE_PN0P_/D
+       30 |       0 |      87 |            0 |    +0.1% |  -0.057 |  -4.355 | g_skew[6].g_skewn.sr[0][0]$_SDFFCE_PN0P_/D
+       40 |       0 |     117 |            0 |    +0.1% |  -0.052 |  -3.803 | g_skew[1].g_skewn.sr[0][6]$_SDFFCE_PN0P_/D
+       50 |       0 |     139 |            0 |    +0.1% |  -0.050 |  -3.292 | u_array.g_pe_row[0].g_pe_col[0].u_pe.w_south[5]$_SDFFE_PP0P_/D
+       60 |       0 |     159 |            0 |    +0.2% |  -0.049 |  -2.798 | g_skew[2].g_skewn.sr[0][4]$_SDFFCE_PN0P_/D
+       70 |       0 |     179 |            0 |    +0.2% |  -0.047 |  -2.319 | u_array.g_pe_row[0].g_pe_col[4].u_pe.w_south[0]$_SDFFE_PP0P_/D
+       80 |       0 |     199 |            0 |    +0.2% |  -0.046 |  -1.852 | u_array.g_pe_row[0].g_pe_col[4].u_pe.w_south[5]$_SDFFE_PP0P_/D
+       90 |       0 |     219 |            0 |    +0.2% |  -0.046 |  -1.390 | u_array.g_pe_row[0].g_pe_col[3].u_pe.w_south[4]$_SDFFE_PP0P_/D
+      100 |       0 |     239 |            0 |    +0.2% |  -0.046 |  -0.931 | u_array.g_pe_row[0].g_pe_col[1].u_pe.w_south[5]$_SDFFE_PP0P_/D
+      110 |       0 |     259 |            0 |    +0.3% |  -0.045 |  -0.479 | u_array.g_pe_row[0].g_pe_col[3].u_pe.w_south[7]$_SDFFE_PP0P_/D
+      120 |       0 |     279 |            0 |    +0.3% |  -0.042 |  -0.042 | u_array.g_pe_row[0].g_pe_col[6].u_pe.w_south[0]$_SDFFE_PP0P_/D
+    final |       0 |     281 |            0 |    +0.3% |   0.000 |   0.000 | g_skew[1].g_skewn.sr[0][4]$_SDFFCE_PN0P_/D
+--------------------------------------------------------------------------------------
+[INFO RSZ-0032] Inserted 281 hold buffers.
+[INFO RSZ-0506] Runtime: 0.24s
+Took 26 seconds: repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -verbose
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 13186 moves: displacement total 2175.7 u, max 7.7 u; HPWL 359147.6 -> 361760.0 u (+0.7 %).
+[INFO DPL-0500] Runtime: 0.68s
+check_placement -placeable -verbose
+estimate_parasitics -placement
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 82689 um^2 69% utilization.
+write_db ./results/nangate45/tpu/base/4_1_cts.odb
+write_sdc -no_timestamp ./results/nangate45/tpu/base/4_cts.sdc
+Elapsed time: 0:48.84[h:]min:sec. CPU time: user 59.12 sys 1.57 (124%). Peak memory: 526616KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+4_1_cts                .odb         48       61     1.24      514 83b9748b96

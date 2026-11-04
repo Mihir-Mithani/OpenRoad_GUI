@@ -1,0 +1,162 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/NangateOpenCellLibrary_typical.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_64x256.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_128x64.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_64x28.lib
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/fakeram45_64x25.lib
+read_db -hier ./results/nangate45/cva6/base/1_synth.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/nangate45/cva6/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+Warning: There are 330 input ports missing set_input_delay.
+Warning: There are 429 output ports missing set_output_delay.
+Warning: There are 431 unconstrained endpoints.
+number instances in verilog is 86423
+initialize_floorplan -utilization 60 -aspect_ratio 1.0 -core_space 2 -site FreePDK45_38x28_10R_NP_162NW_34O
+[INFO IFP-0107] Defining die area using utilization: 60.00% and aspect ratio: 1.
+[WARNING IFP-0028] Core area lower left (2.000, 2.000) snapped to (2.090, 2.800).
+[INFO IFP-0001] Added 449 rows of 3316 site FreePDK45_38x28_10R_NP_162NW_34O.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 634.275 634.275 ) um
+[INFO IFP-0101] Core BBox: (  2.090  2.800 ) ( 632.130 631.400 ) um
+[INFO IFP-0102] Core area:                       396043.144 um^2
+[INFO IFP-0103] Total instances area:            238346.070 um^2
+[INFO IFP-0104] Effective utilization:                0.602
+[INFO IFP-0105] Number of instances:                  86358
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/make_tracks.tcl
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/fastroute.tcl
+set_dont_use "TAPCELL_X1 FILLCELL_X1 AOI211_X1 OAI211_X1"
+repair_tie_fanout -separation 0 NangateOpenCellLibrary/LOGIC0_X1/Z
+[INFO RSZ-0042] Inserted 1021 tie LOGIC0_X1 instances.
+repair_tie_fanout -separation 0 NangateOpenCellLibrary/LOGIC1_X1/Z
+[INFO RSZ-0042] Inserted 891 tie LOGIC1_X1 instances.
+replace_arith_modules
+replace_arith_modules -path_count 1000 -target setup -slack_threshold 0.0
+[INFO RSZ-0151] Starting arithmetic module replacement to optimize 'setup' target
+[INFO RSZ-0152] Analyzing 1000 critical paths with slack < 0.00
+[INFO RSZ-0153] Identified 7998 violating endpoints
+[INFO RSZ-0154] Identified 1 critical arithmetic instances
+[INFO ODB-0496] swapMaster sanity check passed (0 failures)
+[INFO RSZ-0160] 1 arithmetic instances have swapped to improve 'setup' target
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -9.768 |   -23493.8 |   7998 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+       1* |       0 |      58 |        0 |      0 |    37 |    +0.0% |   -8.760 |   -21643.4 |   7868 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+       2* |       0 |     105 |        0 |      0 |   136 |    +0.0% |   -7.456 |   -20782.9 |   7800 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+       3* |       0 |     166 |        0 |      0 |   208 |    +0.1% |   -7.454 |   -20496.4 |   7800 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+       4* |       0 |     236 |        0 |      0 |   254 |    +0.1% |   -6.963 |   -20107.4 |   7800 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+       5* |       0 |     279 |        0 |      0 |   304 |    +0.1% |   -6.958 |   -19934.1 |   7800 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+       6* |       0 |     331 |        0 |      0 |   333 |    +0.1% |   -6.933 |   -19770.3 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+       7* |       0 |     338 |        0 |      0 |   352 |    +0.1% |   -6.934 |   -19648.5 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+       8* |       0 |     447 |        0 |      0 |   479 |    +0.1% |   -6.930 |   -19488.5 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+       9* |       0 |     493 |        0 |      0 |   564 |    +0.2% |   -6.946 |   -19409.6 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      10* |       0 |     527 |        0 |      0 |   641 |    +0.2% |   -6.960 |   -19398.4 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      11* |       0 |     562 |        0 |      0 |   709 |    +0.2% |   -6.966 |   -19380.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      12* |       0 |     601 |        0 |      0 |   761 |    +0.2% |   -6.966 |   -19365.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      13* |       0 |     630 |        0 |      0 |   813 |    +0.2% |   -6.966 |   -19335.7 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      14* |       0 |     650 |        0 |      0 |   863 |    +0.2% |   -6.967 |   -19330.4 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      15* |       0 |     673 |        0 |      0 |   906 |    +0.2% |   -6.967 |   -19324.8 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      16* |       0 |     691 |        0 |      0 |   953 |    +0.2% |   -6.967 |   -19316.7 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      17* |       0 |     712 |        0 |      0 |   997 |    +0.2% |   -6.967 |   -19306.8 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      18* |       0 |     732 |        0 |      0 |  1040 |    +0.2% |   -6.967 |   -19300.7 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      19* |       0 |     758 |        0 |      0 |  1076 |    +0.2% |   -6.967 |   -19299.4 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      20* |       0 |     788 |        0 |      0 |  1107 |    +0.3% |   -6.967 |   -19295.7 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      21* |       0 |     823 |        0 |      0 |  1131 |    +0.3% |   -6.967 |   -19293.8 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      22* |       0 |     826 |        0 |      0 |  1153 |    +0.3% |   -6.967 |   -19293.0 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      23* |       0 |     827 |        0 |      0 |  1172 |    +0.3% |   -6.967 |   -19293.0 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      24* |       0 |     829 |        0 |      0 |  1186 |    +0.3% |   -6.967 |   -19291.9 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      25* |       0 |     829 |        0 |      0 |  1202 |    +0.3% |   -6.967 |   -19291.7 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      26* |       0 |     830 |        0 |      0 |  1217 |    +0.3% |   -6.967 |   -19291.5 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      27* |       0 |     831 |        0 |      0 |  1232 |    +0.3% |   -6.967 |   -19291.5 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      28* |       0 |     838 |        0 |      0 |  1241 |    +0.3% |   -6.967 |   -19290.2 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      29* |       0 |     846 |        0 |      0 |  1249 |    +0.3% |   -6.967 |   -19290.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      30* |       0 |     854 |        0 |      0 |  1255 |    +0.3% |   -6.967 |   -19290.0 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      31* |       0 |     859 |        0 |      0 |  1266 |    +0.3% |   -6.967 |   -19289.6 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      32* |       0 |     860 |        0 |      0 |  1266 |    +0.3% |   -6.952 |   -19272.5 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      33* |       0 |     861 |        0 |      0 |  1267 |    +0.3% |   -6.951 |   -19269.4 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      34* |       0 |     864 |        0 |      0 |  1268 |    +0.3% |   -6.948 |   -19269.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      35* |       0 |     866 |        0 |      0 |  1274 |    +0.3% |   -6.930 |   -19243.6 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      36* |       0 |     869 |        0 |      0 |  1279 |    +0.3% |   -6.851 |   -19112.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      37* |       0 |     873 |        0 |      0 |  1283 |    +0.3% |   -6.801 |   -19100.7 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      38* |       0 |     874 |        0 |      0 |  1283 |    +0.3% |   -6.799 |   -19098.0 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      39* |       0 |     876 |        0 |      0 |  1285 |    +0.3% |   -6.798 |   -19096.7 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      40* |       0 |     878 |        0 |      0 |  1285 |    +0.3% |   -6.797 |   -19094.9 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      41* |       0 |     880 |        0 |      0 |  1286 |    +0.3% |   -6.795 |   -19091.7 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      42* |       0 |     882 |        0 |      0 |  1288 |    +0.3% |   -6.794 |   -19089.9 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      43* |       0 |     883 |        0 |      0 |  1288 |    +0.3% |   -6.793 |   -19088.2 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      44* |       0 |     884 |        0 |      0 |  1288 |    +0.3% |   -6.786 |   -19081.4 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      45* |       0 |     885 |        0 |      0 |  1289 |    +0.3% |   -6.785 |   -19081.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      46* |       0 |     886 |        0 |      0 |  1289 |    +0.3% |   -6.781 |   -19077.7 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      47* |       0 |     887 |        0 |      0 |  1289 |    +0.3% |   -6.779 |   -19075.5 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      48* |       0 |     888 |        0 |      0 |  1289 |    +0.3% |   -6.778 |   -19075.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      49* |       0 |     888 |        0 |      0 |  1290 |    +0.3% |   -6.779 |   -19075.6 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      50* |       0 |     888 |        0 |      0 |  1289 |    +0.3% |   -6.778 |   -19075.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      51* |       0 |     888 |        0 |      0 |  1289 |    +0.3% |   -6.778 |   -19075.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+      52* |       0 |     888 |        0 |      0 |  1289 |    +0.3% |   -6.778 |   -19075.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+    final |       0 |     888 |        0 |      0 |  1289 |    +0.3% |   -6.778 |   -19075.1 |   7799 | id_stage_i.issue_entry_o\[276\]$_DFFE_PN0P_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 888 instances: 888 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 1289 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 93.30s
+Took 93 seconds: repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+Default units for flow
+ time 1ns
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1nW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |       (kohm/um) |          (fF/um)
+------------------------------------------------
+    metal1 |        5.43e-03 |         7.42e-02
+    metal2 |        3.57e-03 |         8.34e-02
+    metal3 |        3.57e-03 |         1.04e-01
+    metal4 |        1.50e-03 |         1.19e-01
+    metal5 |        1.50e-03 |         1.09e-01
+    metal6 |        1.50e-03 |         1.14e-01
+    metal7 |        1.88e-04 |         1.17e-01
+    metal8 |        1.88e-04 |         9.45e-02
+    metal9 |        3.75e-05 |         1.06e-01
+   metal10 |        3.75e-05 |         7.37e-01
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |         (kohm) 
+----------------------------
+      via1 |       5.00e-03 
+      via2 |       5.00e-03 
+      via3 |       5.00e-03 
+      via4 |       3.00e-03 
+      via5 |       3.00e-03 
+      via6 |       3.00e-03 
+      via7 |       1.00e-03 
+      via8 |       1.00e-03 
+      via9 |       5.00e-04 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 240121 um^2 61% utilization.
+write_db ./results/nangate45/cva6/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/nangate45/cva6/base/2_1_floorplan.sdc
+Elapsed time: 1:55.41[h:]min:sec. CPU time: user 137.46 sys 1.15 (120%). Peak memory: 574304KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb        115      139     1.20      560 1bcba754f1
+2_1_floorplan          .sdc                                       930ff44bb6
