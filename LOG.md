@@ -335,7 +335,75 @@ Built a complete end-to-end intelligence pipeline that blends real ORFS run data
 
 ---
 
-### Session 7 - 2025-10-27: Complete GUI Integration & Deployment
+### Session 8 - 2025-11-03: AWS_Report Data Extraction & Cleanup
+
+### Summary
+Processed AWS ORFS run data from AWS_Report directory for 3 platforms (asap7, gf180, nangate45), extracted 24 successful runs, cleaned up 17.8 GB of unnecessary files, and generated visualizations.
+
+### AWS_Report Data Extraction
+
+**Extracted 24 successful runs across 3 platforms:**
+- **asap7**: 8 runs (gcd, aes, ethmac, gcd-ccs, ibex, jpeg, mock-alu, picorv32, riscv32i-mock-sram)
+- **gf180**: 7 runs (aes, aes-hybrid, gcd, ibex, jpeg, riscv32i, uart-blocks)
+- **nangate45**: 9 runs (aes, dynamic_node, gcd, ibex, jpeg, picorv32, swerv_wrapper, tinyRocket, tpu)
+
+**Note on nangate45:** 21 total designs found, but only 9 had completed flows with `6_finish.rpt` reports. 3 designs (bp_be_top, bp_fe_top, bp_multi_top) completed successfully per console logs but their outputs weren't captured in AWS_Report snapshot. 6 timed out/failed. 3 had no run directory.
+
+### Data Files Created
+| File | Description |
+|------|-------------|
+| `openroad_gui/intelligence/data/aws_real_runs.json` | 24 combined runs (JSON) |
+| `openroad_gui/intelligence/data/aws_real_runs_nangate45.json` | 9 nangate45 runs |
+| `openroad_gui/intelligence/data/real_runs_export.csv` | Combined CSV for analysis |
+| `real_data_plots/*.png` | 6 general visualization plots |
+| `real_data_plots/nangate45/*.png` | 5 nangate45-specific plots |
+| `real_data_plots/gf180/*.png` | 5 gf180-specific plots |
+
+### AWS_Report Cleanup (17.8 GB freed)
+
+| File Type | Space Freed | Description |
+|-----------|-------------|-------------|
+| `.odb` | 10.1 GB | OpenDB checkpoint files |
+| `.gds` | 511 MB | GDSII layout files |
+| `.spef` | 456 MB | SPEF parasitic files |
+| `.def` | 260 MB | DEF layout files |
+| `.v`, `.rtlil`, `mem.json`, `route.guide`, `*lec.v` | ~2.5 GB | Intermediate synthesis/verification files |
+| **Total** | **~17.8 GB** | **AWS_Report: 18 GB → 200 MB** |
+
+**Files KEPT for training:**
+- `run_metadata.json` - Run configuration and status
+- `reports/*.rpt` - Timing, power, area reports
+- `logs/*.log` - Execution logs
+- `logs/*.json` - JSON reports (6_report.json)
+- `config.mk` - Design configuration
+
+### Platform Statistics (from 24 extracted runs)
+
+| Platform | Runs | Mean WNS (ns) | Mean Setup Violations | Mean Power (mW) | Timing Closure |
+|----------|------|---------------|----------------------|-----------------|----------------|
+| asap7 | 8 | -64.80 | 122 | 33.95 | 1/8 (12.5%) |
+| gf180 | 7 | -0.48 | 219 | 221.72 | 2/7 (28.6%) |
+| nangate45 | 9 | -0.26 | 770 | 62.51 | 0/9 (0%) |
+
+### Visualizations Generated
+- **WNS Progression** across stages (Synth → Floorplan → Place → CTS → Route → Finish)
+- **WNS vs Setup Violations** scatter with design labels
+- **TNS vs WNS** (log scale) with platform colors
+- **Power vs Utilization** with design labels
+- **Violations by Design** (log scale bar chart)
+- **Utilization vs WNS** correlation
+- **3-platform comparison** plots
+
+### Files Modified/Created
+- `cleanup_aws_report.py` - Cleanup script
+- `visualize_nangate45.py` - nangate45 visualization
+- `openroad_gui/intelligence/data/aws_real_runs.json` - Combined 24 runs
+- `openroad_gui/intelligence/data/aws_real_runs_nangate45.json` - nangate45 only
+- `openroad_gui/intelligence/data/real_runs_export.csv` - CSV for analysis
+
+---
+
+## Session 7 - 2025-10-27: Complete GUI Integration & Deployment
 
 #### Summary
 Successfully integrated the complete RL pipeline into the GUI with full tkinter support on macOS.
