@@ -1,0 +1,43 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+source /OpenROAD-flow-scripts/flow/platforms/asap7/liberty_suppressions.tcl
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_RVT_FF_nldm_220123.lib
+read_liberty ./results/asap7/riscv32i-mock-sram_fakeram7_256x32/base/fakeram7_256x32_typ.lib
+read_db -hier ./results/asap7/riscv32i-mock-sram/base/2_1_floorplan.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/asap7/riscv32i-mock-sram/base/2_1_floorplan.sdc
+source /OpenROAD-flow-scripts/flow/platforms/asap7/setRC.tcl
+[INFO GPL-0190] Using 1 of 2 threads for placement: one per core, SMT siblings idle.
+[INFO GPL-0022] Initialize gpl and calculate uniform density.
+Placement density is 0.6859999871253968, computed from PLACE_DENSITY_LB_ADDON  0.10 and lower bound 0.6399999856948853
+rtl_macro_placer -max_num_level 2 -min_channel_size "8 8" -pin_aware_channels -min_ar 0.33 -area_weight 0.1 -wirelength_weight 100.0 -outline_weight 100.0 -boundary_weight 50.0 -notch_weight 50.0 -report_directory ./objects/asap7/riscv32i-mock-sram/base/rtlmp -fence_lx 0.0 -fence_ly 0.0 -fence_ux 0.0 -fence_uy 0.0 -target_util 0.6859999871253968
+Die Area: (0.00, 0.00) (65.34, 65.34),  Floorplan Area: (5.02, 5.13) (60.32, 60.21)
+	Number of std cell instances: 8985
+	Area of std cell instances: 1160.25
+	Number of macros: 4
+	Macros to be placed: 4
+	Area of macros: 752.31
+	Minimum channel (Width, Height): (8.00, 8.00)
+	Area of macros with halos: 1275.97
+	Area of std cell instances + Area of macros: 1912.56
+	Floorplan area: 3045.70
+	Design Utilization: 0.63
+	Floorplan Utilization: 0.51
+	Manufacturing Grid: 1
+
+[WARNING MPL-0055] Couldn't find a solution for the specified utilization. The utilization was adjusted to 0.7153364.
+[INFO MPL-0500] Runtime: 12.29s
+Took 12 seconds: rtl_macro_placer -max_num_level 2 -min_channel_size "8 8" -pin_aware_channels -min_ar 0.33 -area_weight 0.1 -wirelength_weight 100.0 -outline_weight 100.0 -boundary_weight 50.0 -notch_weight 50.0 -report_directory ./objects/asap7/riscv32i-mock-sram/base/rtlmp -fence_lx 0.0 -fence_ly 0.0 -fence_ux 0.0 -fence_uy 0.0 -target_util 0.6859999871253968
+Design area 1913 um^2 63% utilization.
+write_db ./results/asap7/riscv32i-mock-sram/base/2_2_floorplan_macro.odb
+Elapsed time: 0:13.71[h:]min:sec. CPU time: user 10.50 sys 9.52 (146%). Peak memory: 219560KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_2_floorplan_macro    .odb         13       20     1.46      214 882a76e684

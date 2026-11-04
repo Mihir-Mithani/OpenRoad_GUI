@@ -1,0 +1,147 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+source /OpenROAD-flow-scripts/flow/platforms/asap7/liberty_suppressions.tcl
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_RVT_FF_nldm_220123.lib
+read_liberty ./results/asap7/riscv32i-mock-sram_fakeram7_256x32/base/fakeram7_256x32_typ.lib
+read_db -hier ./results/asap7/riscv32i-mock-sram/base/3_place.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/asap7/riscv32i-mock-sram/base/3_place.sdc
+source /OpenROAD-flow-scripts/flow/platforms/asap7/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets -sink_clustering_size 10 -sink_clustering_max_diameter 50
+[INFO CTS-0050] Root buffer is BUFx16f_ASAP7_75t_R.
+[INFO CTS-0051] Sink buffer is BUFx24_ASAP7_75t_R.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    BUFx16f_ASAP7_75t_R
+                    BUFx24_ASAP7_75t_R
+[INFO CTS-0049] Characterization buffer is BUFx24_ASAP7_75t_R.
+[INFO CTS-0007] Net "clk" found for clock "clk".
+[INFO CTS-0011]  Clock net "clk" for macros has 4 sinks.
+[INFO CTS-0011]  Clock net "clk_regs" for registers has 1056 sinks.
+[INFO CTS-0008] TritonCTS found 2 clock nets.
+[INFO CTS-0097] Characterization used 2 buffer(s) types.
+[INFO CTS-0201] 4 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 4.
+[INFO CTS-0029]  Macro  sinks will be clustered in groups of up to 4 and with maximum cluster diameter of 64.8 um.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 1350  dbu (1 um).
+[INFO CTS-0023]  Original sink region: [(10806, 38940), (40284, 38940)].
+[INFO CTS-0024]  Normalized sink region: [(8.00444, 28.8444), (29.84, 28.8444)].
+[INFO CTS-0025]     Width:  21.8356.
+[INFO CTS-0026]     Height: 0.0000.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 2
+    Sub-region size: 10.9178 X 0.0000
+[INFO CTS-0034]     Segment length (rounded): 5.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (137.460 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 4.
+[INFO CTS-0201] 4 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk_regs.
+[INFO CTS-0028]  Total number of sinks: 1056.
+[INFO CTS-0029]  Register sinks will be clustered in groups of up to 10 and with maximum cluster diameter of 50.0 um.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 1350  dbu (1 um).
+[INFO CTS-0204] A clustering solution was found from clustering size of 10 and clustering diameter of 50.
+[INFO CTS-0205] Better solution may be possible if either -sink_clustering_size, -sink_clustering_max_diameter, or both options are omitted to enable automatic clustering.
+[INFO CTS-0019]  Total number of sinks after clustering: 106.
+[INFO CTS-0024]  Normalized sink region: [(20.9567, 4.32), (61.3218, 32.1)].
+[INFO CTS-0025]     Width:  40.3652.
+[INFO CTS-0026]     Height: 27.7800.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 53
+    Sub-region size: 20.1826 X 27.7800
+[INFO CTS-0034]     Segment length (rounded): 10.
+ Level 2
+    Direction: Vertical
+    Sinks per sub-region: 27
+    Sub-region size: 20.1826 X 13.8900
+[INFO CTS-0034]     Segment length (rounded): 6.
+ Level 3
+    Direction: Horizontal
+    Sinks per sub-region: 14
+    Sub-region size: 10.0913 X 13.8900
+[INFO CTS-0034]     Segment length (rounded): 6.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (137.460 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 106.
+[INFO CTS-0018]     Created 3 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 2.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 2.
+[INFO CTS-0015]     Created 3 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 2:2..
+[INFO CTS-0017]     Max level of the clock tree: 1.
+[INFO CTS-0018]     Created 115 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 3.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 3.
+[INFO CTS-0015]     Created 115 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 6:1, 10:105, 11:2, 12:2, 14:1, 15:2, 16:1..
+[INFO CTS-0017]     Max level of the clock tree: 3.
+[INFO CTS-0098] Clock net "clk"
+[INFO CTS-0099]  Sinks 4
+[INFO CTS-0100]  Leaf buffers 0
+[INFO CTS-0101]  Average sink wire length 61.82 um
+[INFO CTS-0102]  Path depth 2 - 2
+[INFO CTS-0207]  Dummy loads inserted 0
+[INFO CTS-0098] Clock net "clk_regs"
+[INFO CTS-0099]  Sinks 1070
+[INFO CTS-0100]  Leaf buffers 106
+[INFO CTS-0101]  Average sink wire length 30.15 um
+[INFO CTS-0102]  Path depth 2 - 3
+[INFO CTS-0207]  Dummy loads inserted 14
+[INFO CTS-0033] Balancing latency for clock clk
+[INFO CTS-0036]  inserted 1 delay buffers
+[INFO CTS-0037] Total number of delay buffers: 1
+[INFO CTS-0500] Runtime: 1.72s
+estimate_parasitics -placement
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 7434 moves: displacement total 1834.0 u, max 22.1 u; HPWL 41758.6 -> 42992.5 u (+3.0 %).
+[INFO DPL-0500] Runtime: 0.27s
+estimate_parasitics -placement
+repair_timing -setup_margin 30 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -verbose
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |  -35.609 |   -16533.5 |   1000 | riscv.dp.rf.rf\[16\]\[2\]$_DFFE_PP_/D
+       1* |       0 |      28 |        7 |      0 |     0 |    +0.1% |  -15.978 |    -4317.2 |    993 | riscv.dp.rf.rf\[30\]\[28\]$_DFFE_PP_/D
+       2* |       0 |      45 |       22 |      0 |     0 |    +0.3% |   -4.330 |      -44.8 |    879 | riscv.dp.rf.rf\[16\]\[2\]$_DFFE_PP_/D
+       3* |       0 |      83 |       32 |      0 |     0 |    +0.5% |   13.960 |        0.0 |    739 | riscv.dp.rf.rf\[25\]\[23\]$_DFFE_PP_/D
+       4* |       0 |     123 |       37 |      0 |     0 |    +0.6% |   14.041 |        0.0 |    617 | riscv.dp.rf.rf\[25\]\[23\]$_DFFE_PP_/D
+       5* |       0 |     144 |       50 |      0 |     0 |    +0.7% |   14.527 |        0.0 |    350 | riscv.dp.rf.rf\[9\]\[5\]$_DFFE_PP_/D
+       6* |       0 |     152 |       60 |      0 |     0 |    +0.8% |   20.861 |        0.0 |    308 | riscv.dp.rf.rf\[4\]\[1\]$_DFFE_PP_/D
+       7* |       0 |     167 |       76 |      0 |     0 |    +0.9% |   29.273 |        0.0 |      5 | riscv.dp.rf.rf\[13\]\[5\]$_DFFE_PP_/D
+    final |       0 |     174 |       90 |      0 |     0 |    +1.0% |   32.416 |        0.0 |      0 | riscv.dp.rf.rf\[19\]\[10\]$_DFFE_PP_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0045] Inserted 90 buffers, 18 to split loads.
+[INFO RSZ-0051] Resized 174 instances: 174 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0505] Runtime: 12.28s
+[INFO RSZ-0033] No hold violations found.
+[INFO RSZ-0506] Runtime: 0.06s
+Took 12 seconds: repair_timing -setup_margin 30 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -verbose
+Elapsed time: 0:01.46[h:]min:sec. CPU time: user 1.69 sys 0.04 (118%). Peak memory: 87168KB.
+Repair timing output passed lec test
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 6011 moves: displacement total 170.6 u, max 2.3 u; HPWL 43457.7 -> 43600.1 u (+0.3 %).
+[INFO DPL-0500] Runtime: 0.16s
+check_placement -placeable -verbose
+estimate_parasitics -placement
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 2068 um^2 68% utilization.
+write_db ./results/asap7/riscv32i-mock-sram/base/4_1_cts.odb
+write_sdc -no_timestamp ./results/asap7/riscv32i-mock-sram/base/4_cts.sdc
+Elapsed time: 0:28.32[h:]min:sec. CPU time: user 45.25 sys 0.40 (161%). Peak memory: 418772KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+4_1_cts                .odb          1        2     1.18       85 c4bf567149

@@ -1,0 +1,162 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+source /OpenROAD-flow-scripts/flow/platforms/asap7/liberty_suppressions.tcl
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_RVT_FF_nldm_220123.lib
+read_liberty ./results/asap7/riscv32i-mock-sram_fakeram7_256x32/base/fakeram7_256x32_typ.lib
+read_db -hier ./results/asap7/riscv32i-mock-sram/base/1_synth.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/asap7/riscv32i-mock-sram/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/asap7/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+number instances in verilog is 8841
+initialize_floorplan -utilization 62 -aspect_ratio 1.0 -core_space 5 -site asap7sc7p5t
+[INFO IFP-0107] Defining die area using utilization: 62.00% and aspect ratio: 1.
+[WARNING IFP-0028] Core area lower left (5.000, 5.000) snapped to (5.022, 5.130).
+[INFO IFP-0001] Added 204 rows of 1024 site asap7sc7p5t.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 65.343 65.343 ) um
+[INFO IFP-0101] Core BBox: (  5.022  5.130 ) ( 60.318 60.210 ) um
+[INFO IFP-0102] Core area:                         3045.704 um^2
+[INFO IFP-0103] Total instances area:              1898.984 um^2
+[INFO IFP-0104] Effective utilization:                0.623
+[INFO IFP-0105] Number of instances:                   8838
+source /OpenROAD-flow-scripts/flow/platforms/asap7/openRoad/make_tracks.tcl
+source /OpenROAD-flow-scripts/flow/platforms/asap7/fastroute.tcl
+set_dont_use "*x1p*_ASAP7* *xp*_ASAP7* SDF* ICG*"
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_RVT_FF_nldm_250407/TIELOx1_ASAP7_75t_R/L
+[INFO RSZ-0042] Inserted 36 tie TIELOx1_ASAP7_75t_R instances.
+repair_tie_fanout -separation 0 asap7sc7p5t_SIMPLE_RVT_FF_nldm_250407/TIEHIx1_ASAP7_75t_R/H
+[INFO RSZ-0042] Inserted 33 tie TIEHIx1_ASAP7_75t_R instances.
+replace_arith_modules
+replace_arith_modules -path_count 1000 -target setup -slack_threshold 0.0
+[INFO RSZ-0151] Starting arithmetic module replacement to optimize 'setup' target
+[INFO RSZ-0152] Analyzing 1000 critical paths with slack < 0.00
+[INFO RSZ-0153] Identified 1258 violating endpoints
+[INFO RSZ-0154] Identified 1 critical arithmetic instances
+[INFO ODB-0496] swapMaster sanity check passed (0 failures)
+[INFO RSZ-0160] 1 arithmetic instances have swapped to improve 'setup' target
+repair_timing -setup_margin 30 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% | -3146.958 | -3703377.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+       1* |       0 |      23 |        0 |      0 |     7 |    +0.0% | -3144.889 | -3688989.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+       2* |       0 |      30 |        0 |      0 |    16 |    +0.0% | -3133.396 | -3679904.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+       3* |       0 |      39 |        0 |      0 |    23 |    +0.1% | -3133.296 | -3679390.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+       4* |       0 |      51 |        0 |      0 |    27 |    +0.1% | -3131.346 | -3677019.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+       5* |       0 |      62 |        0 |      0 |    32 |    +0.1% | -3116.399 | -3660500.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+       6* |       0 |      73 |        0 |      0 |    37 |    +0.1% | -3108.189 | -3651351.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+       7* |       0 |      86 |        0 |      0 |    40 |    +0.1% | -3107.370 | -3650334.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+       8* |       0 |      91 |        0 |      0 |    43 |    +0.1% | -3106.221 | -3648977.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+       9* |       0 |      91 |        0 |      0 |    46 |    +0.1% | -3106.221 | -3648820.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      10* |       0 |      91 |        0 |      0 |    47 |    +0.1% | -3106.221 | -3648814.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      11* |       0 |      91 |        0 |      0 |    48 |    +0.1% | -3106.221 | -3648807.2 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      12* |       0 |      91 |        0 |      0 |    49 |    +0.1% | -3106.221 | -3648800.5 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      13* |       0 |      91 |        0 |      0 |    50 |    +0.1% | -3106.221 | -3648793.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      14* |       0 |      91 |        0 |      0 |    51 |    +0.1% | -3106.221 | -3648787.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      15* |       0 |      91 |        0 |      0 |    52 |    +0.1% | -3106.221 | -3648780.2 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      16* |       0 |      91 |        0 |      0 |    53 |    +0.1% | -3106.221 | -3648773.5 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      17* |       0 |      91 |        0 |      0 |    54 |    +0.1% | -3106.221 | -3648766.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      18* |       0 |      91 |        0 |      0 |    55 |    +0.1% | -3106.221 | -3648760.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      19* |       0 |      91 |        0 |      0 |    56 |    +0.1% | -3106.221 | -3648753.5 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      20* |       0 |      91 |        0 |      0 |    57 |    +0.1% | -3106.221 | -3648746.5 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      21* |       0 |      91 |        0 |      0 |    58 |    +0.1% | -3106.221 | -3648739.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      22* |       0 |      91 |        0 |      0 |    59 |    +0.1% | -3106.221 | -3648733.2 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      23* |       0 |      91 |        0 |      0 |    60 |    +0.1% | -3106.221 | -3648726.2 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      24* |       0 |      91 |        0 |      0 |    61 |    +0.1% | -3106.221 | -3648719.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      25* |       0 |      91 |        0 |      0 |    62 |    +0.1% | -3106.221 | -3648713.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      26* |       0 |      91 |        0 |      0 |    63 |    +0.1% | -3106.221 | -3648706.2 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      27* |       0 |      91 |        0 |      0 |    64 |    +0.1% | -3106.221 | -3648699.5 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      28* |       0 |      91 |        0 |      0 |    65 |    +0.1% | -3106.221 | -3648693.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      29* |       0 |      91 |        0 |      0 |    66 |    +0.1% | -3106.221 | -3648686.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      30* |       0 |      91 |        0 |      0 |    67 |    +0.1% | -3106.191 | -3648653.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      31* |       0 |      91 |        0 |      0 |    67 |    +0.1% | -3106.191 | -3648653.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      32* |       0 |      91 |        0 |      0 |    67 |    +0.1% | -3106.191 | -3648653.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      33* |       0 |      91 |        0 |      0 |    67 |    +0.1% | -3106.191 | -3648653.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      34* |       0 |      91 |        0 |      0 |    67 |    +0.1% | -3106.191 | -3648653.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      35* |       0 |      91 |        0 |      0 |    67 |    +0.1% | -3106.191 | -3648653.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      36* |       0 |      91 |        0 |      0 |    68 |    +0.1% | -3108.297 | -3648745.8 |   1258 | riscv.dp.rf.rf\[1\]\[18\]$_DFFE_PP_/D
+      37* |       0 |      91 |        0 |      0 |    69 |    +0.1% | -3109.869 | -3650751.2 |   1258 | riscv.dp.rf.rf\[11\]\[16\]$_DFFE_PP_/D
+      38* |       0 |      91 |        0 |      0 |    70 |    +0.1% | -3109.946 | -3650754.8 |   1258 | riscv.dp.rf.rf\[11\]\[16\]$_DFFE_PP_/D
+      39* |       0 |      91 |        0 |      0 |    71 |    +0.1% | -3110.023 | -3650758.2 |   1258 | riscv.dp.rf.rf\[11\]\[16\]$_DFFE_PP_/D
+      40* |       0 |      91 |        0 |      0 |    72 |    +0.1% | -3110.100 | -3650761.5 |   1258 | riscv.dp.rf.rf\[11\]\[16\]$_DFFE_PP_/D
+      41* |       0 |      91 |        0 |      0 |    73 |    +0.1% | -3110.177 | -3650764.8 |   1258 | riscv.dp.rf.rf\[11\]\[16\]$_DFFE_PP_/D
+      42* |       0 |      91 |        0 |      0 |    67 |    +0.1% | -3106.191 | -3648653.8 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      43* |       0 |      91 |        0 |      0 |    68 |    +0.1% | -3093.341 | -3634570.2 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      44* |       0 |      91 |        0 |      0 |    69 |    +0.1% | -2880.939 | -3402113.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      45* |       0 |      91 |        0 |      0 |    69 |    +0.1% | -2880.939 | -3402113.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      46* |       0 |      91 |        0 |      0 |    70 |    +0.1% | -2883.045 | -3402204.8 |   1258 | riscv.dp.rf.rf\[1\]\[24\]$_DFFE_PP_/D
+      47* |       0 |      91 |        0 |      0 |    69 |    +0.1% | -2880.939 | -3402113.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      48* |       0 |      91 |        0 |      0 |    70 |    +0.1% | -2883.045 | -3402204.8 |   1258 | riscv.dp.rf.rf\[1\]\[25\]$_DFFE_PP_/D
+      49* |       0 |      91 |        0 |      0 |    69 |    +0.1% | -2880.939 | -3402113.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+      50* |       0 |      91 |        0 |      0 |    70 |    +0.1% | -2883.045 | -3402204.8 |   1258 | riscv.dp.rf.rf\[1\]\[26\]$_DFFE_PP_/D
+      51* |       0 |      91 |        0 |      0 |    71 |    +0.1% | -2883.100 | -3402296.2 |   1258 | riscv.dp.rf.rf\[1\]\[26\]$_DFFE_PP_/D
+      52* |       0 |      91 |        0 |      0 |    72 |    +0.1% | -2883.156 | -3402387.8 |   1258 | riscv.dp.rf.rf\[1\]\[26\]$_DFFE_PP_/D
+    final |       0 |      91 |        0 |      0 |    69 |    +0.1% | -2880.939 | -3402113.0 |   1258 | riscv.dp.rf.rf\[1\]\[16\]$_DFFE_PP_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 91 instances: 91 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 69 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 13.35s
+Took 13 seconds: repair_timing -setup_margin 30 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+Default units for flow
+ time 1ps
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1pW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |       (kohm/um) |          (fF/um)
+------------------------------------------------
+        M1 |        7.04e-02 |         1.00e-10
+        M2 |        2.97e-02 |         1.75e-01
+        M3 |        3.13e-02 |         1.56e-01
+        M4 |        1.80e-02 |         1.78e-01
+        M5 |        1.90e-02 |         1.64e-01
+        M6 |        1.19e-02 |         1.87e-01
+        M7 |        1.25e-02 |         1.63e-01
+        M8 |        8.45e-03 |         1.04e-01
+        M9 |        8.90e-03 |         9.28e-02
+       Pad |        0.00e+00 |         0.00e+00
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |         (kohm) 
+----------------------------
+        V1 |       1.72e-02 
+        V2 |       1.72e-02 
+        V3 |       1.72e-02 
+        V4 |       1.18e-02 
+        V5 |       1.18e-02 
+        V6 |       8.20e-03 
+        V7 |       8.20e-03 
+        V8 |       6.30e-03 
+        V9 |       6.30e-03 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 1913 um^2 63% utilization.
+source /OpenROAD-flow-scripts/flow/designs/asap7/riscv32i-mock-sram/io.tcl
+write_db ./results/asap7/riscv32i-mock-sram/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/asap7/riscv32i-mock-sram/base/2_1_floorplan.sdc
+Elapsed time: 0:16.52[h:]min:sec. CPU time: user 20.86 sys 0.20 (127%). Peak memory: 227972KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb         16       21     1.27      222 d07651570a
+2_1_floorplan          .sdc                                       c50c8f9f7f
