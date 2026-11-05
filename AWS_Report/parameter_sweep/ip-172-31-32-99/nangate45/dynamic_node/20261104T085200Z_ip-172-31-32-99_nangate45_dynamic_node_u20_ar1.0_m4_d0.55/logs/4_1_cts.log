@@ -1,0 +1,220 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/NangateOpenCellLibrary_typical.lib
+read_db -hier ./results/nangate45/dynamic_node/base/3_place.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/nangate45/dynamic_node/base/3_place.sdc
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets
+[INFO CTS-0050] Root buffer is CLKBUF_X3.
+[INFO CTS-0051] Sink buffer is CLKBUF_X3.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    CLKBUF_X3
+[INFO CTS-0049] Characterization buffer is CLKBUF_X3.
+[INFO CTS-0007] Net "clk" found for clock "clk".
+[INFO CTS-0010]  Clock net "clk" has 2245 sinks.
+[INFO CTS-0008] TritonCTS found 1 clock nets.
+[INFO CTS-0097] Characterization used 1 buffer(s) types.
+[INFO CTS-0201] 0 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 2245.
+[INFO CTS-0090]  Sinks will be clustered based on buffer max cap.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 14000  dbu (7 um).
+[INFO CTS-0206] Best clustering solution was found from max clustering size of 8 and max clustering diameter of 60.
+[INFO CTS-0019]  Total number of sinks after clustering: 340.
+[INFO CTS-0024]  Normalized sink region: [(5.15133, 1.12684), (46.4705, 37.8667)].
+[INFO CTS-0025]     Width:  41.3192.
+[INFO CTS-0026]     Height: 36.7398.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 170
+    Sub-region size: 20.6596 X 36.7398
+[INFO CTS-0034]     Segment length (rounded): 10.
+ Level 2
+    Direction: Vertical
+    Sinks per sub-region: 85
+    Sub-region size: 20.6596 X 18.3699
+[INFO CTS-0034]     Segment length (rounded): 10.
+ Level 3
+    Direction: Horizontal
+    Sinks per sub-region: 43
+    Sub-region size: 10.3298 X 18.3699
+[INFO CTS-0034]     Segment length (rounded): 6.
+ Level 4
+    Direction: Vertical
+    Sinks per sub-region: 22
+    Sub-region size: 10.3298 X 9.1850
+[INFO CTS-0034]     Segment length (rounded): 4.
+ Level 5
+    Direction: Horizontal
+    Sinks per sub-region: 11
+    Sub-region size: 5.1649 X 9.1850
+[INFO CTS-0034]     Segment length (rounded): 2.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (591.189 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 340.
+[INFO CTS-0018]     Created 377 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 4.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 4.
+[INFO CTS-0015]     Created 377 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 2:1, 4:3, 5:23, 6:116, 7:165, 8:39, 9:5, 10:3, 11:3, 12:3, 13:7, 14:3, 16:1..
+[INFO CTS-0017]     Max level of the clock tree: 5.
+[INFO CTS-0098] Clock net "clk"
+[INFO CTS-0099]  Sinks 2518
+[INFO CTS-0100]  Leaf buffers 340
+[INFO CTS-0101]  Average sink wire length 504.21 um
+[INFO CTS-0102]  Path depth 3 - 4
+[INFO CTS-0207]  Dummy loads inserted 273
+[INFO CTS-0500] Runtime: 1.14s
+estimate_parasitics -placement
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 8324 moves: displacement total 6890.9 u, max 6.3 u; HPWL 194805.8 -> 198123.6 u (+1.7 %).
+[INFO DPL-0500] Runtime: 0.08s
+estimate_parasitics -placement
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -verbose
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -1.011 |     -837.4 |   2443 | thanksIn_P
+       1* |       0 |     299 |        2 |      0 |     0 |    +1.0% |   -1.008 |     -780.0 |   2443 | thanksIn_P
+       2* |       0 |     481 |        6 |      0 |     0 |    +1.7% |   -1.009 |     -761.9 |   2437 | thanksIn_P
+       3* |       0 |     630 |        9 |      0 |     0 |    +2.3% |   -1.007 |     -739.5 |   2437 | thanksIn_P
+       4* |       0 |     758 |       18 |      0 |     0 |    +2.8% |   -1.007 |     -732.2 |   2437 | thanksIn_P
+       5* |       0 |     918 |       25 |      0 |     0 |    +3.5% |   -1.006 |     -732.3 |   2437 | thanksIn_P
+       6* |       0 |    1025 |       29 |      0 |     0 |    +4.0% |   -1.006 |     -727.4 |   2437 | thanksIn_P
+       7* |       0 |    1129 |       31 |      0 |     0 |    +4.4% |   -1.006 |     -726.8 |   2437 | thanksIn_P
+       8* |       0 |    1230 |       37 |      0 |     0 |    +4.9% |   -1.006 |     -725.5 |   2437 | thanksIn_P
+       9* |       0 |    1313 |       41 |      0 |     0 |    +5.5% |   -1.005 |     -728.0 |   2437 | thanksIn_P
+      10* |       0 |    1377 |       45 |      0 |     0 |    +5.8% |   -1.003 |     -726.6 |   2437 | thanksIn_P
+      11* |       0 |    1445 |       52 |      0 |     0 |    +6.1% |   -1.003 |     -727.7 |   2437 | thanksIn_P
+      12* |       0 |    1524 |       56 |      0 |     0 |    +6.5% |   -1.003 |     -726.1 |   2437 | thanksIn_P
+      13* |       0 |    1524 |       56 |      0 |     0 |    +6.5% |   -1.003 |     -726.1 |   2437 | thanksIn_P
+      14* |       0 |    1524 |       56 |      0 |     0 |    +6.5% |   -1.003 |     -726.1 |   2437 | thanksIn_P
+      15* |       0 |    1524 |       56 |      0 |     0 |    +6.5% |   -1.003 |     -726.1 |   2437 | thanksIn_P
+      16* |       0 |    1550 |       57 |      0 |     0 |    +6.6% |   -1.003 |     -726.1 |   2437 | thanksIn_P
+      17* |       0 |    1550 |       57 |      0 |     0 |    +6.6% |   -1.003 |     -726.1 |   2437 | thanksIn_P
+      18* |       0 |    1550 |       57 |      0 |     0 |    +6.6% |   -1.003 |     -726.1 |   2437 | thanksIn_P
+      19* |       0 |    1550 |       57 |      0 |     0 |    +6.6% |   -1.003 |     -726.1 |   2437 | thanksIn_P
+      20* |       0 |    1584 |       57 |      0 |     0 |    +6.7% |   -1.003 |     -726.0 |   2437 | thanksIn_P
+      21* |       0 |    1595 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      22* |       0 |    1595 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      23* |       0 |    1595 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      24* |       0 |    1595 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      25* |       0 |    1595 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      26* |       0 |    1595 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      27* |       0 |    1595 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      28* |       0 |    1595 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      29* |       0 |    1623 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      30* |       0 |    1623 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      31* |       0 |    1623 |       57 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      32* |       0 |    1623 |       58 |      0 |     0 |    +6.8% |   -1.003 |     -726.0 |   2436 | thanksIn_P
+      33* |       0 |    1624 |       58 |      0 |     1 |    +6.8% |   -1.002 |     -726.0 |   2436 | thanksIn_P
+      34* |       0 |    1625 |       58 |      0 |     1 |    +6.8% |   -1.002 |     -726.0 |   2436 | thanksIn_P
+      35* |       0 |    1630 |       58 |      0 |     1 |    +6.9% |   -1.002 |     -726.0 |   2436 | thanksIn_P
+      36* |       0 |    1633 |       58 |      0 |     1 |    +6.9% |   -1.002 |     -725.9 |   2436 | thanksIn_P
+      37* |       0 |    1640 |       59 |      0 |     1 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      38* |       0 |    1644 |       63 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      39* |       0 |    1645 |       63 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      40* |       0 |    1646 |       63 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      41* |       0 |    1646 |       64 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      42* |       0 |    1646 |       65 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      43* |       0 |    1647 |       65 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      44* |       0 |    1640 |       59 |      0 |     1 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      45* |       0 |    1640 |       60 |      0 |     1 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      46* |       0 |    1642 |       60 |      0 |     1 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      47* |       0 |    1644 |       61 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      48* |       0 |    1645 |       61 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      49* |       0 |    1646 |       61 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      50* |       0 |    1646 |       62 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      51* |       0 |    1646 |       63 |      0 |     1 |    +6.9% |   -1.001 |     -725.9 |   2436 | thanksIn_P
+      52* |       0 |    1646 |       63 |      0 |     2 |    +6.9% |   -1.004 |     -725.9 |   2436 | thanksIn_P
+      53* |       0 |    1642 |       60 |      0 |     1 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      54* |       0 |    1643 |       60 |      0 |     1 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      55* |       0 |    1643 |       60 |      0 |     2 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      56* |       0 |    1644 |       60 |      0 |     2 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      57* |       0 |    1646 |       60 |      0 |     2 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      58* |       0 |    1648 |       60 |      0 |     2 |    +6.9% |   -1.001 |     -725.8 |   2436 | thanksIn_P
+      59* |       0 |    1654 |       62 |      0 |     2 |    +6.9% |   -1.001 |     -725.7 |   2436 | thanksIn_P
+      60* |       0 |    1663 |       65 |      0 |     2 |    +7.0% |   -1.001 |     -728.0 |   2436 | thanksIn_P
+      61* |       0 |    1663 |       65 |      0 |     3 |    +7.0% |   -1.000 |     -728.0 |   2436 | thanksIn_P
+      62* |       0 |    1664 |       65 |      0 |     3 |    +7.0% |   -1.000 |     -728.0 |   2436 | thanksIn_P
+      63* |       0 |    1665 |       65 |      0 |     3 |    +7.0% |   -1.001 |     -728.0 |   2436 | thanksIn_P
+      64* |       0 |    1666 |       65 |      0 |     3 |    +7.0% |   -1.000 |     -728.0 |   2436 | thanksIn_P
+      65* |       0 |    1667 |       65 |      0 |     3 |    +7.0% |   -1.002 |     -728.0 |   2436 | thanksIn_P
+      66* |       0 |    1654 |       62 |      0 |     2 |    +6.9% |   -1.001 |     -725.7 |   2436 | thanksIn_P
+      67* |       0 |    1655 |       62 |      0 |     2 |    +6.9% |   -1.001 |     -725.7 |   2436 | thanksIn_P
+      68* |       0 |    1655 |       63 |      0 |     2 |    +6.9% |   -0.999 |     -725.7 |   2436 | thanksIn_P
+      69* |       0 |    1655 |       63 |      0 |     3 |    +6.9% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      70* |       0 |    1657 |       63 |      0 |     3 |    +6.9% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      71* |       0 |    1659 |       63 |      0 |     3 |    +7.0% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      72* |       0 |    1659 |       64 |      0 |     3 |    +7.0% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      73* |       0 |    1660 |       64 |      0 |     3 |    +7.0% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      74* |       0 |    1660 |       64 |      0 |     4 |    +7.0% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      75* |       0 |    1661 |       64 |      0 |     4 |    +7.0% |   -0.999 |     -725.7 |   2436 | thanksIn_P
+      76* |       0 |    1662 |       64 |      0 |     4 |    +7.0% |   -0.999 |     -725.7 |   2436 | thanksIn_P
+      77* |       0 |    1657 |       63 |      0 |     3 |    +6.9% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      78* |       0 |    1657 |       63 |      0 |     4 |    +6.9% |   -1.003 |     -725.7 |   2436 | thanksIn_P
+      79* |       0 |    1658 |       63 |      0 |     4 |    +7.0% |   -1.010 |     -725.7 |   2436 | thanksIn_P
+      80* |       0 |    1659 |       63 |      0 |     4 |    +6.9% |   -1.011 |     -725.8 |   2436 | thanksIn_P
+      81* |       0 |    1660 |       63 |      0 |     4 |    +7.0% |   -1.008 |     -725.7 |   2436 | thanksIn_P
+      82* |       0 |    1661 |       63 |      0 |     4 |    +6.9% |   -1.011 |     -725.8 |   2436 | thanksIn_P
+      83* |       0 |    1661 |       64 |      0 |     4 |    +7.0% |   -1.015 |     -725.8 |   2436 | thanksIn_P
+      84* |       0 |    1657 |       63 |      0 |     3 |    +6.9% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      85* |       0 |    1658 |       63 |      0 |     3 |    +7.0% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      86* |       0 |    1659 |       63 |      0 |     3 |    +7.0% |   -0.999 |     -725.7 |   2436 | thanksIn_P
+      87* |       0 |    1660 |       63 |      0 |     3 |    +7.0% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      88* |       0 |    1662 |       63 |      0 |     3 |    +7.0% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      89* |       0 |    1663 |       63 |      0 |     3 |    +7.0% |   -1.003 |     -725.8 |   2436 | thanksIn_P
+      90* |       0 |    1664 |       63 |      0 |     3 |    +7.0% |   -1.003 |     -725.8 |   2436 | thanksIn_P
+      91* |       0 |    1664 |       65 |      0 |     3 |    +7.0% |   -1.002 |     -725.8 |   2436 | thanksIn_P
+      92* |       0 |    1664 |       65 |      0 |     4 |    +7.0% |   -1.007 |     -725.8 |   2436 | thanksIn_P
+      93* |       0 |    1665 |       65 |      0 |     4 |    +7.0% |   -0.999 |     -725.7 |   2436 | thanksIn_P
+      94* |       0 |    1660 |       63 |      0 |     3 |    +7.0% |   -0.998 |     -725.7 |   2436 | thanksIn_P
+      95* |       0 |    1661 |       63 |      0 |     3 |    +7.0% |   -0.999 |     -725.7 |   2436 | thanksIn_P
+      96* |       0 |    1662 |       63 |      0 |     3 |    +7.0% |   -0.999 |     -725.7 |   2436 | thanksIn_P
+      97* |       0 |    1662 |       63 |      0 |     4 |    +7.0% |   -0.993 |     -725.7 |   2436 | thanksIn_P
+      98* |       0 |    1664 |       63 |      0 |     4 |    +7.0% |   -0.993 |     -725.7 |   2436 | thanksIn_P
+      99* |       0 |    1667 |       63 |      0 |     4 |    +7.0% |   -0.993 |     -725.6 |   2436 | thanksIn_P
+     100* |       0 |    1675 |       63 |      0 |     4 |    +7.0% |   -0.993 |     -725.6 |   2436 | thanksIn_P
+     101* |       0 |    1687 |       63 |      0 |     4 |    +7.0% |   -0.993 |     -725.5 |   2436 | thanksIn_P
+     102* |       0 |    1706 |       67 |      0 |     5 |    +7.1% |   -0.993 |     -727.8 |   2436 | thanksIn_P
+     103* |       0 |    1707 |       67 |      0 |     5 |    +7.1% |   -0.993 |     -727.8 |   2436 | thanksIn_P
+     104* |       0 |    1708 |       67 |      0 |     5 |    +7.1% |   -0.992 |     -727.8 |   2436 | thanksIn_P
+     105* |       0 |    1709 |       67 |      0 |     5 |    +7.1% |   -0.996 |     -727.8 |   2436 | thanksIn_P
+     106* |       0 |    1710 |       67 |      0 |     5 |    +7.1% |   -1.003 |     -727.8 |   2436 | thanksIn_P
+     107* |       0 |    1710 |       67 |      0 |     6 |    +7.1% |   -1.005 |     -727.8 |   2436 | thanksIn_P
+     108* |       0 |    1687 |       63 |      0 |     4 |    +7.0% |   -0.993 |     -725.5 |   2436 | thanksIn_P
+    final |       1 |    1687 |       63 |      0 |     4 |    +7.0% |   -0.993 |     -725.5 |   2436 | thanksIn_P
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0059] Removed 1 buffers.
+[INFO RSZ-0045] Inserted 63 buffers, 28 to split loads.
+[INFO RSZ-0051] Resized 1687 instances: 1678 up, 0 up match, 9 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 4 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 43.43s
+[INFO RSZ-0033] No hold violations found.
+[INFO RSZ-0506] Runtime: 0.03s
+Took 43 seconds: repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -verbose
+Elapsed time: 0:01.46[h:]min:sec. CPU time: user 1.59 sys 0.05 (112%). Peak memory: 103520KB.
+Repair timing output passed lec test
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 9303 moves: displacement total 876.4 u, max 9.0 u; HPWL 200465.1 -> 201235.5 u (+0.4 %).
+[INFO DPL-0500] Runtime: 0.15s
+check_placement -placeable -verbose
+estimate_parasitics -placement
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 27086 um^2 25% utilization.
+write_db ./results/nangate45/dynamic_node/base/4_1_cts.odb
+write_sdc -no_timestamp ./results/nangate45/dynamic_node/base/4_cts.sdc
+Elapsed time: 0:52.84[h:]min:sec. CPU time: user 74.84 sys 0.96 (143%). Peak memory: 331284KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+4_1_cts                .odb          1        2     1.12      101 d37cad9959

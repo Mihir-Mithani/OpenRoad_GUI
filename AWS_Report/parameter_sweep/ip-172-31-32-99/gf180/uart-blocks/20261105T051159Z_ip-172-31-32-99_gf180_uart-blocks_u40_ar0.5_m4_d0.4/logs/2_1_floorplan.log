@@ -1,0 +1,75 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/gf180/lib/gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50.lib.gz
+read_liberty ./results/gf180/uart-blocks_uart_rx/base/uart_rx_typ.lib
+read_db ./results/gf180/uart-blocks/base/1_synth.odb
+read_sdc ./results/gf180/uart-blocks/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/gf180/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+number instances in verilog is 262
+initialize_floorplan -utilization 40 -aspect_ratio 0.5 -core_space 4 -site GF018hv5v_green_sc9
+[INFO IFP-0107] Defining die area using utilization: 40.00% and aspect ratio: 0.5.
+[WARNING IFP-0028] Core area lower left (4.000, 4.000) snapped to (4.480, 5.040).
+[INFO IFP-0001] Added 53 rows of 962 site GF018hv5v_green_sc9.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 547.200 277.600 ) um
+[INFO IFP-0101] Core BBox: (  4.480  5.040 ) ( 543.200 272.160 ) um
+[INFO IFP-0102] Core area:                       143902.886 um^2
+[INFO IFP-0103] Total instances area:             58147.081 um^2
+[INFO IFP-0104] Effective utilization:                0.404
+[INFO IFP-0105] Number of instances:                    262
+make_tracks
+source /OpenROAD-flow-scripts/flow/platforms/gf180/fastroute.tcl
+set_dont_use *_1
+repair_tie_fanout -separation 0 gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50/gf180mcu_fd_sc_mcu9t5v0__tiel/ZN
+repair_tie_fanout -separation 0 gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50/gf180mcu_fd_sc_mcu9t5v0__tieh/Z
+repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[INFO RSZ-0100] Repair move sequence: UnbufferMove SizeUpMove SwapPinsMove 
+[INFO RSZ-0098] No setup violations found
+[INFO RSZ-0505] Runtime: 0.03s
+Default units for flow
+ time 1ns
+ capacitance 1pF
+ resistance 1ohm
+ voltage 1v
+ current 1mA
+ power 1uW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |        (ohm/um) |          (pF/um)
+------------------------------------------------
+    Metal1 |        3.91e-01 |         9.06e-06
+    Metal2 |        2.26e-04 |         1.35e-04
+    Metal3 |        2.26e-04 |         1.46e-04
+    Metal4 |        2.26e-04 |         1.51e-04
+    Metal5 |        5.86e-05 |         1.56e-04
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |          (ohm) 
+----------------------------
+      Via1 |       4.23e+00 
+      Via2 |       4.23e+00 
+      Via3 |       4.23e+00 
+      Via4 |       4.23e+00 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 58147 um^2 40% utilization.
+source /OpenROAD-flow-scripts/flow/designs/gf180/uart-blocks/io.tcl
+write_db ./results/gf180/uart-blocks/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/gf180/uart-blocks/base/2_1_floorplan.sdc
+Elapsed time: 0:00.74[h:]min:sec. CPU time: user 0.69 sys 0.05 (99%). Peak memory: 161728KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb          0        1     1.00      157 dd775e7c7d
+2_1_floorplan          .sdc                                       029fd88f14

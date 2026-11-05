@@ -1,0 +1,87 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/nangate45/lib/NangateOpenCellLibrary_typical.lib
+read_db -hier ./results/nangate45/dynamic_node/base/3_3_place_gp.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/nangate45/dynamic_node/base/2_floorplan.sdc
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/setRC.tcl
+estimate_parasitics -placement
+[INFO GPL-0098] Initialize gpl and estimate target density.
+replace_arith_modules
+replace_arith_modules -path_count 1000 -target setup -slack_threshold 0.0
+[INFO RSZ-0151] Starting arithmetic module replacement to optimize 'setup' target
+[INFO RSZ-0152] Analyzing 1000 critical paths with slack < 0.00
+[INFO RSZ-0153] Identified 2444 violating endpoints
+[INFO RSZ-0154] Identified 0 critical arithmetic instances
+global_placement -incremental -density 0.41306257247924805
+[INFO GPL-0190] Using 1 of 2 threads for placement: one per core, SMT siblings idle.
+[INFO GPL-0083] Execute incremental mode global placement.
+[INFO GPL-0001] ---- Initialize GPL Main Data Structures
+[INFO GPL-0002] DBU: 2000
+[INFO GPL-0003] SiteSize: (  0.190  1.400 ) um
+[INFO GPL-0004] CoreBBox: (  6.080  7.000 ) ( 238.640 470.400 ) um
+[INFO GPL-0016] Core area:                  107768.304 um^2
+[INFO GPL-0036] Movable instances area:      24425.716 um^2
+[INFO GPL-0037] Total instances area:        24645.964 um^2
+[INFO GPL-0035] Pin density area adjust:      1879.545 um^2
+[INFO GPL-0032] ---- Initialize Region: Top-level
+[INFO GPL-0006] Number of instances:             13497
+[INFO GPL-0007] Movable instances:               12669
+[INFO GPL-0008] Fixed instances:                   828
+[INFO GPL-0009] Dummy instances:                     0
+[INFO GPL-0010] Number of nets:                  15276
+[INFO GPL-0011] Number of pins:                  45157
+[INFO GPL-0012] Die BBox:       (  0.000  0.000 ) ( 244.750 477.500 ) um
+[INFO GPL-0013] Placement BBox: (  6.080  7.000 ) ( 238.640 470.400 ) um
+[INFO GPL-0014] Region name: top-level.
+[INFO GPL-0015] Region area:                107768.304 um^2
+[INFO GPL-0017] Fixed instances area:          220.248 um^2
+[INFO GPL-0018] Movable instances area:      26305.261 um^2
+[INFO GPL-0019] Utilization:                    24.459 %
+[INFO GPL-0020] Standard cells area:         26305.261 um^2
+[INFO GPL-0021] Large instances area:            0.000 um^2
+[INFO GPL-0154] Identified 12669 placed instances
+[INFO GPL-0155] Identified 0 not placed instances
+[INFO GPL-0156] Identified all instances as placed. Skipping incremental mode
+Perform buffer insertion and gate resizing...
+repair_design -verbose
+Iteration |   Area    | Resized | Buffers | Nets repaired | Remaining
+---------------------------------------------------------------------
+        0 |     +0.0% |       0 |       0 |             0 |     15276
+     1000 |     +0.0% |       0 |       2 |             2 |     14276
+     2000 |     +0.0% |       0 |       2 |             2 |     13276
+     3000 |     +0.0% |       0 |       2 |             2 |     12276
+     4000 |     +0.0% |       0 |       2 |             2 |     11276
+     5000 |     +0.0% |       0 |       2 |             2 |     10276
+     6000 |     +0.0% |       0 |       2 |             2 |      9276
+     7000 |     +0.0% |       0 |       2 |             2 |      8276
+     8000 |     +0.0% |       0 |       2 |             2 |      7276
+     9000 |     +0.0% |       0 |       2 |             2 |      6276
+    10000 |     +0.0% |       0 |       2 |             2 |      5276
+    11000 |     +0.0% |       0 |       2 |             2 |      4276
+    12000 |     +0.0% |       0 |       2 |             2 |      3276
+    13000 |     +0.0% |       0 |       2 |             2 |      2276
+    14000 |     +0.0% |       0 |       2 |             2 |      1276
+    15000 |     +0.0% |       0 |       2 |             2 |       276
+    final |     +0.0% |       0 |       2 |             2 |         0
+---------------------------------------------------------------------
+[INFO RSZ-0036] Found 2 capacitance violations.
+[INFO RSZ-0038] Inserted 2 buffers in 2 nets.
+[INFO RSZ-0504] Runtime: 0.61s
+Floating nets: 
+Report metrics stage 3, resizer...
+
+==========================================================================
+resizer report_design_area
+--------------------------------------------------------------------------
+Design area 24648 um^2 23% utilization.
+Instance count before 13497, after 13499
+Pin count before 44464, after 44468
+write_db ./results/nangate45/dynamic_node/base/3_4_place_resized.odb
+Elapsed time: 0:05.90[h:]min:sec. CPU time: user 6.95 sys 0.16 (120%). Peak memory: 296340KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+3_4_place_resized      .odb          5        7     1.21      289 e6bc6449e7

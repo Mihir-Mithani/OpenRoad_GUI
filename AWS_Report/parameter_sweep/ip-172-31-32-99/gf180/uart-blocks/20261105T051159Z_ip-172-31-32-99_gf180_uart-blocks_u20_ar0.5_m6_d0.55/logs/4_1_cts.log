@@ -1,0 +1,115 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/gf180/lib/gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50.lib.gz
+read_liberty ./results/gf180/uart-blocks_uart_rx/base/uart_rx_typ.lib
+read_db ./results/gf180/uart-blocks/base/3_place.odb
+read_sdc ./results/gf180/uart-blocks/base/3_place.sdc
+source /OpenROAD-flow-scripts/flow/platforms/gf180/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets
+[INFO CTS-0050] Root buffer is gf180mcu_fd_sc_mcu9t5v0__clkbuf_16.
+[INFO CTS-0051] Sink buffer is gf180mcu_fd_sc_mcu9t5v0__clkbuf_20.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    gf180mcu_fd_sc_mcu9t5v0__clkbuf_16
+                    gf180mcu_fd_sc_mcu9t5v0__clkbuf_20
+[INFO CTS-0049] Characterization buffer is gf180mcu_fd_sc_mcu9t5v0__clkbuf_20.
+[INFO CTS-0007] Net "clk" found for clock "clk".
+[INFO CTS-0011]  Clock net "clk" for macros has 1 sinks.
+[INFO CTS-0011]  Clock net "clk_regs" for registers has 35 sinks.
+[INFO CTS-0008] TritonCTS found 2 clock nets.
+[INFO CTS-0097] Characterization used 2 buffer(s) types.
+[INFO CTS-0201] 1 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 1.
+[INFO CTS-0029]  Macro  sinks will be clustered in groups of up to 4 and with maximum cluster diameter of 433.0 um.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 50400  dbu (25 um).
+[INFO CTS-0023]  Original sink region: [(52840, 61600), (52840, 61600)].
+[INFO CTS-0024]  Normalized sink region: [(1.04841, 1.22222), (1.04841, 1.22222)].
+[INFO CTS-0025]     Width:  0.0000.
+[INFO CTS-0026]     Height: 0.0000.
+ Level 1
+    Direction: Vertical
+    Sinks per sub-region: 1
+    Sub-region size: 0.0000 X 0.0000
+[INFO CTS-0034]     Segment length (rounded): 1.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (160112.454 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 1.
+[INFO CTS-0201] 1 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk_regs.
+[INFO CTS-0028]  Total number of sinks: 35.
+[INFO CTS-0090]  Sinks will be clustered based on buffer max cap.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 50400  dbu (25 um).
+[INFO CTS-0023]  Original sink region: [(16680, 500080), (353800, 749840)].
+[INFO CTS-0024]  Normalized sink region: [(0.330952, 9.92222), (7.01984, 14.8778)].
+[INFO CTS-0025]     Width:  6.6889.
+[INFO CTS-0026]     Height: 4.9556.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 18
+    Sub-region size: 3.3444 X 4.9556
+[INFO CTS-0034]     Segment length (rounded): 1.
+ Level 2
+    Direction: Vertical
+    Sinks per sub-region: 9
+    Sub-region size: 3.3444 X 2.4778
+[INFO CTS-0034]     Segment length (rounded): 1.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (160112.454 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 35.
+[INFO CTS-0018]     Created 2 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 2.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 2.
+[INFO CTS-0015]     Created 2 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 1:1..
+[INFO CTS-0017]     Max level of the clock tree: 1.
+[INFO CTS-0018]     Created 5 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 2.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 2.
+[INFO CTS-0015]     Created 5 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 7:1, 8:1, 10:2..
+[INFO CTS-0017]     Max level of the clock tree: 2.
+[INFO CTS-0124] Clock net "clk"
+[INFO CTS-0125]  Sinks 1
+[INFO CTS-0098] Clock net "clk_regs"
+[INFO CTS-0099]  Sinks 37
+[INFO CTS-0100]  Leaf buffers 0
+[INFO CTS-0101]  Average sink wire length 114.38 um
+[INFO CTS-0102]  Path depth 2 - 2
+[INFO CTS-0207]  Dummy loads inserted 2
+[INFO CTS-0033] Balancing latency for clock clk
+[INFO CTS-0036]  inserted 2 delay buffers
+[INFO CTS-0037] Total number of delay buffers: 2
+[INFO CTS-0500] Runtime: 0.55s
+estimate_parasitics -placement
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 228 moves: displacement total 1383.8 u, max 262.3 u; HPWL 19419.3 -> 20692.0 u (+6.6 %).
+[INFO DPL-0500] Runtime: 0.01s
+estimate_parasitics -placement
+repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -verbose
+[INFO RSZ-0100] Repair move sequence: UnbufferMove SizeUpMove SwapPinsMove BufferMove CloneMove SplitLoadMove 
+[INFO RSZ-0098] No setup violations found
+[INFO RSZ-0505] Runtime: 0.03s
+[INFO RSZ-0033] No hold violations found.
+[INFO RSZ-0506] Runtime: 0.00s
+Elapsed time: 0:00.35[h:]min:sec. CPU time: user 0.34 sys 0.01 (99%). Peak memory: 19508KB.
+Repair timing output passed lec test
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 0 moves: displacement total 0.0 u, max 0.0 u; HPWL 20692.0 -> 20692.0 u (+0.0 %).
+[INFO DPL-0500] Runtime: 0.01s
+check_placement -placeable -verbose
+estimate_parasitics -placement
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 63244 um^2 22% utilization.
+write_db ./results/gf180/uart-blocks/base/4_1_cts.odb
+write_sdc -no_timestamp ./results/gf180/uart-blocks/base/4_cts.sdc
+Elapsed time: 0:01.79[h:]min:sec. CPU time: user 1.69 sys 0.14 (101%). Peak memory: 273424KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+4_1_cts                .odb          0        0     1.00       19 6faf907d9d

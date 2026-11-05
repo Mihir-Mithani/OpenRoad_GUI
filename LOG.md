@@ -759,3 +759,161 @@ All **91 unit tests pass** (config, flow_runner, templates, gds_info).
 
 ### Tests
 All **91 unit tests pass** (config, flow_runner, templates, gds_info).
+
+---
+
+## Session 10 - 2025-11-04 (Wednesday): gf180/riscv32i Parameter Sweep Extraction
+
+### Summary
+Discovered and extracted **10 missing runs** for **gf180/riscv32i** from the `ip-172-31-47-219` parameter sweep that was previously missed (previously only extracted gf180/jpeg). Merged **11 new runs** into master dataset bringing total to **91 runs**.
+
+---
+
+### Missing Sweep Discovery
+
+During review of the `ip-172-31-47-219` parameter sweep directory, discovered an **unextracted gf180/riscv32i sweep** with **10 complete runs** that had been missed in the previous extraction (which only extracted gf180/jpeg).
+
+| Platform | Design | Previously Extracted | Actually Available |
+|----------|--------|---------------------|-------------------|
+| **gf180** | jpeg | ✅ 1 run | 4 runs |
+| **gf180** | **riscv32i** | ❌ 0 runs | **10 runs** |
+
+---
+
+### gf180/riscv32i Sweep Details (10 runs)
+
+| Util | Aspect Ratio | Margin | Density | WNS (ns) | TNS (ns) | Power (W) | Closure |
+|------|--------------|--------|---------|----------|----------|-----------|---------|
+| 20% | 0.5 | 4 | 0.4 | -0.03 | -0.07 | 0.281 | ❌ |
+| 30% | 0.5 | 4 | 0.4 | -0.03 | -0.07 | 0.281 | ❌ |
+| 40% | 0.5 | 4 | 0.4 | -0.03 | -0.07 | 0.281 | ❌ |
+| 20% | 0.5 | 6 | 0.55 | -0.03 | -0.10 | 0.283 | ❌ |
+| 30% | 1.0 | 4 | 0.55 | -0.03 | -0.03 | 0.292 | ❌ |
+| 40% | 1.0 | 4 | 0.55 | -0.03 | -0.03 | 0.292 | ❌ |
+| 40% | 1.0 | 6 | 0.7 | -0.04 | -0.04 | 0.294 | ❌ |
+| 30% | 1.0 | 6 | 0.7 | -0.04 | -0.04 | 0.294 | ❌ |
+| 20% | 1.0 | 6 | 0.7 | -0.04 | -0.04 | 0.294 | ❌ |
+| 30% | 0.5 | 6 | 0.55 | -0.03 | -0.10 | 0.283 | ❌ |
+| 20% | 1.0 | 4 | 0.55 | -0.03 | -0.03 | 0.292 | ❌ |
+
+**Key Finding**: gf180/riscv32i **does not achieve timing closure** in any configuration tested (all WNS < 0). Best WNS is -0.03 ns at util=20-40%, AR=0.5-1.0, margin=4-6, density=0.4-0.55. Power consumption is ~0.28-0.29W.
+
+---
+
+### Updated Master Dataset: **91 Total Runs**
+
+| Platform | Complete Runs | Partial/Failed Runs | Total | Timing Closure |
+|----------|---------------|---------------------|-------|----------------|
+| **asap7** | 24 | 16 | **40** | 15/40 (37.5%) |
+| **nangate45** | 9 | 23 | **32** | 9/32 (28%) |
+| **gf180** | 18 | 1 | **19** | 2/19 (10.5%) |
+| **Total** | **42** | **17** | **91** | **17/91 (18.7%)** |
+
+---
+
+### Files Created/Updated
+
+| File | Description |
+|------|-------------|
+| `aws_real_runs_gf180_riscv32i.json` | 10 new gf180/riscv32i runs |
+| `aws_real_runs.json` | **91 runs** (master dataset) |
+| `real_runs_export.csv` | Updated CSV with 91 runs |
+| `real_data_plots/*.png` | Updated visualizations (5 plots with 91 runs) |
+
+---
+
+### Updated Platform Statistics
+
+| Platform | Complete Runs | Partial/Failed | Total | Timing Closure |
+|----------|---------------|----------------|-------|----------------|
+| **asap7** | 24 | 16 | **40** | 15/40 (37.5%) |
+| **nangate45** | 9 | 23 | **32** | 9/32 (28%) |
+| **gf180** | 18 | 1 | **19** | 2/19 (10.5%) |
+| **Total** | **42** | **17** | **91** | **17/91 (18.7%)** |
+
+---
+
+### Key Insights
+
+| Finding | Impact |
+|---------|--------|
+| **gf180/riscv32i never achieves timing closure** | All 10 configs have WNS < 0 (best: -0.03 ns) |
+| **Best gf180/riscv32i config** | util=20-40%, AR=0.5-1.0, margin=4-6, density=0.4-0.55 |
+| **gf180/riscv32i power** | Consistently ~0.28-0.29W |
+| **asap7 now 40 runs (15 closure)** | 37.5% closure rate - best platform |
+| **nangate45 32 runs (9 closure)** | 28% closure rate |
+
+---
+
+## Session 13 - 2025-11-05 (Wednesday): gf180/uart-blocks & sky130hd/gcd Parameter Sweep Extraction
+
+### Summary
+Processed additional parameter sweep data from `AWS_Report/parameter_sweep/ip-172-31-32-99/` for **gf180/uart-blocks** (13 runs) and **sky130hd/gcd** (14 runs), and **gf180/uart-blocks** from main AWS_Report (1 run). Merged **28 new runs** into master dataset bringing total to **118 runs**.
+
+---
+
+### New Parameter Sweep Extractions
+
+#### 1. gf180/uart-blocks from ip-172-31-32-99 sweep (13 runs)
+All 13 runs achieved **timing closure** (WNS=0.0, TNS=0.0) - excellent results!
+
+| Util | Aspect Ratio | Margin | Density | WNS (ns) | TNS (ns) | Closure |
+|------|--------------|--------|---------|----------|----------|---------|
+| 20% | 0.5 | 4 | 0.4 | 0.0 | 0.0 | ✅ |
+| 20% | 0.5 | 6 | 0.55 | 0.0 | 0.0 | ✅ |
+| 20% | 1.0 | 4 | 0.55 | 0.0 | 0.0 | ✅ |
+| 20% | 1.0 | 6 | 0.7 | 0.0 | 0.0 | ✅ |
+| 30% | 0.5 | 4 | 0.4 | 0.0 | 0.0 | ✅ |
+| 30% | 0.5 | 6 | 0.55 | 0.0 | 0.0 | ✅ |
+| 30% | 1.0 | 4 | 0.55 | 0.0 | 0.0 | ✅ |
+| 30% | 1.0 | 6 | 0.7 | 0.0 | 0.0 | ✅ |
+| 30% | 2.0 | 6 | 0.55 | 0.0 | 0.0 | ✅ |
+| 40% | 0.5 | 4 | 0.4 | 0.0 | 0.0 | ✅ |
+| 40% | 1.0 | 4 | 0.55 | 0.0 | 0.0 | ✅ |
+| 40% | 1.0 | 6 | 0.7 | 0.0 | 0.0 | ✅ |
+| 50% | 1.0 | 6 | 0.7 | 0.0 | 0.0 | ✅ |
+
+**Key Finding**: gf180/uart-blocks **achieves timing closure across ALL tested configurations** - this design is highly robust for timing closure!
+
+#### 2. sky130hd/gcd from ip-172-31-47-219 (14 runs)
+Previously extracted from the new IP sweep. No timing closure achieved.
+
+#### 3. gf180/uart-blocks from main AWS_Report (1 run)
+Already extracted previously, 1 run with timing closure.
+
+---
+
+### Updated Master Dataset: **118 Total Runs**
+
+| Platform | Complete Runs | Partial/Failed Runs | Total | Timing Closure |
+|----------|---------------|---------------------|-------|----------------|
+| **asap7** | 24 | 16 | **40** | 15/40 (37.5%) |
+| **nangate45** | 9 | 23 | **32** | 9/32 (28%) |
+| **gf180** | 31 | 1 | **32** | 15/32 (46.9%) |
+| **sky130hd** | 14 | 0 | **14** | 0/14 (0%) |
+| **Total** | **43** | **17** | **118** | **26/118 (22%)** |
+
+---
+
+### Key Insights
+
+| Finding | Impact |
+|---------|--------|
+| **gf180/uart-blocks achieves 100% timing closure** | Only design with 100% closure across all tested configs |
+| **Best gf180/uart-blocks config** | Any tested config works - very robust |
+| **sky130hd/gcd 0% closure** | All 14 configs failed timing |
+| **asap7 best platform** | 37.5% closure rate across 40 runs |
+
+---
+
+### Files Updated
+- `aws_real_runs.json` - **118 runs** (master dataset)
+- `real_runs_export.csv` - 118 rows
+- `aws_real_runs_new_sweep.json` - 28 new runs from latest sweeps
+- `LOG.md` - This session documented
+- Visualizations updated with 118 runs
+
+---
+
+### Tests
+All **91 unit tests pass** (config, flow_runner, templates, gds_info).

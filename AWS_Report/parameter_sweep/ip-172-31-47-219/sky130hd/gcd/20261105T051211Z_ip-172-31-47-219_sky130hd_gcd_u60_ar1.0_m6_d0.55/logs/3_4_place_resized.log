@@ -1,0 +1,66 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/sky130hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_db -hier ./results/sky130hd/gcd/base/3_3_place_gp.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/sky130hd/gcd/base/2_floorplan.sdc
+source /OpenROAD-flow-scripts/flow/platforms/sky130hd/setRC.tcl
+estimate_parasitics -placement
+[INFO GPL-0098] Initialize gpl and estimate target density.
+[WARNING GPL-0186] Binary search didn't converge after 20 iterations. The best density found was 1, with an overflow of 0.15224.
+replace_arith_modules
+replace_arith_modules -path_count 1000 -target setup -slack_threshold 0.0
+[INFO RSZ-0151] Starting arithmetic module replacement to optimize 'setup' target
+[INFO RSZ-0152] Analyzing 1000 critical paths with slack < 0.00
+[INFO RSZ-0153] Identified 69 violating endpoints
+[INFO RSZ-0154] Identified 1 critical arithmetic instances
+[INFO RSZ-0160] 0 arithmetic instances have swapped to improve 'setup' target
+global_placement -incremental -density 1.0000001192092896
+[INFO GPL-0190] Using 1 of 2 threads for placement: one per core, SMT siblings idle.
+[INFO GPL-0083] Execute incremental mode global placement.
+[INFO GPL-0001] ---- Initialize GPL Main Data Structures
+[INFO GPL-0002] DBU: 1000
+[INFO GPL-0003] SiteSize: (  0.460  2.720 ) um
+[INFO GPL-0004] CoreBBox: (  6.440  8.160 ) ( 68.080 68.000 ) um
+[INFO GPL-0016] Core area:                    3688.538 um^2
+[INFO GPL-0036] Movable instances area:       3764.861 um^2
+[INFO GPL-0037] Total instances area:         3824.918 um^2
+[INFO GPL-0035] Pin density area adjust:       214.331 um^2
+[INFO GPL-0032] ---- Initialize Region: Top-level
+[INFO GPL-0006] Number of instances:               467
+[INFO GPL-0007] Movable instances:                 419
+[INFO GPL-0008] Fixed instances:                    48
+[INFO GPL-0009] Dummy instances:                     0
+[INFO GPL-0010] Number of nets:                    455
+[INFO GPL-0011] Number of pins:                   1329
+[INFO GPL-0012] Die BBox:       (  0.000  0.000 ) ( 74.095 74.095 ) um
+[INFO GPL-0013] Placement BBox: (  6.440  8.160 ) ( 68.080 68.000 ) um
+[INFO GPL-0014] Region name: top-level.
+[INFO GPL-0015] Region area:                  3688.538 um^2
+[INFO GPL-0017] Fixed instances area:           60.058 um^2
+[INFO GPL-0018] Movable instances area:       3979.192 um^2
+[INFO GPL-0019] Utilization:                   109.666 %
+[INFO GPL-0020] Standard cells area:          3979.192 um^2
+[INFO GPL-0021] Large instances area:            0.000 um^2
+[ERROR GPL-0301] Utilization 109.666 % exceeds 100%.
+GPL-0301
+    while executing
+"gpl::replace_incremental_place_cmd [array get keys] [array get flags]"
+    (procedure "global_placement" line 19)
+    invoked from within
+"global_placement -incremental -density 1.0000001192092896"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 [list $cmd {*}$args]"
+    (procedure "log_cmd" line 13)
+    invoked from within
+"log_cmd global_placement -incremental -density $density"
+    invoked from within
+"if { [env_var_equals SWAP_ARITH_OPERATORS 1] } {
+  # Enable sanity checker until replace_arith_modules becomes stable
+  set_debug_level ODB replace_de..."
+    (file "/OpenROAD-flow-scripts/flow/scripts/resize.tcl" line 18)
+Elapsed time: 0:00.75[h:]min:sec. CPU time: user 0.66 sys 0.10 (100%). Peak memory: 227804KB.

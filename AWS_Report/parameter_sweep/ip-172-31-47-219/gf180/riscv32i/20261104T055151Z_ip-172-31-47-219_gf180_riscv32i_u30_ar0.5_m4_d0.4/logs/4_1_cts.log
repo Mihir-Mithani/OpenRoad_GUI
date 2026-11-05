@@ -1,0 +1,100 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/gf180/lib/gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50.lib.gz
+read_db -hier ./results/gf180/riscv32i/base/3_place.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/gf180/riscv32i/base/3_place.sdc
+source /OpenROAD-flow-scripts/flow/platforms/gf180/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets
+[INFO CTS-0050] Root buffer is gf180mcu_fd_sc_mcu9t5v0__clkbuf_20.
+[INFO CTS-0051] Sink buffer is gf180mcu_fd_sc_mcu9t5v0__clkbuf_20.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    gf180mcu_fd_sc_mcu9t5v0__clkbuf_20
+[INFO CTS-0049] Characterization buffer is gf180mcu_fd_sc_mcu9t5v0__clkbuf_20.
+[INFO CTS-0007] Net "clk" found for clock "clk".
+[INFO CTS-0010]  Clock net "clk" has 1056 sinks.
+[INFO CTS-0008] TritonCTS found 1 clock nets.
+[INFO CTS-0097] Characterization used 1 buffer(s) types.
+[INFO CTS-0201] 0 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 1056.
+[INFO CTS-0090]  Sinks will be clustered based on buffer max cap.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 50400  dbu (25 um).
+[INFO CTS-0206] Best clustering solution was found from max clustering size of 39 and max clustering diameter of 211.
+[INFO CTS-0019]  Total number of sinks after clustering: 32.
+[INFO CTS-0024]  Normalized sink region: [(2.48846, 1.45163), (37.0588, 20.0816)].
+[INFO CTS-0025]     Width:  34.5704.
+[INFO CTS-0026]     Height: 18.6300.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 16
+    Sub-region size: 17.2852 X 18.6300
+[INFO CTS-0034]     Segment length (rounded): 8.
+ Level 2
+    Direction: Vertical
+    Sinks per sub-region: 8
+    Sub-region size: 17.2852 X 9.3150
+[INFO CTS-0034]     Segment length (rounded): 4.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (160112.454 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 32.
+[INFO CTS-0018]     Created 37 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 3.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 3.
+[INFO CTS-0015]     Created 37 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 6:1, 7:1, 9:1, 10:1, 24:1, 25:1, 26:1, 30:3, 31:4, 32:2, 33:3, 34:7, 35:4, 37:3, 38:2, 39:1..
+[INFO CTS-0017]     Max level of the clock tree: 2.
+[INFO CTS-0098] Clock net "clk"
+[INFO CTS-0099]  Sinks 1087
+[INFO CTS-0100]  Leaf buffers 32
+[INFO CTS-0101]  Average sink wire length 1300.26 um
+[INFO CTS-0102]  Path depth 2 - 3
+[INFO CTS-0207]  Dummy loads inserted 31
+[INFO CTS-0500] Runtime: 1.10s
+estimate_parasitics -placement
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 3254 moves: displacement total 23323.1 u, max 29.7 u; HPWL 443773.0 -> 454648.8 u (+2.5 %).
+[INFO DPL-0500] Runtime: 0.27s
+estimate_parasitics -placement
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -skip_gate_cloning -verbose
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -1.466 |     -353.8 |    839 | aluout[0]
+       1* |       0 |      15 |        1 |      0 |     0 |    +0.1% |   -0.900 |      -67.9 |    495 | aluout[0]
+       2* |       0 |      51 |       12 |      0 |     0 |    +0.5% |   -0.602 |       -9.5 |     83 | aluout[0]
+       3* |       0 |      71 |       23 |      0 |     0 |    +0.8% |   -0.406 |       -4.1 |     25 | aluout[0]
+       4* |       0 |      85 |       26 |      0 |     0 |    +0.9% |   -0.168 |       -0.7 |      9 | aluout[0]
+       5* |       0 |     103 |       28 |      0 |     0 |    +1.1% |   -0.041 |       -0.0 |      1 | aluout[0]
+       6* |       0 |     105 |       28 |      0 |     0 |    +1.1% |   -0.040 |       -0.0 |      1 | aluout[0]
+       7* |       0 |     111 |       29 |      0 |     0 |    +1.2% |   -0.013 |       -0.0 |      1 | aluout[0]
+    final |       0 |     114 |       30 |      0 |     0 |    +1.3% |    0.021 |        0.0 |      0 | aluout[0]
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0045] Inserted 30 buffers, 4 to split loads.
+[INFO RSZ-0051] Resized 114 instances: 114 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0505] Runtime: 4.05s
+[INFO RSZ-0033] No hold violations found.
+[INFO RSZ-0506] Runtime: 0.01s
+Elapsed time: 0:00.76[h:]min:sec. CPU time: user 0.91 sys 0.03 (123%). Peak memory: 69200KB.
+Repair timing output passed lec test
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 2551 moves: displacement total 1044.7 u, max 27.6 u; HPWL 457342.1 -> 458273.2 u (+0.2 %).
+[INFO DPL-0500] Runtime: 0.23s
+check_placement -placeable -verbose
+estimate_parasitics -placement
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 363937 um^2 67% utilization.
+write_db ./results/gf180/riscv32i/base/4_1_cts.odb
+write_sdc -no_timestamp ./results/gf180/riscv32i/base/4_cts.sdc
+Elapsed time: 0:14.46[h:]min:sec. CPU time: user 21.26 sys 0.23 (148%). Peak memory: 331940KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+4_1_cts                .odb          0        1     1.24       67 44ebb5a10d
