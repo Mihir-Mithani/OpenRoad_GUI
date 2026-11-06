@@ -1,0 +1,101 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+source /OpenROAD-flow-scripts/flow/platforms/asap7/liberty_suppressions.tcl
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz
+read_liberty /OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_RVT_FF_nldm_220123.lib
+read_db ./results/asap7/aes/base/3_place.odb
+read_sdc ./results/asap7/aes/base/3_place.sdc
+source /OpenROAD-flow-scripts/flow/platforms/asap7/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets
+[INFO CTS-0050] Root buffer is BUFx16f_ASAP7_75t_R.
+[INFO CTS-0051] Sink buffer is BUFx24_ASAP7_75t_R.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    BUFx16f_ASAP7_75t_R
+                    BUFx24_ASAP7_75t_R
+[INFO CTS-0049] Characterization buffer is BUFx24_ASAP7_75t_R.
+[INFO CTS-0007] Net "clk" found for clock "clk".
+[INFO CTS-0010]  Clock net "clk" has 530 sinks.
+[INFO CTS-0008] TritonCTS found 1 clock nets.
+[INFO CTS-0097] Characterization used 2 buffer(s) types.
+[INFO CTS-0201] 0 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 530.
+[INFO CTS-0090]  Sinks will be clustered based on buffer max cap.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 1350  dbu (1 um).
+[INFO CTS-0206] Best clustering solution was found from max clustering size of 27 and max clustering diameter of 22.
+[INFO CTS-0019]  Total number of sinks after clustering: 28.
+[INFO CTS-0024]  Normalized sink region: [(4.17303, 11.7), (44.1359, 37.35)].
+[INFO CTS-0025]     Width:  39.9628.
+[INFO CTS-0026]     Height: 25.6500.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 14
+    Sub-region size: 19.9814 X 25.6500
+[INFO CTS-0034]     Segment length (rounded): 10.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (137.460 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 28.
+[INFO CTS-0018]     Created 31 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 3.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 3.
+[INFO CTS-0015]     Created 31 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 12:2, 13:3, 14:5, 16:2, 17:1, 19:2, 20:5, 21:1, 22:2, 23:2, 25:4, 27:1..
+[INFO CTS-0017]     Max level of the clock tree: 1.
+[INFO CTS-0098] Clock net "clk"
+[INFO CTS-0099]  Sinks 554
+[INFO CTS-0100]  Leaf buffers 28
+[INFO CTS-0101]  Average sink wire length 81.31 um
+[INFO CTS-0102]  Path depth 2 - 3
+[INFO CTS-0207]  Dummy loads inserted 24
+[INFO CTS-0500] Runtime: 1.37s
+estimate_parasitics -placement
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 1800 moves: displacement total 1577.0 u, max 2.3 u; HPWL 46865.9 -> 47622.0 u (+1.6 %).
+[INFO DPL-0500] Runtime: 0.10s
+estimate_parasitics -placement
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -verbose
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -6.021 |      -35.1 |     17 | u974/D
+       1* |       0 |      20 |        8 |      0 |     0 |    +0.1% |   -1.320 |       -4.5 |      6 | u2643/D
+       2* |       0 |      30 |       10 |      0 |     0 |    +0.1% |   -1.207 |       -1.9 |      3 | u933/D
+       3* |       0 |      30 |       10 |      0 |     0 |    +0.1% |   -1.207 |       -1.9 |      3 | u933/D
+       4* |       0 |      30 |       10 |      0 |     0 |    +0.1% |   -1.207 |       -1.9 |      3 | u933/D
+       5* |       0 |      30 |       10 |      0 |     0 |    +0.1% |   -1.207 |       -1.9 |      3 | u933/D
+       6* |       0 |      30 |       13 |      0 |     0 |    +0.2% |   -0.382 |       -0.6 |      2 | u556/D
+       7* |       0 |      31 |       13 |      0 |     0 |    +0.2% |   -0.136 |       -0.1 |      1 | u682/D
+       8* |       0 |      31 |       13 |      0 |     0 |    +0.2% |   -0.136 |       -0.1 |      1 | u682/D
+    final |       0 |      31 |       16 |      0 |     0 |    +0.2% |    0.379 |        0.0 |      0 | u6414/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0045] Inserted 16 buffers, 1 to split loads.
+[INFO RSZ-0051] Resized 31 instances: 31 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0505] Runtime: 1.86s
+[INFO RSZ-0033] No hold violations found.
+[INFO RSZ-0506] Runtime: 0.01s
+Elapsed time: 0:01.50[h:]min:sec. CPU time: user 1.52 sys 0.04 (103%). Peak memory: 79184KB.
+Repair timing output passed lec test
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 1131 moves: displacement total 12.3 u, max 0.9 u; HPWL 47639.4 -> 47646.6 u (+0.0 %).
+[INFO DPL-0500] Runtime: 0.08s
+check_placement -placeable -verbose
+estimate_parasitics -placement
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 1445 um^2 42% utilization.
+write_db ./results/asap7/aes/base/4_1_cts.odb
+write_sdc -no_timestamp ./results/asap7/aes/base/4_cts.sdc
+Elapsed time: 0:11.46[h:]min:sec. CPU time: user 15.25 sys 0.27 (135%). Peak memory: 401164KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+4_1_cts                .odb          1        2     1.04       77 ba8cbf4bdd

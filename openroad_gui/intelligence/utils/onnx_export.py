@@ -76,30 +76,29 @@ class ONNXExporter:
 
             model_data = joblib.load(model_path)
             lgb_model = model_data['model']
-            preprocessor = model_data.get('preprocessor')
+
+            # Use the correct inference preprocessor (not the saved one which has wrong categories)
+            preprocessor = _create_inference_preprocessor()
 
             # Get input dimension from preprocessor
-            if preprocessor:
-                import pandas as pd
-                dummy = pd.DataFrame([{
-                    'platform': 'sky130hd',
-                    'core_aspect_ratio': 1.0,
-                    'core_utilization': 30,
-                    'core_margin': 5,
-                    'num_instances': 5000,
-                    'num_nets': 6000,
-                    'num_sequential': 1000,
-                    'num_macros': 2,
-                    'macro_area_ratio': 0.05,
-                    'log_instances': np.log1p(5000)/20,
-                    'log_nets': np.log1p(6000)/20,
-                    'seq_ratio': 0.2,
-                    'macro_ratio': 0.0004,
-                }])
-                X_dummy = preprocessor.transform(dummy)
-                input_dim = X_dummy.shape[1]
-            else:
-                input_dim = 17  # current feature dim after preprocessing
+            import pandas as pd
+            dummy = pd.DataFrame([{
+                'platform': 'sky130hd',
+                'core_aspect_ratio': 1.0,
+                'core_utilization': 30,
+                'core_margin': 5,
+                'num_instances': 5000,
+                'num_nets': 6000,
+                'num_sequential': 1000,
+                'num_macros': 2,
+                'macro_area_ratio': 0.05,
+                'log_instances': np.log1p(5000)/20,
+                'log_nets': np.log1p(6000)/20,
+                'seq_ratio': 0.2,
+                'macro_ratio': 0.0004,
+            }])
+            X_dummy = preprocessor.transform(dummy)
+            input_dim = X_dummy.shape[1]
 
             initial_type = [('float_input', FloatTensorType([None, input_dim]))]
 
@@ -112,7 +111,7 @@ class ONNXExporter:
             )
 
             onnx.save_model(onnx_model, str(output_path))
-            print(f"Exported LightGBM {target} to ONNX: {output_path}")
+            print(f"Exported LightGBM {target} to ONNX: {output_path} (input_dim={input_dim})")
             return True
 
         except Exception as e:
@@ -189,10 +188,8 @@ class ONNXInferenceEngine:
         self._load_preprocessor()
 
     def _load_preprocessor(self):
-        """Load the shared preprocessor."""
-        preprocessor_path = self.model_dir / "surrogate_preprocessor.pkl"
-        if preprocessor_path.exists():
-            self.preprocessor = joblib.load(preprocessor_path)
+        """Load the correct preprocessor for inference matching the training pipeline."""
+        self.preprocessor = _load_preprocessor_for_model_dir(self.model_dir)
 
     def load_model(self, target: str, model_type: str = 'lgb') -> bool:
         """Load ONNX model for inference."""
@@ -229,7 +226,14 @@ class ONNXInferenceEngine:
         input_name = session.get_inputs()[0].name
         output = session.run(None, {input_name: X.astype(np.float32)})
 
-        return float(output[0][0])
+        # Handle different output shapes (0-d array, 1-d array with 1 element, etc.)
+        pred = output[0]
+        if pred.ndim == 0:
+            return float(pred)
+        elif pred.ndim == 1 and pred.size == 1:
+            return float(pred[0])
+        else:
+            return float(pred.flatten()[0])
 
     def predict_batch(self, features_list: List[Dict], target: str, model_type: str = 'lgb') -> List[float]:
         """Batch inference."""
@@ -251,6 +255,86 @@ class ONNXInferenceEngine:
         return output[0].flatten().tolist()
 
 
+def _create_inference_preprocessor(model_dir: Path = None):
+    """Load or create the correct preprocessor for inference matching the training pipeline.
+
+    The training script (train_surrogate_v2.py) saves the preprocessor as surrogate_preprocessor_v2.pkl
+    which is fitted on the full dataset (including target columns) then drops them via ColumnTransformer.
+    """
+    from sklearn.preprocessing import StandardScaler, OneHotEncoder
+    from sklearn.compose import ColumnTransformer
+    import joblib
+
+    # First try to load the v2 preprocessor saved by train_surrogate_v2.py
+    if model_dir is not None:
+        v2_preprocessor_path = model_dir / "surrogate_preprocessor_v2.pkl"
+        if v2_preprocessor_path.exists():
+            return joblib.load(v2_preprocessor_path)
+
+    # Fallback: create compatible preprocessor with explicit categories
+    CATEGORICAL_FEATURES = ['platform', 'core_aspect_ratio']
+    NUMERIC_FEATURES = [
+        'core_utilization', 'core_margin',
+        'num_instances', 'num_nets', 'num_sequential', 'num_macros', 'macro_area_ratio',
+        'log_instances', 'log_nets', 'seq_ratio', 'macro_ratio',
+    ]
+
+    # Explicit categories from training data
+    platform_categories = ['asap7', 'gf180', 'nangate45', 'sky130hd']
+    aspect_ratio_categories = [1.0]  # Only 1.0 in training data
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('cat', OneHotEncoder(
+                handle_unknown='ignore',
+                sparse_output=False,
+                categories=[platform_categories, aspect_ratio_categories]
+            ), CATEGORICAL_FEATURES),
+            ('num', StandardScaler(), NUMERIC_FEATURES),
+        ],
+        remainder='drop'
+    )
+
+    # Fit on a single sample with correct dtypes to establish feature_names_in_
+    import pandas as pd
+    import numpy as np
+    fit_df = pd.DataFrame([{
+        'platform': 'sky130hd',
+        'core_aspect_ratio': 1.0,
+        'core_utilization': 30.0,
+        'core_margin': 5.0,
+        'num_instances': 5000,
+        'num_nets': 6000,
+        'num_sequential': 1000,
+        'num_macros': 2,
+        'macro_area_ratio': 0.05,
+        'log_instances': np.log1p(5000)/20,
+        'log_nets': np.log1p(6000)/20,
+        'seq_ratio': 0.2,
+        'macro_ratio': 0.0004,
+    }])
+    preprocessor.fit(fit_df)
+    return preprocessor
+
+
+def _load_preprocessor_for_model_dir(model_dir: Path):
+    """Load the appropriate preprocessor for the given model directory."""
+    # Try v2 preprocessor first (from train_surrogate_v2.py)
+    v2_path = model_dir / "surrogate_preprocessor_v2.pkl"
+    if v2_path.exists():
+        import joblib
+        return joblib.load(v2_path)
+
+    # Try legacy preprocessor
+    legacy_path = model_dir / "surrogate_preprocessor.pkl"
+    if legacy_path.exists():
+        import joblib
+        return joblib.load(legacy_path)
+
+    # Fallback: create compatible one
+    return _create_inference_preprocessor(model_dir)
+
+
 class SurrogateInference:
     """High-level inference using joblib models (no ONNX required)."""
 
@@ -262,10 +346,8 @@ class SurrogateInference:
 
     def _load_all(self):
         """Load preprocessor and all available models."""
-        # Try loading separate preprocessor file first
-        preprocessor_path = self.model_dir / "surrogate_preprocessor.pkl"
-        if preprocessor_path.exists():
-            self.preprocessor = joblib.load(preprocessor_path)
+        # Load the correct preprocessor that matches the trained models
+        self.preprocessor = _load_preprocessor_for_model_dir(self.model_dir)
 
         targets = ['wns', 'tns', 'area', 'power']
         for target in targets:
@@ -282,9 +364,6 @@ class SurrogateInference:
                 # 2. Direct model object
                 if isinstance(model_data, dict):
                     self.models[target]['lgb'] = model_data.get('model', model_data)
-                    # If we don't have a preprocessor yet, try to get it from model_data
-                    if self.preprocessor is None and 'preprocessor' in model_data:
-                        self.preprocessor = model_data['preprocessor']
                 else:
                     self.models[target]['lgb'] = model_data
 
@@ -293,7 +372,7 @@ class SurrogateInference:
                 mlp_path = self.model_dir / f"surrogate_{target}_mlp.pt"
                 if mlp_path.exists():
                     checkpoint = torch.load(mlp_path, map_location='cpu', weights_only=False)
-                    model = MLPRegressor(checkpoint.get('input_dim', 17))
+                    model = MLPRegressor(checkpoint.get('input_dim', 16))  # 16 features after correct preprocessing
                     model.load_state_dict(checkpoint['model_state'])
                     model.eval()
                     self.models[target]['mlp'] = model

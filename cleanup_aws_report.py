@@ -109,6 +109,54 @@ def clean_aws_report(aws_root: Path, dry_run: bool = False) -> dict:
 
     return stats
 
+    # Also clean results directories that don't have their own metadata (e.g., duplicate folders)
+    # Find all results directories under aws_root
+    for results_dir in aws_root.rglob("results"):
+        if not results_dir.is_dir():
+            continue
+        # Skip if already processed (has parent with run_metadata.json)
+        parent_has_meta = any(p.name == "run_metadata.json" for p in results_dir.parent.rglob("run_metadata.json") if p.parent == results_dir.parent)
+        if parent_has_meta:
+            continue  # Already processed via metadata file
+        
+        for file_path in results_dir.rglob("*"):
+            if not file_path.is_file():
+                continue
+
+            # Check if we should keep this file
+            if file_path.name in KEEP_FILES:
+                stats["kept_files"] += 1
+                continue
+
+            # Check extension
+            should_remove = False
+            for ext in REMOVE_EXTENSIONS:
+                if file_path.name.endswith(ext):
+                    should_remove = True
+                    break
+
+            if should_remove:
+                size = get_size(file_path)
+                stats["removed_files"] += 1
+                stats["removed_bytes"] += size
+                ext = file_path.suffix
+                if ext == ".gz" and file_path.name.endswith(".v.gz"):
+                    ext = ".v.gz"
+                stats["by_extension"][ext] = stats["by_extension"].get(ext, 0) + size
+
+                if not dry_run:
+                    try:
+                        file_path.unlink()
+                    except OSError as e:
+                        print(f"Error removing {file_path}: {e}")
+                        stats["errors"] += 1
+                else:
+                    print(f"Would remove: {file_path} ({format_size(size)})")
+            else:
+                stats["kept_files"] += 1
+
+    return stats
+
 def remove_empty_dirs(aws_root: Path, dry_run: bool = False) -> int:
     """Remove empty directories after cleaning."""
     removed = 0

@@ -917,3 +917,67 @@ Already extracted previously, 1 run with timing closure.
 
 ### Tests
 All **91 unit tests pass** (config, flow_runner, templates, gds_info).
+
+---
+
+## Session 14 - 2025-11-06 (Thursday): Area/Power Parsing Fix, Cleanup, New Sweep Analysis
+
+### Summary
+Fixed area/power parsing from JSON reports, cleaned up 14.2 GB of large files, analyzed new nangate45/aes sweep batch (all 13 failed).
+
+### 1. Area & Power Parsing Fixed
+**Root cause**: Area/power data was in JSON reports (`logs/6_report.json`) but parser only read text reports.
+- Added `parse_finish_json_report()` to extract `finish__design__instance__area` and `finish__power__total` from JSON
+- Fixed `extract_parameter_sweep_run()` to properly detect platform/design from folder names
+- **Result**: Area coverage 92% (116/126), Power coverage 92% (116/126) - from 0%
+
+### 2. Cleanup & Disk Space Recovery (14.2 GB)
+**Removed**: 1,192 large files (.odb, .gds, .def, .spef) from parameter sweep duplicate folders
+**Freed**: 14.2 GB (11.3 GB .odb, 1.7 GB .gds, 827 MB .def, 331 MB .spef)
+**Kept**: Reports, logs, metadata, configs
+
+### 3. Dataset Analysis: 126/168 runs extracted (75%)
+**Missing 42 runs**: Failed/partial runs without finish reports, failed/timed_out runs, missing metadata
+**Final dataset**: 126 runs across 4 platforms, 10 designs
+
+| Platform | Runs | Designs | Timing Closure |
+|----------|------|---------|----------------|
+| **asap7** | 38 | 3 | 14/38 (36.8%) |
+| **gf180** | 44 | 4 | 13/44 (29.5%) |
+| **nangate45** | 24 | 2 | 9/24 (37.5%) |
+| **sky130hd** | 20 | 1 | 0/20 (0%) |
+| **Total** | **126** | **10** | **36/126 (28.6%)** |
+
+### 4. New Sweep Batch: nangate45/aes (13 configs - ALL FAILED)
+**Location**: `AWS_Report/parameter_sweep/ip-172-31-32-99/nangate45/aes/`
+**Failure reason**: Floorplan config conflict - `FLOORPLAN_DEF` (fixed floorplan) + utilization/aspect_ratio/margin parameters are mutually exclusive in ORFS
+**Error**: `Error: Floorplan initialization methods are mutually exclusive, pick one.`
+**Root cause**: Config has both fixed floorplan def file AND utilization/aspect_ratio/margin parameters
+**Status**: All 13 failed during floorplan - no PPA data generated
+
+### Cleanup
+**Removed**: Failed nangate45/aes sweep batch (13 failed runs - no PPA data)
+**Disk space**: Freed ~80 MB (synthesis .odb files only)
+
+### Updated Master Dataset: **126 Total Runs**
+
+| Platform | Runs | Designs | Timing Closure |
+|----------|------|---------|----------------|
+| **asap7** | 38 | 3 | 14/38 (36.8%) |
+| **gf180** | 44 | 4 | 13/44 (29.5%) |
+| **nangate45** | 24 | 2 | 9/24 (37.5%) |
+| **sky130hd** | 20 | 1 | 0/20 (0%) |
+| **Total** | **126** | **10** | **36/126 (28.6%)** |
+
+### Files Updated
+- `real_runs.json` - **126 runs** (master dataset)
+- `real_runs_export.csv` - 126 rows
+- `LOG.md` - This session documented
+- `extract_comprehensive_aws.py` - Fixed area/power parsing, sweep extraction
+- `cleanup_aws_report.py` - Fixed duplicate folder cleanup
+
+### Visualization Scripts Updated
+Updated `visualize_nangate45.py`, `visualize_final.py`, and `visualize_all.py` with 126-run dataset.
+
+### Tests
+All **91 unit tests pass** (config, flow_runner, templates, gds_info).

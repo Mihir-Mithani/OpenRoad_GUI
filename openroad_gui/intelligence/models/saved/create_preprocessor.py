@@ -19,47 +19,43 @@ NUMERIC_FEATURES = [
     'log_instances', 'log_nets', 'seq_ratio', 'macro_ratio',
 ]
 
+# Explicit categories from actual training data
+PLATFORM_CATEGORIES = ['asap7', 'gf180', 'nangate45', 'sky130hd']
+ASPECT_RATIO_CATEGORIES = [1.0]  # Only 1.0 in training data
+
+
 def create_preprocessor():
-    """Create and fit the ColumnTransformer preprocessor."""
+    """Create and fit the ColumnTransformer preprocessor for inference."""
 
-    # Create sample data to fit the preprocessor
-    # This matches the training data distribution
-    np.random.seed(42)
-    n_samples = 1000
-
-    platforms = np.random.choice(['sky130hd', 'asap7', 'nangate45', 'gf180'], n_samples, p=[0.3, 0.3, 0.2, 0.2])
-    aspect_ratios = np.random.choice([0.5, 0.67, 0.8, 1.0, 1.2, 1.33, 1.5, 1.67, 2.0, 2.5, 3.0], n_samples)
-
-    # Generate realistic feature values
-    data = {
-        'platform': platforms,
-        'core_aspect_ratio': aspect_ratios.astype(str),  # categorical as string
-        'core_utilization': np.random.uniform(10, 80, n_samples),
-        'core_margin': np.random.uniform(1, 10, n_samples),
-        'num_instances': np.random.lognormal(8, 1.5, n_samples).astype(int),
-        'num_nets': np.random.lognormal(8.5, 1.3, n_samples).astype(int),
-        'num_sequential': np.random.lognormal(7, 1.2, n_samples).astype(int),
-        'num_macros': np.random.poisson(2, n_samples),
-        'macro_area_ratio': np.random.uniform(0, 0.5, n_samples),
-        'log_instances': np.log1p(np.random.lognormal(8, 1.5, n_samples)) / 20,
-        'log_nets': np.log1p(np.random.lognormal(8.5, 1.3, n_samples)) / 20,
-        'seq_ratio': np.random.beta(2, 8, n_samples),
-        'macro_ratio': np.random.beta(1, 50, n_samples),
-    }
-
-    df = pd.DataFrame(data)
-
-    # Create preprocessor matching train_surrogate.py
     preprocessor = ColumnTransformer(
         transformers=[
-            ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), CATEGORICAL_FEATURES),
+            ('cat', OneHotEncoder(
+                handle_unknown='ignore',
+                sparse_output=False,
+                categories=[PLATFORM_CATEGORIES, ASPECT_RATIO_CATEGORIES]
+            ), CATEGORICAL_FEATURES),
             ('num', StandardScaler(), NUMERIC_FEATURES),
         ],
         remainder='drop'
     )
 
-    # Fit on sample data
-    preprocessor.fit(df)
+    # Fit on a single sample with correct dtypes to establish feature_names_in_
+    fit_df = pd.DataFrame([{
+        'platform': 'sky130hd',
+        'core_aspect_ratio': 1.0,
+        'core_utilization': 30.0,
+        'core_margin': 5.0,
+        'num_instances': 5000,
+        'num_nets': 6000,
+        'num_sequential': 1000,
+        'num_macros': 2,
+        'macro_area_ratio': 0.05,
+        'log_instances': np.log1p(5000)/20,
+        'log_nets': np.log1p(6000)/20,
+        'seq_ratio': 0.2,
+        'macro_ratio': 0.0004,
+    }])
+    preprocessor.fit(fit_df)
 
     return preprocessor
 
@@ -80,7 +76,7 @@ if __name__ == "__main__":
     # Test transform
     test_df = pd.DataFrame([{
         'platform': 'sky130hd',
-        'core_aspect_ratio': '1.0',
+        'core_aspect_ratio': 1.0,
         'core_utilization': 30.0,
         'core_margin': 5.0,
         'num_instances': 5000,

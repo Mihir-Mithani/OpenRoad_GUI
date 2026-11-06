@@ -10,6 +10,7 @@ Extracts ALL available data from AWS_Report including:
 import json
 import re
 import os
+import csv
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
@@ -125,6 +126,26 @@ def parse_finish_report(report_path: Path) -> Dict[str, Any]:
                 metrics["power_w"] = float(total_match.group(1))
             except ValueError:
                 pass
+    return metrics
+
+
+def parse_finish_json_report(logs_dir: Path) -> Dict[str, Any]:
+    """Parse area and other metrics from the JSON report (6_report.json)."""
+    metrics = {}
+    json_path = logs_dir / "6_report.json"
+    if not json_path.exists():
+        return metrics
+    try:
+        import json
+        data = json.loads(json_path.read_text())
+        # Extract area
+        if "finish__design__instance__area" in data:
+            metrics["area_um2"] = float(data["finish__design__instance__area"])
+        # Extract power from JSON as fallback
+        if "power_w" not in globals() and "finish__power__total" in data:
+            metrics["power_w"] = float(data["finish__power__total"])
+    except Exception:
+        pass
     return metrics
 
 def parse_logs_for_runtime(logs_dir: Path) -> Dict[str, float]:
@@ -287,15 +308,49 @@ def main():
         platform_dirs = [aws_report_root / args.platform]
     else:
         platform_dirs = [p for p in aws_report_root.iterdir()
-                         if p.is_dir() and not p.name.startswith(".") and p.name != "parameter_sweep"]
+                         if p.is_dir() and not p.name.startswith(".")]
 
     for platform_dir in platform_dirs:
         platform = platform_dir.name
         print(f"\nProcessing platform: {platform}...")
 
-        for design_dir in platform_dir.iterdir():
-            if not design_dir.is_dir():
-                continue
+        if platform == "parameter_sweep":
+            # Handle parameter sweep directory structure
+            for sweep_ip_dir in platform_dir.iterdir():
+                if not sweep_ip_dir.is_dir() or sweep_ip_dir.name.startswith("."):
+                    continue
+                for sweep_platform_dir in sweep_ip_dir.iterdir():
+                    if not sweep_platform_dir.is_dir() or sweep_platform_dir.name.startswith("."):
+                        continue
+                    sweep_platform = sweep_platform_dir.name
+                    print(f"\nProcessing sweep platform: {sweep_platform}...")
+
+                    for design_dir in sweep_platform_dir.iterdir():
+                        if not design_dir.is_dir():
+                            continue
+                        design = design_dir.name
+                        if design == ".DS_Store":
+                            continue
+
+                        run_dirs = [d for d in design_dir.iterdir() if d.is_dir() and not d.name.startswith(".")]
+
+                        for run_dir in run_dirs:
+                            if not (run_dir / "run_metadata.json").exists():
+                                continue
+
+                            finish_report = run_dir / "reports" / "6_finish.rpt"
+                            if finish_report.exists() or args.include_failed:
+                                print(f"  Processing {design}/{run_dir.name}...")
+                                record = extract_parameter_sweep_run(run_dir, sweep_platform)
+                                if record:
+                                    all_records.append(record)
+                                    wns = record.get("final_wns_ns", "N/A")
+                                    tns = record.get("final_tns_ns", "N/A")
+                                    power = record.get("final_power_w", "N/A")
+                                    status = record.get("status", "unknown")
+                                    completeness = record.get("data_completeness", "unknown")
+                                    print(f"    ✅ {record['run_id']}: status={status}, completeness={completeness}, WNS={wns}, TNS={tns}")
+            continue
             design = design_dir.name
             if design == "parameter_sweep":
                 continue
@@ -335,8 +390,13 @@ def main():
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(all_records, indent=2, default=str))
 
+    # Also save CSV
+    csv_path = output_path.with_suffix('.csv')
+    _write_csv(all_records, csv_path)
+
     print(f"\n✅ Extracted {len(all_records)} total runs")
     print(f"   Saved to: {output_path}")
+    print(f"   CSV saved to: {csv_path}")
 
     # Summary
     if all_records:
@@ -397,6 +457,9 @@ def extract_standard_run(run_dir: Path, platform: str) -> Optional[dict]:
         cts_metrics = parse_stage_report(run_dir / "reports" / "4_cts_final.rpt", "cts")
         route_metrics = parse_stage_report(run_dir / "reports" / "5_global_route.rpt", "route")
         finish_metrics = parse_finish_report(run_dir / "reports" / "6_finish.rpt") if has_finish else {}
+        # Parse JSON report for area and additional metrics
+        json_metrics = parse_finish_json_report(logs_dir)
+        finish_metrics.update(json_metrics)
 
         # Parse runtimes
         stage_runtimes = parse_logs_for_runtime(logs_dir)
@@ -429,6 +492,7 @@ def extract_standard_run(run_dir: Path, platform: str) -> Optional[dict]:
             "final_setup_violations": int(finish_metrics.get("setup_violations", 0)),
             "final_hold_violations": int(finish_metrics.get("hold_violations", 0)),
             "final_power_w": finish_metrics.get("power_w"),
+            "final_area_um2": finish_metrics.get("area_um2"),
             "start_utc": metadata.get("start_utc"),
             "end_utc": metadata.get("end_utc"),
             "timing_closure": (finish_metrics.get("wns_ns", 1.0) >= 0) if finish_metrics.get("wns_ns") is not None else False,
@@ -443,7 +507,7 @@ def extract_standard_run(run_dir: Path, platform: str) -> Optional[dict]:
         return None
 
 def extract_parameter_sweep_run(run_dir: Path, platform: str) -> Optional[dict]:
-    """Extract data from parameter sweep run directory (nangate45)."""
+    """Extract data from parameter sweep run directory (supports all platforms)."""
     try:
         meta_path = run_dir / "run_metadata.json"
         config_path = run_dir / "config.mk"
@@ -456,8 +520,35 @@ def extract_parameter_sweep_run(run_dir: Path, platform: str) -> Optional[dict]:
         metadata = json.loads(meta_path.read_text())
         config_params = parse_config_mk(config_path)
 
-        # Extract params from folder name
+        # Extract params from folder name (supports multiple sweep formats)
         folder_name = run_dir.name
+
+        # Format 1: ip-172-31-47-219 (new sweep)
+        # e.g., 20261103T105908Z_ip-172-31-47-219_asap7_riscv32i-mock-sram_u20_ar0.5_m4_d0.4
+        # Format 2: ip-172-31-32-99 (old sweep)
+        # e.g., 20261103T165433Z_ip-172-31-32-99_nangate45_ibex_u20_ar0.5_m4_d0.4
+
+        util_match = re.search(r'_u(\d+)_', folder_name)
+        ar_match = re.search(r'_ar([\d.]+)_', folder_name)
+        margin_match = re.search(r'_m(\d+)_', folder_name)
+        density_match = re.search(r'_d([\d.]+)$', folder_name)
+
+        # Extract design name from folder name
+        # Pattern: <timestamp>_ip-<ip>_<platform>_<design>_u<util>_ar<ar>_m<margin>_d<density>
+        design = "unknown"
+        sweep_platform = platform
+
+        # Try to extract platform and design from folder name
+        # Match patterns like: _asap7_riscv32i-mock-sram_ or _nangate45_ibex_
+        platform_design_match = re.search(r'_ip-[\d-]+_([a-z0-9-]+)_([a-z0-9-]+)_u\d+', folder_name)
+        if platform_design_match:
+            sweep_platform = platform_design_match.group(1)
+            design = platform_design_match.group(2)
+        else:
+            # Fallback: try to get from metadata
+            sweep_platform = metadata.get("platform", platform)
+            design = metadata.get("design", run_dir.name)
+
         util_match = re.search(r'_u(\d+)_', folder_name)
         ar_match = re.search(r'_ar([\d.]+)_', folder_name)
         margin_match = re.search(r'_m(\d+)_', folder_name)
@@ -488,18 +579,26 @@ def extract_parameter_sweep_run(run_dir: Path, platform: str) -> Optional[dict]:
         cts_metrics = parse_stage_report(run_dir / "reports" / "4_cts_final.rpt", "cts")
         route_metrics = parse_stage_report(run_dir / "reports" / "5_global_route.rpt", "route")
         finish_metrics = parse_finish_report(run_dir / "reports" / "6_finish.rpt")
+        # Parse JSON report for area and additional metrics
+        json_metrics = parse_finish_json_report(run_dir / "logs")
+        finish_metrics.update(json_metrics)
 
         stage_runtimes = parse_logs_for_runtime(run_dir / "logs")
         total_runtime = sum(stage_runtimes.values())
 
         folder_name = run_dir.name
-        run_id = folder_name.replace("20261103T165433Z_ip-172-31-32-99_nangate45_ibex_", "")
+        # Create a clean run_id by removing timestamp and IP prefix
+        run_id = folder_name
+        for prefix in ["20261103T165433Z_ip-172-31-32-99_", "20261103T170908Z_ip-172-31-47-219_", "20261104T043700Z_ip-172-31-32-99_", "20261105T051211Z_ip-172-31-47-219_", "20261105T084304Z_ip-172-31-32-99_", "20261105T104842Z_ip-172-31-32-99_"]:
+            if run_id.startswith(prefix):
+                run_id = run_id[len(prefix):]
+                break
 
         return {
-            "run_id": f"ibex_{run_id}",
+            "run_id": f"{design}_{run_id}",
             "timestamp": metadata.get("start_utc", datetime.now().isoformat()),
-            "design_name": "ibex",
-            "platform": "nangate45",
+            "design_name": design,
+            "platform": sweep_platform,
             "status": "success" if has_finish else "failed",
             "core_utilization": core_util,
             "core_aspect_ratio": core_ar,
@@ -520,6 +619,7 @@ def extract_parameter_sweep_run(run_dir: Path, platform: str) -> Optional[dict]:
             "final_setup_violations": int(finish_metrics.get("setup_violations", 0)),
             "final_hold_violations": int(finish_metrics.get("hold_violations", 0)),
             "final_power_w": finish_metrics.get("power_w"),
+            "final_area_um2": finish_metrics.get("area_um2"),
             "start_utc": metadata.get("start_utc"),
             "end_utc": metadata.get("end_utc"),
             "timing_closure": (finish_metrics.get("wns_ns", 1.0) >= 0) if finish_metrics.get("wns_ns") is not None else False,
@@ -530,6 +630,40 @@ def extract_parameter_sweep_run(run_dir: Path, platform: str) -> Optional[dict]:
     except Exception as e:
         print(f"  Error extracting {run_dir.name}: {e}")
         return None
+
+
+def _write_csv(records: List[dict], csv_path: Path) -> None:
+    """Write records to CSV format."""
+    if not records:
+        return
+
+    fieldnames = [
+        'run_id', 'timestamp', 'design_name', 'platform', 'status',
+        'core_utilization', 'core_aspect_ratio', 'core_margin', 'place_density',
+        'synth_wns_ns', 'synth_tns_ns',
+        'floorplan_wns_ns', 'floorplan_tns_ns',
+        'place_wns_ns', 'place_tns_ns',
+        'cts_wns_ns', 'cts_tns_ns',
+        'route_wns_ns', 'route_tns_ns',
+        'final_wns_ns', 'final_tns_ns',
+        'final_setup_violations', 'final_hold_violations',
+        'final_power_w', 'start_utc', 'end_utc',
+        'timing_closure', 'drc_clean', 'lvs_clean',
+        'data_completeness', 'source'
+    ]
+
+    with open(csv_path, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+        writer.writeheader()
+        for record in records:
+            flat = {}
+            for k, v in record.items():
+                if isinstance(v, (dict, list)):
+                    flat[k] = json.dumps(v, default=str)
+                else:
+                    flat[k] = v
+            writer.writerow(flat)
+
 
 if __name__ == "__main__":
     main()

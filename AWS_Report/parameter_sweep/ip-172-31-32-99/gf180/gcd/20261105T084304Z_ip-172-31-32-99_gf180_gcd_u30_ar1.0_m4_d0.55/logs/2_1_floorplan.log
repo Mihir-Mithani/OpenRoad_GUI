@@ -1,0 +1,109 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/gf180/lib/gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50.lib.gz
+read_db ./results/gf180/gcd/base/1_synth.odb
+read_sdc ./results/gf180/gcd/base/1_synth.sdc
+source /OpenROAD-flow-scripts/flow/platforms/gf180/setRC.tcl
+
+==========================================================================
+Floorplan check_setup
+--------------------------------------------------------------------------
+number instances in verilog is 314
+initialize_floorplan -utilization 30 -aspect_ratio 1.0 -core_space 4 -site GF018hv5v_green_sc9
+[INFO IFP-0107] Defining die area using utilization: 30.00% and aspect ratio: 1.
+[WARNING IFP-0028] Core area lower left (4.000, 4.000) snapped to (4.480, 5.040).
+[INFO IFP-0001] Added 41 rows of 371 site GF018hv5v_green_sc9.
+[INFO IFP-0100] Die BBox:  (  0.000  0.000 ) ( 216.280 216.280 ) um
+[INFO IFP-0101] Core BBox: (  4.480  5.040 ) ( 212.240 211.680 ) um
+[INFO IFP-0102] Core area:                        42931.526 um^2
+[INFO IFP-0103] Total instances area:             13014.086 um^2
+[INFO IFP-0104] Effective utilization:                0.303
+[INFO IFP-0105] Number of instances:                    314
+make_tracks
+source /OpenROAD-flow-scripts/flow/platforms/gf180/fastroute.tcl
+set_dont_use *_1
+repair_tie_fanout -separation 0 gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50/gf180mcu_fd_sc_mcu9t5v0__tiel/ZN
+repair_tie_fanout -separation 0 gf180mcu_fd_sc_mcu9t5v0__ff_n40C_5v50/gf180mcu_fd_sc_mcu9t5v0__tieh/Z
+repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -setup -skip_last_gasp -sequence unbuffer,sizeup,swap,vt_swap -verbose
+[WARNING EST-0027] no estimated parasitics. Using wire load models.
+[INFO RSZ-0100] Repair move sequence: UnbufferMove SizeUpMove SwapPinsMove 
+[INFO RSZ-0094] Found 16 endpoints with setup violations.
+[INFO RSZ-0099] Repairing 16 out of 16 (100.00%) violating endpoints...
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -1.018 |      -13.3 |     16 | dpath.a_reg.out\[13\]$_DFFE_PP_/D
+      10* |       0 |       6 |        0 |      0 |     3 |    +1.0% |   -0.779 |      -10.9 |     16 | dpath.a_reg.out\[13\]$_DFFE_PP_/D
+      20* |       0 |       9 |        0 |      0 |    10 |    +1.0% |   -0.755 |      -10.8 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      25* |       0 |       9 |        0 |      0 |    11 |    +1.0% |   -0.749 |      -10.7 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      29* |       0 |       9 |        0 |      0 |    11 |    +1.0% |   -0.749 |      -10.7 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      30* |       0 |       9 |        0 |      0 |    11 |    +1.0% |   -0.749 |      -10.7 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      33* |       0 |       9 |        0 |      0 |    11 |    +1.0% |   -0.749 |      -10.7 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      37* |       0 |       9 |        0 |      0 |    11 |    +1.0% |   -0.749 |      -10.7 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      40* |       0 |      11 |        0 |      0 |    11 |    +1.2% |   -0.749 |      -10.0 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      44* |       0 |      13 |        0 |      0 |    11 |    +1.7% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      47* |       0 |      13 |        0 |      0 |    11 |    +1.7% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      50* |       0 |      15 |        0 |      0 |    11 |    +2.2% |   -0.763 |      -10.4 |     16 | dpath.a_reg.out\[13\]$_DFFE_PP_/D
+      51* |       0 |      13 |        0 |      0 |    11 |    +1.7% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      56* |       0 |      13 |        0 |      0 |    11 |    +1.7% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      60* |       0 |      15 |        0 |      0 |    12 |    +2.2% |   -0.763 |      -10.4 |     16 | dpath.a_reg.out\[13\]$_DFFE_PP_/D
+      61* |       0 |      13 |        0 |      0 |    11 |    +1.7% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      66* |       0 |      15 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      70* |       0 |      18 |        0 |      0 |    11 |    +2.9% |   -0.760 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      73* |       0 |      15 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      80* |       0 |      21 |        0 |      0 |    11 |    +3.4% |   -0.774 |      -10.2 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      80* |       0 |      15 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      87* |       0 |      15 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      89* |       0 |      16 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      90* |       0 |      16 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      93* |       0 |      16 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      97* |       0 |      16 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+      97* |       0 |      16 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+    final |       0 |      16 |        0 |      0 |    11 |    +2.3% |   -0.749 |      -10.1 |     16 | dpath.a_reg.out\[10\]$_DFFE_PP_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0051] Resized 16 instances: 16 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 11 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0505] Runtime: 0.49s
+Default units for flow
+ time 1ns
+ capacitance 1pF
+ resistance 1ohm
+ voltage 1v
+ current 1mA
+ power 1uW
+ distance 1um
+   Layer   | Unit Resistance | Unit Capacitance 
+           |        (ohm/um) |          (pF/um)
+------------------------------------------------
+    Metal1 |        3.91e-01 |         9.06e-06
+    Metal2 |        2.26e-04 |         1.35e-04
+    Metal3 |        2.26e-04 |         1.46e-04
+    Metal4 |        2.26e-04 |         1.51e-04
+    Metal5 |        5.86e-05 |         1.56e-04
+------------------------------------------------
+
+   Layer   | Via Resistance 
+           |          (ohm) 
+----------------------------
+      Via1 |       4.23e+00 
+      Via2 |       4.23e+00 
+      Via3 |       4.23e+00 
+      Via4 |       4.23e+00 
+----------------------------
+Report metrics stage 2, floorplan final...
+
+==========================================================================
+floorplan final report_design_area
+--------------------------------------------------------------------------
+Design area 13308 um^2 31% utilization.
+write_db ./results/gf180/gcd/base/2_1_floorplan.odb
+write_sdc -no_timestamp ./results/gf180/gcd/base/2_1_floorplan.sdc
+Elapsed time: 0:01.18[h:]min:sec. CPU time: user 1.12 sys 0.10 (102%). Peak memory: 162352KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+2_1_floorplan          .odb          1        1     1.03      158 07fd3e2ef1
+2_1_floorplan          .sdc                                       49ba88a9df

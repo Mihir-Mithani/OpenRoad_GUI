@@ -35,6 +35,7 @@ PLATFORM_COLORS = {
     'asap7': '#1f77b4',
     'gf180': '#d62728',
     'nangate45': '#2ca02c',
+    'sky130hd': '#9467bd',
 }
 
 PLATFORM_MARKERS = {
@@ -509,14 +510,14 @@ save_figure(fig, '5_timeline_gantt.png', out_dir)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 designs_with_data = df.groupby('design_name').filter(lambda x: x['final_wns_ns'].notna().sum() >= 5)
-designs_with_data = designs_with_data['design_name'].unique()
+design_names = designs_with_data['design_name'].unique()
 
-if len(designs_with_data) > 0:
-    fig, axes = plt.subplots(len(designs_with_data), 1, figsize=(12, 4 * len(designs_with_data)), sharex=True, sharey=True)
-    if len(designs_with_data) == 1:
+if len(design_names) > 0:
+    fig, axes = plt.subplots(len(design_names), 1, figsize=(12, 4 * len(design_names)), sharex=True, sharey=True)
+    if len(design_names) == 1:
         axes = [axes]
 
-    for ax_idx, design in enumerate(designs_with_data):
+    for ax_idx, design in enumerate(design_names):
         ax = axes[ax_idx]
         sub = designs_with_data[designs_with_data['design_name'] == design]
 
