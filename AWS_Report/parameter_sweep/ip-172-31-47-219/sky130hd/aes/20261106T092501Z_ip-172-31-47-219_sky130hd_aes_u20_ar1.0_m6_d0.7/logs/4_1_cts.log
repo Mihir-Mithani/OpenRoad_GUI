@@ -1,0 +1,106 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/sky130hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_db -hier ./results/sky130hd/aes/base/3_place.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/sky130hd/aes/base/3_place.sdc
+source /OpenROAD-flow-scripts/flow/platforms/sky130hd/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets -sink_clustering_size 20 -sink_clustering_max_diameter 50
+[INFO CTS-0050] Root buffer is sky130_fd_sc_hd__clkbuf_16.
+[INFO CTS-0051] Sink buffer is sky130_fd_sc_hd__clkbuf_16.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    sky130_fd_sc_hd__clkbuf_16
+[INFO CTS-0049] Characterization buffer is sky130_fd_sc_hd__clkbuf_16.
+[INFO CTS-0007] Net "clk" found for clock "clk".
+[INFO CTS-0010]  Clock net "clk" has 562 sinks.
+[INFO CTS-0008] TritonCTS found 1 clock nets.
+[INFO CTS-0097] Characterization used 1 buffer(s) types.
+[INFO CTS-0201] 0 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 562.
+[INFO CTS-0029]  Register sinks will be clustered in groups of up to 20 and with maximum cluster diameter of 50.0 um.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 13600  dbu (13 um).
+[INFO CTS-0204] A clustering solution was found from clustering size of 20 and clustering diameter of 50.
+[INFO CTS-0205] Better solution may be possible if either -sink_clustering_size, -sink_clustering_max_diameter, or both options are omitted to enable automatic clustering.
+[INFO CTS-0019]  Total number of sinks after clustering: 93.
+[INFO CTS-0024]  Normalized sink region: [(0.999862, 8.10441), (45.8183, 38.9391)].
+[INFO CTS-0025]     Width:  44.8184.
+[INFO CTS-0026]     Height: 30.8347.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 47
+    Sub-region size: 22.4092 X 30.8347
+[INFO CTS-0034]     Segment length (rounded): 12.
+ Level 2
+    Direction: Vertical
+    Sinks per sub-region: 24
+    Sub-region size: 22.4092 X 15.4174
+[INFO CTS-0034]     Segment length (rounded): 8.
+ Level 3
+    Direction: Horizontal
+    Sinks per sub-region: 12
+    Sub-region size: 11.2046 X 15.4174
+[INFO CTS-0034]     Segment length (rounded): 6.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (1911.535 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 93.
+[INFO CTS-0018]     Created 102 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 3.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 3.
+[INFO CTS-0015]     Created 102 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 1:1, 2:18, 3:14, 4:11, 5:11, 6:8, 7:6, 8:4, 9:4, 10:4, 11:3, 12:2, 13:7, 14:3, 15:1, 17:2, 20:2..
+[INFO CTS-0017]     Max level of the clock tree: 3.
+[INFO CTS-0098] Clock net "clk"
+[INFO CTS-0099]  Sinks 654
+[INFO CTS-0100]  Leaf buffers 93
+[INFO CTS-0101]  Average sink wire length 873.54 um
+[INFO CTS-0102]  Path depth 2 - 3
+[INFO CTS-0207]  Dummy loads inserted 92
+[INFO CTS-0500] Runtime: 1.17s
+estimate_parasitics -placement
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 4392 moves: displacement total 15186.5 u, max 33.5 u; HPWL 460145.7 -> 468532.5 u (+1.8 %).
+[INFO DPL-0500] Runtime: 0.20s
+estimate_parasitics -placement
+Warning: master sky130_ef_sc_hd__decap_12 has signal pins but no liberty cell
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -match_cell_footprint -verbose
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -0.586 |      -12.8 |     95 | sa23_sr\[2\]$_DFF_P_/D
+       1* |       0 |      84 |       25 |      0 |     0 |    +0.5% |   -0.239 |       -3.8 |     49 | sa30_sr\[7\]$_DFF_P_/D
+       2* |       0 |     140 |       47 |      0 |     0 |    +0.8% |   -0.117 |       -1.1 |     25 | sa13_sr\[2\]$_DFF_P_/D
+       3* |       0 |     198 |       54 |      0 |     0 |    +1.1% |   -0.104 |       -0.4 |     13 | sa12_sr\[4\]$_DFF_P_/D
+       4* |       0 |     230 |       60 |      0 |     0 |    +1.2% |   -0.083 |       -0.2 |      4 | sa12_sr\[4\]$_DFF_P_/D
+       5* |       0 |     244 |       60 |      0 |     0 |    +1.3% |   -0.010 |       -0.0 |      1 | sa12_sr\[5\]$_DFF_P_/D
+    final |       0 |     248 |       62 |      0 |     0 |    +1.3% |    0.001 |        0.0 |      0 | sa02_sr\[1\]$_DFF_P_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0045] Inserted 62 buffers, 5 to split loads.
+[INFO RSZ-0051] Resized 248 instances: 248 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0505] Runtime: 2.71s
+[INFO RSZ-0033] No hold violations found.
+[INFO RSZ-0506] Runtime: 0.01s
+Warning: master sky130_ef_sc_hd__decap_12 has signal pins but no liberty cell
+Elapsed time: 0:01.08[h:]min:sec. CPU time: user 1.12 sys 0.04 (107%). Peak memory: 92012KB.
+Repair timing output passed lec test
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 5997 moves: displacement total 698.7 u, max 12.0 u; HPWL 469971.4 -> 470429.7 u (+0.1 %).
+[INFO DPL-0500] Runtime: 0.15s
+check_placement -placeable -verbose
+estimate_parasitics -placement
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 122858 um^2 32% utilization.
+write_db ./results/sky130hd/aes/base/4_1_cts.odb
+write_sdc -no_timestamp ./results/sky130hd/aes/base/4_cts.sdc
+Elapsed time: 0:11.19[h:]min:sec. CPU time: user 15.62 sys 0.25 (141%). Peak memory: 349988KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+4_1_cts                .odb          1        1     1.07       89 bb2ffc29d7

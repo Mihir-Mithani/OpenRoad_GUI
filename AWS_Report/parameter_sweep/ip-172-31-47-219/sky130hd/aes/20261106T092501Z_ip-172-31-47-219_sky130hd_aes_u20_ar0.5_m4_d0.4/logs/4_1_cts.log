@@ -1,0 +1,116 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI -Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /OpenROAD-flow-scripts/flow/platforms/sky130hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_db -hier ./results/sky130hd/aes/base/3_place.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc ./results/sky130hd/aes/base/3_place.sdc
+source /OpenROAD-flow-scripts/flow/platforms/sky130hd/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets -sink_clustering_size 20 -sink_clustering_max_diameter 50
+[INFO CTS-0050] Root buffer is sky130_fd_sc_hd__clkbuf_16.
+[INFO CTS-0051] Sink buffer is sky130_fd_sc_hd__clkbuf_16.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    sky130_fd_sc_hd__clkbuf_16
+[INFO CTS-0049] Characterization buffer is sky130_fd_sc_hd__clkbuf_16.
+[INFO CTS-0007] Net "clk" found for clock "clk".
+[INFO CTS-0010]  Clock net "clk" has 562 sinks.
+[INFO CTS-0008] TritonCTS found 1 clock nets.
+[INFO CTS-0097] Characterization used 1 buffer(s) types.
+[INFO CTS-0201] 0 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 562.
+[INFO CTS-0029]  Register sinks will be clustered in groups of up to 20 and with maximum cluster diameter of 50.0 um.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 13600  dbu (13 um).
+[INFO CTS-0204] A clustering solution was found from clustering size of 20 and clustering diameter of 50.
+[INFO CTS-0205] Better solution may be possible if either -sink_clustering_size, -sink_clustering_max_diameter, or both options are omitted to enable automatic clustering.
+[INFO CTS-0019]  Total number of sinks after clustering: 76.
+[INFO CTS-0024]  Normalized sink region: [(2.07757, 1.16814), (62.9196, 32.2626)].
+[INFO CTS-0025]     Width:  60.8420.
+[INFO CTS-0026]     Height: 31.0945.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 38
+    Sub-region size: 30.4210 X 31.0945
+[INFO CTS-0034]     Segment length (rounded): 16.
+ Level 2
+    Direction: Vertical
+    Sinks per sub-region: 19
+    Sub-region size: 30.4210 X 15.5473
+[INFO CTS-0034]     Segment length (rounded): 8.
+ Level 3
+    Direction: Horizontal
+    Sinks per sub-region: 10
+    Sub-region size: 15.2105 X 15.5473
+[INFO CTS-0034]     Segment length (rounded): 8.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (1911.535 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 76.
+[INFO CTS-0018]     Created 85 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 3.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 3.
+[INFO CTS-0015]     Created 85 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 1:1, 2:10, 3:13, 4:3, 5:9, 6:6, 7:2, 8:11, 9:5, 10:5, 11:3, 12:3, 13:2, 14:1, 15:1, 16:1, 17:3, 18:1, 19:1, 20:3..
+[INFO CTS-0017]     Max level of the clock tree: 3.
+[INFO CTS-0098] Clock net "clk"
+[INFO CTS-0099]  Sinks 637
+[INFO CTS-0100]  Leaf buffers 76
+[INFO CTS-0101]  Average sink wire length 897.78 um
+[INFO CTS-0102]  Path depth 2 - 3
+[INFO CTS-0207]  Dummy loads inserted 75
+[INFO CTS-0500] Runtime: 1.24s
+estimate_parasitics -placement
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 2824 moves: displacement total 16680.8 u, max 13.0 u; HPWL 548773.4 -> 557826.7 u (+1.6 %).
+[INFO DPL-0500] Runtime: 0.12s
+estimate_parasitics -placement
+Warning: master sky130_ef_sc_hd__decap_12 has signal pins but no liberty cell
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -match_cell_footprint -verbose
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -0.686 |      -27.7 |    128 | sa20_sr\[1\]$_DFF_P_/D
+       1* |       0 |     113 |       35 |      0 |     0 |    +0.6% |   -0.352 |      -13.1 |    107 | sa20_sr\[7\]$_DFF_P_/D
+       2* |       0 |     208 |       55 |      0 |     0 |    +1.1% |   -0.252 |       -6.6 |     89 | sa01_sr\[7\]$_DFF_P_/D
+       3* |       0 |     292 |       65 |      0 |     0 |    +1.4% |   -0.225 |       -3.7 |     55 | sa21_sr\[5\]$_DFF_P_/D
+       4* |       0 |     347 |       80 |      0 |     0 |    +1.7% |   -0.198 |       -2.2 |     43 | sa20_sr\[7\]$_DFF_P_/D
+       5* |       0 |     407 |       84 |      0 |     0 |    +2.0% |   -0.129 |       -1.3 |     25 | sa01_sr\[7\]$_DFF_P_/D
+       6* |       0 |     465 |       92 |      0 |     0 |    +2.2% |   -0.099 |       -0.9 |     23 | sa20_sr\[7\]$_DFF_P_/D
+       7* |       0 |     526 |       98 |      0 |     0 |    +2.4% |   -0.089 |       -0.5 |     16 | sa20_sr\[7\]$_DFF_P_/D
+       8* |       0 |     561 |      106 |      0 |     0 |    +2.6% |   -0.045 |       -0.1 |      2 | sa20_sr\[7\]$_DFF_P_/D
+       9* |       0 |     568 |      107 |      0 |     0 |    +2.6% |   -0.037 |       -0.1 |      2 | sa20_sr\[7\]$_DFF_P_/D
+      10* |       0 |     575 |      107 |      0 |     0 |    +2.7% |   -0.027 |       -0.0 |      1 | sa20_sr\[7\]$_DFF_P_/D
+      11* |       0 |     580 |      107 |      0 |     0 |    +2.7% |   -0.020 |       -0.0 |      1 | sa20_sr\[7\]$_DFF_P_/D
+      12* |       0 |     583 |      107 |      0 |     0 |    +2.7% |   -0.008 |       -0.0 |      2 | sa20_sr\[7\]$_DFF_P_/D
+      13* |       0 |     583 |      107 |      0 |     0 |    +2.7% |   -0.008 |       -0.0 |      2 | sa20_sr\[7\]$_DFF_P_/D
+      14* |       0 |     588 |      107 |      0 |     0 |    +2.7% |   -0.005 |       -0.0 |      1 | sa20_sr\[7\]$_DFF_P_/D
+    final |       0 |     593 |      107 |      0 |     0 |    +2.7% |    0.002 |        0.0 |      0 | sa02_sr\[1\]$_DFF_P_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0045] Inserted 107 buffers, 17 to split loads.
+[INFO RSZ-0051] Resized 593 instances: 593 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0505] Runtime: 4.82s
+[INFO RSZ-0033] No hold violations found.
+[INFO RSZ-0506] Runtime: 0.01s
+Took 5 seconds: repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -match_cell_footprint -verbose
+Warning: master sky130_ef_sc_hd__decap_12 has signal pins but no liberty cell
+Elapsed time: 0:01.25[h:]min:sec. CPU time: user 1.31 sys 0.04 (107%). Peak memory: 94600KB.
+Repair timing output passed lec test
+detailed_placement -quiet
+[INFO DPL-0501] Legalized with 7451 moves: displacement total 1081.7 u, max 11.4 u; HPWL 562528.3 -> 563265.2 u (+0.1 %).
+[INFO DPL-0500] Runtime: 0.15s
+check_placement -placeable -verbose
+estimate_parasitics -placement
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 134295 um^2 35% utilization.
+write_db ./results/sky130hd/aes/base/4_1_cts.odb
+write_sdc -no_timestamp ./results/sky130hd/aes/base/4_cts.sdc
+Elapsed time: 0:13.96[h:]min:sec. CPU time: user 19.79 sys 0.32 (143%). Peak memory: 349012KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+4_1_cts                .odb          1        1     1.08       92 2018ecea5a

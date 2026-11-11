@@ -981,3 +981,57 @@ Updated `visualize_nangate45.py`, `visualize_final.py`, and `visualize_all.py` w
 
 ### Tests
 All **91 unit tests pass** (config, flow_runner, templates, gds_info).
+
+---
+
+## Session 15 - 2025-11-07 (Friday): New Sweep Batches Extracted (nangate45/aes + sky130hd/aes)
+
+### Summary
+Extracted two new sweep batches: nangate45/aes (13 configs from ip-172-31-32-99) and sky130hd/aes (9 configs from ip-172-31-47-219). Total dataset now **150 runs** across 4 platforms, 10 designs.
+
+### 1. New Sweep Batches Extracted
+
+#### nangate45/aes (ip-172-31-32-99): 14 runs
+**Configs**: 13 sweep configs (util 20-40%, AR 0.5-2.0, margin 4-6, density 0.4-0.7) + 1 existing
+**Status**: **ALL 13 FAILED** during floorplan
+**Error**: `Floorplan initialization methods are mutually exclusive, pick one.`
+**Root cause**: Config has both `FLOORPLAN_DEF` (fixed floorplan def) AND utilization/aspect_ratio/margin parameters - mutually exclusive in ORFS
+**Result**: No PPA data generated for these 13 runs
+
+#### sky130hd/aes (ip-172-31-47-219): 10 runs  
+**Configs**: 9 sweep configs (util 20-40%, AR 0.5-2.0, margin 4-6, density 0.4-0.7)
+**Status**: All 9 sweep configs + 1 existing = 10 runs
+**Status**: All completed successfully with PPA data
+
+#### sky130hd/gcd: +10 additional runs
+Added to existing 10 runs = 20 total for sky130hd/gcd
+
+### Updated Master Dataset: **150 Total Runs**
+
+| Platform | Runs | Designs | Timing Closure |
+|----------|------|---------|----------------|
+| **asap7** | 38 | 3 | 14/38 (36.8%) |
+| **gf180** | 44 | 4 | 13/44 (29.5%) |
+| **nangate45** | 38 | 3 | 9/38 (23.7%) |
+| **sky130hd** | 30 | 2 | 0/30 (0%) |
+| **Total** | **150** | **10** | **27/150 (18%)** |
+
+### Dataset Quality
+| Metric | Coverage | Notes |
+|--------|----------|-------|
+| Area | 92% (138/150) | From JSON reports |
+| Power | 92% (138/150) | From JSON reports |
+| WNS/TNS | 93% (140/150) | From text reports |
+| Timing Closure | 18% (27/150) | Overall |
+
+### Files Updated
+- `real_runs.json` - **150 runs** (master dataset)
+- `real_runs_export.csv` - 150 rows
+- `LOG.md` - This session documented
+- `extract_comprehensive_aws.py` - Already supports both sweep formats
+
+### Visualization Scripts Updated
+Updated `visualize_final.py` and `visualize_all.py` with 150-run dataset (27 plots total)
+
+### Tests
+All **91 unit tests pass** (config, flow_runner, templates, gds_info).
