@@ -1851,14 +1851,14 @@ class OpenRoadGUI(tk.Tk):
             self.ppa_rows['area']['pred'].configure(text=f"{predictions.get('area', 0):.0f}")
 
     def _fetch_actual_ppa_from_reports(self) -> dict | None:
-        """Parse actual PPA from 6_finish.rpt reports after GDS completion."""
+        """Parse actual PPA from 6_finish.rpt / 6_report reports after GDS completion."""
         reports_dir = self.app_config.flow_dir / "reports" / self.app_config.platform / self.app_config.design_name / "base"
         if not reports_dir.is_dir():
             return None
 
+        # Try 6_finish.rpt first, then 6_report
         finish_rpt = reports_dir / "6_finish.rpt"
         if not finish_rpt.exists():
-            # Try to find any finish report
             finish_reports = list(reports_dir.glob("*_finish.rpt"))
             if not finish_reports:
                 return None
@@ -1880,8 +1880,15 @@ class OpenRoadGUI(tk.Tk):
             if tns_match:
                 ppa['tns'] = float(tns_match.group(1))
 
-            # Parse Power from report_power section
-            power_match = re.search(r'Total\s+[\de\.\-]+\s+[\de\.\-]+\s+[\de\.\-]+\s+([\de\.\-]+)\s+100\.0%', content)
+            # Parse Power from IR report section (Total power in Watts) - handle scientific notation
+            power_match = re.search(r'Total power\s+:\s+([\d.]+(?:[eE][+-]?\d+)?)\s*W', content, re.IGNORECASE)
+            if not power_match:
+                power_match = re.search(r'Total power\s+:\s+([\d.]+(?:[eE][+-]?\d+)?)\s*W', content, re.IGNORECASE)
+            if not power_match:
+                power_match = re.search(r'Total power\s+([\d.]+(?:[eE][+-]?\d+)?)\s*W', content, re.IGNORECASE)
+            if not power_match:
+                # Try without W suffix
+                power_match = re.search(r'Total power\s+:\s+([\d.]+(?:[eE][+-]?\d+)?)', content, re.IGNORECASE)
             if power_match:
                 power_watts = float(power_match.group(1))
                 ppa['power'] = power_watts * 1000  # Convert W to mW
@@ -1896,7 +1903,7 @@ class OpenRoadGUI(tk.Tk):
             if lvs_match:
                 ppa['lvs'] = int(lvs_match.group(1))
 
-            # Parse Area from JSON report
+            # Parse Area from JSON report (most reliable)
             json_report = reports_dir / "6_report.json"
             if json_report.exists():
                 import json
@@ -1918,11 +1925,18 @@ class OpenRoadGUI(tk.Tk):
                 except Exception:
                     pass
 
-            # Fallback 1: Parse area from 6_finish.rpt (look for area in report)
+            # Fallback 1: Parse area from 6_finish.rpt - look for "Cell type report" -> "Total" row
+            if 'area' not in ppa:
+                # Pattern: "Total                                 40551  999197.34"
+                area_match = re.search(r'^\s*Total\s+\d+\s+([\d.]+)', content, re.MULTILINE)
+                if area_match:
+                    ppa['area'] = float(area_match.group(1))
+
+            # Fallback 2: Parse area from "Design area X um^2" pattern
             if 'area' not in ppa:
                 area_patterns = [
-                    r'design area\s+(\d+)\s*um\^2',  # "Design area 13 um^2 55% utilization."
-                    r'design area\s*[=:]\s*([\d.]+)',
+                    r'Design area\s+(\d+)\s*um\^2',  # "Design area 13 um^2 55% utilization."
+                    r'Design area\s*[=:]\s*([\d.]+)',
                     r'area\s*[=:]\s*([\d.]+)',
                     r'design area\s*[=:]\s*([\d.]+)',
                     r'instance area\s*[=:]\s*([\d.]+)',
@@ -1935,7 +1949,7 @@ class OpenRoadGUI(tk.Tk):
                         ppa['area'] = float(area_match.group(1))
                         break
 
-            # Fallback 2: Try to get area from place reports
+            # Fallback 3: Try to get area from place reports
             if 'area' not in ppa:
                 place_reports = list(reports_dir.glob("*_place*.rpt"))
                 if place_reports:
@@ -1945,18 +1959,37 @@ class OpenRoadGUI(tk.Tk):
                     if area_match:
                         ppa['area'] = float(area_match.group(1))
 
-            # Fallback 3: Estimate from instance count and utilization (if available in JSON)
+            # Fallback 4: Estimate from instance count and utilization (if available in JSON)
             if 'area' not in ppa and json_report.exists():
                 try:
                     import json
                     json_data = json.loads(json_report.read_text())
-                    # If we have utilization and instance count, we can estimate
                     instance_count = json_data.get('finish__design__instance__count')
                     utilization = json_data.get('finish__design__instance__utilization')
-                    # Fallback: rough estimate from WNS/TNS magnitude (larger designs = more area)
                     if instance_count:
                         # Very rough heuristic: ~100-500 μm² per 1000 instances
                         ppa['area'] = float(instance_count) * 0.3
+                except Exception:
+                    pass
+
+            # Parse Power from JSON report if not found in text report
+            if 'power' not in ppa and json_report.exists():
+                try:
+                    import json
+                    json_data = json.loads(json_report.read_text())
+                    # Look for power keys
+                    power_keys = [
+                        'finish__design__power__total',
+                        'finish__design__power__dynamic',
+                        'finish__design__power__static',
+                        'total_power_w',
+                        'power_w',
+                    ]
+                    for key in power_keys:
+                        if key in json_data and json_data[key] is not None:
+                            power_watts = float(json_data[key])
+                            ppa['power'] = power_watts * 1000
+                            break
                 except Exception:
                     pass
 
@@ -1964,6 +1997,8 @@ class OpenRoadGUI(tk.Tk):
 
         except Exception as e:
             self.log_viewer.log_error(f"Failed to parse actual PPA: {e}\n")
+            import traceback
+            self.log_viewer.log_error(traceback.format_exc() + "\n")
             return None
 
     def _update_ppa_actual(self, ppa: dict) -> None:

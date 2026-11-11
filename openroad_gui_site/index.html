@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080b12">
+<meta name="description" content="OpenROAD Flow GUI — a lightweight Python desktop workstation for running, visualizing and analyzing RTL-to-GDSII flows with AI-assisted EDA intelligence.">
+<title>OpenROAD Flow GUI — An EDA Workstation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080b12;--panel:#101722;--panel2:#121d2a;--line:#202d3c;--muted:#91a0b5;--text:#edf4ff;--cyan:#58e1d2;--blue:#74a9ff;--lime:#b8ed78;--orange:#ffb86b;--pink:#f38ebd;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Space Grotesk',sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:85px}body{margin:0;background:radial-gradient(ellipse at 75% 0%,#102439 0,transparent 34%),var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6}a{color:inherit;text-decoration:none}.container{width:min(1160px,calc(100% - 48px));margin:auto}.mono{font-family:var(--mono)}.eyebrow{font:500 11px var(--mono);letter-spacing:.17em;text-transform:uppercase;color:var(--cyan)}.topbar{height:72px;display:flex;align-items:center;position:sticky;top:0;z-index:20;background:#080b12df;backdrop-filter:blur(18px);border-bottom:1px solid #ffffff10}.nav{display:flex;align-items:center;justify-content:space-between;gap:24px}.brand{display:flex;align-items:center;gap:11px;font:600 16px var(--display);letter-spacing:-.03em}.brandmark{width:31px;height:31px;border:1px solid #4cd8cc66;border-radius:9px;display:grid;place-items:center;color:var(--cyan);background:#58e1d20d}.brandmark svg{width:19px}.navlinks{display:flex;align-items:center;gap:27px;color:#aab6c7;font-size:13px}.navlinks a:hover{color:var(--cyan)}.navcta{border:1px solid #5be0d477;border-radius:8px;padding:9px 14px;color:var(--cyan);font-size:12px;font-weight:700}.menu{display:none;background:none;border:0;color:white;font-size:22px}
+.hero{padding:92px 0 78px;position:relative;overflow:hidden}.hero:before{content:"";position:absolute;width:540px;height:540px;right:-100px;top:-60px;border:1px solid #58e1d211;border-radius:50%;box-shadow:0 0 0 65px #58e1d208,0 0 0 130px #58e1d205;pointer-events:none}.hero-grid{display:grid;grid-template-columns:1fr 1.05fr;align-items:center;gap:54px;position:relative}.pill{display:inline-flex;gap:9px;align-items:center;border:1px solid #58e1d247;background:#58e1d20d;border-radius:40px;padding:7px 12px;color:#b5f8ef;font:11px var(--mono);margin-bottom:23px}.dot{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime)}h1{font:600 clamp(42px,5.1vw,66px)/1.04 var(--display);letter-spacing:-.06em;margin:0 0 22px;max-width:630px}h1 span{color:var(--cyan)}.hero-copy{font-size:16px;color:#9eacc0;max-width:505px;margin:0 0 29px}.actions{display:flex;gap:12px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:13px 18px;border-radius:8px;font-size:13px;font-weight:700;transition:.2s;border:1px solid transparent}.btn-primary{background:var(--cyan);color:#071313}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 9px 28px #58e1d233}.btn-secondary{border-color:#344459;background:#111925;color:#dce9fb}.btn-secondary:hover{border-color:var(--cyan);color:var(--cyan)}.hero-meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:32px;color:#77879d;font:10px var(--mono);letter-spacing:.04em}.hero-meta span:before{content:"✓";color:var(--lime);margin-right:7px}
+.terminal-card{border:1px solid #2d4051;background:linear-gradient(145deg,#111d29,#0b111a);border-radius:13px;box-shadow:0 28px 90px #0008;overflow:hidden;transform:perspective(1100px) rotateY(-4deg) rotateX(2deg)}.windowbar{height:39px;border-bottom:1px solid #263648;display:flex;align-items:center;padding:0 13px;gap:7px;background:#111a25}.wdot{width:8px;height:8px;border-radius:50%;background:#405064}.wdot:nth-child(1){background:#fb7b76}.wdot:nth-child(2){background:#eebc65}.wdot:nth-child(3){background:#70d39c}.windowtitle{margin:auto;font:10px var(--mono);color:#7e90a7}.dash{padding:18px}.dash-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.dash-title{font:600 14px var(--display)}.status{font:9px var(--mono);color:var(--lime);background:#b8ed7816;padding:5px 8px;border-radius:4px}.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.dash-panel{border:1px solid #26394c;background:#0c1520;border-radius:7px;padding:12px}.dash-label{font:9px var(--mono);color:#8495ab;text-transform:uppercase;letter-spacing:.1em}.flowline{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:14px}.stage{display:flex;flex-direction:column;align-items:center;gap:6px}.stage-icon{width:27px;height:27px;border-radius:6px;border:1px solid #3a5865;display:grid;place-items:center;color:var(--cyan);font-size:11px;background:#58e1d20b}.stage.done .stage-icon{background:#58e1d21a;border-color:#58e1d277}.stage-name{font:8px var(--mono);color:#8ea0b7}.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.metric{border:1px solid #26394c;border-radius:6px;padding:9px;background:#0b131c}.metric b{display:block;font:600 16px var(--display);color:#dcecff}.metric small{font:8px var(--mono);color:#8394aa}.chart{height:85px;display:flex;align-items:end;gap:5px;padding:8px 3px 0}.chart i{display:block;flex:1;background:linear-gradient(0deg,#277c7c,#65dfd0);border-radius:3px 3px 0 0;opacity:.8}.console{margin-top:12px;background:#080e15;border:1px solid #202f40;border-radius:6px;padding:10px 12px;color:#89a0b7;font:9px/1.8 var(--mono)}.console .good{color:var(--lime)}.console .cyan{color:var(--cyan)}.scan{height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.5;margin-top:15px}
+.stats{border-top:1px solid #ffffff0d;border-bottom:1px solid #ffffff0d;background:#0d131d}.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);padding:23px 0}.stat{padding:0 24px;border-right:1px solid #ffffff12}.stat:first-child{padding-left:0}.stat:last-child{border:0}.stat strong{font:600 22px var(--display);display:block;letter-spacing:-.04em}.stat span{font:10px var(--mono);letter-spacing:.1em;color:#8393a7;text-transform:uppercase}
+section{padding:94px 0}.section-head{max-width:650px;margin-bottom:42px}.section-head h2{font:600 clamp(30px,4vw,44px)/1.13 var(--display);letter-spacing:-.05em;margin:12px 0}.section-head p{color:#96a5b9;margin:0;font-size:15px}.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.feature{border:1px solid var(--line);background:linear-gradient(145deg,#121c29,#0c121b);padding:24px;border-radius:10px;min-height:205px;transition:.25s}.feature:hover{border-color:#58e1d266;transform:translateY(-3px)}.feature-icon{width:37px;height:37px;border:1px solid #58e1d244;border-radius:9px;display:grid;place-items:center;color:var(--cyan);background:#58e1d20b;margin-bottom:20px}.feature-icon svg{width:18px;height:18px}.feature h3{font:600 16px var(--display);margin:0 0 8px}.feature p{font-size:12px;color:#91a0b5;margin:0;line-height:1.7}.tag{display:inline-block;margin-top:15px;color:#75b9b7;font:9px var(--mono);background:#58e1d20d;border:1px solid #58e1d21e;border-radius:4px;padding:4px 7px}
+.pipeline{background:#0b111a;border-top:1px solid #ffffff0c;border-bottom:1px solid #ffffff0c}.pipeline-wrap{border:1px solid #25384a;border-radius:12px;background:#0d1520;padding:25px}.pipeline-steps{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;position:relative}.pipeline-steps:before{content:"";position:absolute;top:22px;left:8%;right:8%;height:1px;background:linear-gradient(90deg,var(--cyan),#426b83);opacity:.55}.pipe-step{text-align:center;position:relative}.pipe-node{width:46px;height:46px;border-radius:12px;border:1px solid #3c606b;background:#111f2b;color:var(--cyan);display:grid;place-items:center;margin:0 auto 13px;position:relative;z-index:1;font:13px var(--mono);box-shadow:0 0 0 6px #0d1520}.pipe-step h3{font:600 13px var(--display);margin:0 0 4px}.pipe-step p{font:9px var(--mono);color:#7f90a7;margin:0}.pipe-note{border-top:1px solid #ffffff10;margin-top:26px;padding-top:19px;display:flex;justify-content:space-between;gap:18px;color:#95a5b9;font-size:11px}.pipe-note strong{color:var(--cyan);font-weight:500}
+.intelligence-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.intel-card{border:1px solid #25384a;background:linear-gradient(145deg,#111c29,#0a1119);border-radius:11px;padding:25px}.intel-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.intel-top span{font:10px var(--mono);color:var(--cyan)}.intel-card h3{font:600 20px var(--display);margin:0 0 9px}.intel-card p{font-size:12px;color:#9aa9bd;margin:0 0 20px}.bars{display:grid;gap:10px}.bar{display:grid;grid-template-columns:85px 1fr 38px;align-items:center;gap:10px;font:9px var(--mono);color:#8799ae}.track{height:6px;background:#263544;border-radius:9px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#3daaa4,var(--cyan));border-radius:9px}.metric-table{width:100%;border-collapse:collapse;font:10px var(--mono);color:#a2b2c5}.metric-table td{padding:8px 4px;border-top:1px solid #ffffff10}.metric-table td:last-child{text-align:right;color:var(--lime)}
+.tech{background:#0b111a;border-block:1px solid #ffffff0c}.tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}.tech-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tech-item{border:1px solid #263747;background:#101a26;border-radius:8px;padding:15px}.tech-item b{display:block;font:600 13px var(--display);margin-bottom:4px}.tech-item small{font:9px var(--mono);color:#8396ad}.tech-copy p{color:#99a9bd;font-size:13px}.tech-copy .note{font:10px var(--mono);color:#6f8299;border-left:2px solid var(--cyan);padding-left:12px;margin-top:18px}
+.setup-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:35px}.steps{display:grid;gap:20px}.setup-step{display:grid;grid-template-columns:32px 1fr;gap:13px}.num{width:28px;height:28px;border:1px solid #58e1d255;border-radius:7px;color:var(--cyan);display:grid;place-items:center;font:11px var(--mono)}.setup-step h3{font:600 14px var(--display);margin:0 0 5px}.setup-step p{font-size:11px;color:#91a0b5;margin:0}.codebox{border:1px solid #2b3c4d;background:#0a1119;border-radius:10px;overflow:hidden}.codehead{display:flex;justify-content:space-between;padding:12px 15px;border-bottom:1px solid #273747;color:#90a1b6;font:10px var(--mono)}.copy{background:#1a2a37;border:1px solid #355062;border-radius:5px;color:var(--cyan);padding:5px 9px;font:10px var(--mono);cursor:pointer}.codebox pre{padding:17px 20px;margin:0;overflow:auto;color:#b5c7d9;font:11px/1.9 var(--mono)}.codebox .comment{color:#6d839a}.codebox .cmd{color:#83e8d9}
+.faq{background:#0b111a;border-top:1px solid #ffffff0c}.faq-list{max-width:800px;display:grid;gap:9px}.faq details{border:1px solid #263747;border-radius:8px;background:#101924;padding:16px 18px}.faq summary{cursor:pointer;list-style:none;font:600 13px var(--display);display:flex;justify-content:space-between;gap:10px}.faq summary:after{content:"+";color:var(--cyan);font:16px var(--mono)}.faq details[open] summary:after{content:"−"}.faq details p{color:#95a5b9;font-size:12px;margin:12px 0 0}
+.cta{padding:80px 0}.cta-box{border:1px solid #38645f;background:radial-gradient(ellipse at 90% 0%,#1d4b4a55,transparent 45%),#101c25;border-radius:13px;padding:42px;display:flex;align-items:center;justify-content:space-between;gap:25px}.cta-box h2{font:600 clamp(27px,3.6vw,38px)/1.1 var(--display);letter-spacing:-.05em;margin:10px 0}.cta-box p{color:#9aabbc;font-size:13px;margin:0}
+footer{border-top:1px solid #ffffff10;padding:27px 0;color:#78899e;font:10px var(--mono)}.footer-inner{display:flex;justify-content:space-between;gap:20px;align-items:center}.footer-links{display:flex;gap:18px}.footer-links a:hover{color:var(--cyan)}
+/* ===================== RESPONSIVE LAYER ===================== */
+:root{--g:24px}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{overflow-x:clip}
+.container{width:min(1160px,calc(100% - var(--g)*2))}
+.hero-grid>*,.tech-grid>*,.setup-grid>*,.intelligence-grid>*,.feature-grid>*,.cta-box>*{min-width:0}
+h1{font-size:clamp(34px,5.1vw,66px)}
+section{padding-block:clamp(56px,8vw,94px)}
+.hero{padding:clamp(48px,8vw,92px) 0 clamp(48px,7vw,78px)}
+.cta{padding:clamp(48px,7vw,80px) 0}
+.dash-head{gap:10px;flex-wrap:wrap}
+.windowtitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:30px}
+.codebox pre{max-width:100%;tab-size:4}
+.menu-gh{display:none}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:4px}
+.btn,.navcta,.copy,.menu{touch-action:manipulation}
+@media(min-width:1440px){:root{--g:48px}.container{width:min(1280px,calc(100% - var(--g)*2))}}
+
+/* Tablet & below: stacked layouts + hamburger nav */
+@media(max-width:1000px){
+.hero-grid{grid-template-columns:1fr;gap:44px}
+.hero:before{width:420px;height:420px;right:-170px}
+.terminal-card{max-width:680px;width:100%;transform:none}
+h1{font-size:clamp(36px,8vw,56px);max-width:none}
+.hero-copy{max-width:600px}
+.tech-grid,.setup-grid{grid-template-columns:1fr;gap:32px}
+.cta-box{flex-direction:column;align-items:flex-start}
+.feature-grid{grid-template-columns:repeat(2,1fr)}
+.stats-grid{grid-template-columns:repeat(2,1fr);padding:0}
+.stat,.stat:first-child{padding:18px 20px;border-right:0;border-bottom:1px solid #ffffff12}
+.stat:nth-child(odd){padding-left:0;border-right:1px solid #ffffff12}
+.stat:nth-child(n+3){border-bottom:0}
+.nav{gap:12px}
+.navcta{margin-left:auto}
+.menu{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #ffffff22;border-radius:9px;background:#ffffff08;color:var(--text);cursor:pointer}
+.menu svg{width:22px;height:22px}
+.menu .x{display:none}
+.menu[aria-expanded=true] .x{display:block}
+.menu[aria-expanded=true] .bars3{display:none}
+.navlinks{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;padding:6px var(--g) 12px;background:#0b111a;border-bottom:1px solid var(--line);box-shadow:0 18px 40px #000a;font-size:15px;max-height:calc(100vh - 72px);overflow-y:auto}
+.navlinks.open{display:flex}
+.navlinks a{display:flex;align-items:center;min-height:48px;border-bottom:1px solid #ffffff0d}
+.navlinks a:last-child{border-bottom:0}
+.navlinks .menu-gh{display:none;color:var(--cyan);font-weight:700}
+}
+
+@media(max-width:720px){
+.intelligence-grid{grid-template-columns:1fr}
+}
+
+/* Phones */
+@media(max-width:620px){
+:root{--g:16px}
+.hero-copy{font-size:15px}
+.hero-meta{gap:8px 16px;font-size:11px}
+.feature-grid{grid-template-columns:1fr}
+.feature{min-height:0;padding:20px}
+.feature-icon{margin-bottom:16px}
+.pipeline-wrap{padding:20px 14px}
+.pipeline-steps{grid-template-columns:repeat(3,1fr);row-gap:26px}
+.pipeline-steps:before{display:none}
+.pipe-note{flex-direction:column;gap:8px;font-size:12px}
+.intel-card{padding:20px}
+.tech-list{grid-template-columns:1fr 1fr}
+.tech-item{padding:13px}
+.section-head{margin-bottom:28px}
+.d{display:none}
+.cta-box{padding:26px 20px}
+.footer-inner{align-items:flex-start;flex-direction:column;gap:14px}
+.footer-links{flex-wrap:wrap;gap:6px 18px}
+.dash{padding:12px}
+.dash-grid{gap:8px}
+.bar{grid-template-columns:78px 1fr 40px}
+/* readable small text */
+.feature p,.intel-card p,.setup-step p{font-size:13px}
+.tech-copy p,.faq details p,.faq summary{font-size:14px}
+.tag,.tech-item small,.pipe-step p,.bar,.dash-label,.metric small,.stat span,.tech-copy .note,footer,.status{font-size:10.5px}
+.console{font-size:10px}
+.stage-name{font-size:9px}
+.metric-table{font-size:11px}
+.codehead{font-size:11px;align-items:center;gap:10px}
+.codebox pre{font-size:12px;padding:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+}
+
+/* Small phones */
+@media(max-width:480px){
+.navcta{display:none}
+.navlinks .menu-gh{display:flex}
+.menu{margin-left:auto}
+.actions{flex-direction:column}
+.actions .btn{width:100%}
+.dash-grid{grid-template-columns:1fr}
+.flowline{grid-template-columns:repeat(3,1fr);row-gap:12px;gap:12px 6px}
+.stat{padding:16px 12px}
+.stat:nth-child(odd){padding-left:0}
+.stat strong{font-size:19px}
+}
+@media(max-width:360px){
+.tech-list{grid-template-columns:1fr}
+.pipeline-steps{grid-template-columns:repeat(2,1fr)}
+}
+
+/* Touch devices: bigger targets, no hover-only motion */
+@media(pointer:coarse){
+.copy{min-height:44px;padding:0 14px}
+.faq summary{min-height:44px;align-items:center}
+.footer-links a{padding:10px 0}
+}
+@media(hover:none){
+.feature:hover,.btn-primary:hover{transform:none;box-shadow:none}
+}
+@media(prefers-reduced-motion:reduce){
+html{scroll-behavior:auto}
+*,*:before,*:after{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="container nav">
+<a class="brand" href="#"><span class="brandmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M4 12h9M4 17h16"/><circle cx="17" cy="12" r="2"/><path d="M8 4v3m8 10v3"/></svg></span>OpenROAD <span style="color:var(--cyan)">Flow GUI</span></a>
+<nav class="navlinks" id="navlinks"><a href="#features">Features</a><a href="#pipeline">RTL → GDSII</a><a href="#intelligence">AI Intelligence</a><a href="#technology">Technology</a><a href="#setup">Get Started</a><a class="menu-gh" href="https://github.com/Mihir-Mithani/OpenRoad_GUI" target="_blank" rel="noopener">View on GitHub ↗</a></nav>
+<a class="navcta" href="https://github.com/Mihir-Mithani/OpenRoad_GUI" target="_blank">VIEW ON GITHUB ↗</a><button class="menu" id="menu" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks"><svg class="bars3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div></header>
+<main>
+<section class="hero"><div class="container hero-grid">
+<div>
+<div class="pill"><span class="dot"></span> OPEN-SOURCE EDA WORKSTATION</div>
+<h1>From RTL to silicon.<br><span>One focused workspace.</span></h1>
+<p class="hero-copy">A lightweight desktop GUI for OpenROAD Flow Scripts. Run physical-design stages, inspect layouts and reports, and explore AI-assisted design intelligence — all from one Python-powered workstation.</p>
+<div class="actions"><a class="btn btn-primary" href="#setup">Get started <span>↗</span></a><a class="btn btn-secondary" href="https://github.com/Mihir-Mithani/OpenRoad_GUI" target="_blank">⌘ View source code</a></div>
+<div class="hero-meta"><span>Python 3.10+</span><span>Tkinter · No GUI framework dependency</span><span>BSD 3-Clause</span></div>
+</div>
+<div class="terminal-card" aria-label="Illustrative EDA workstation interface">
+<div class="windowbar"><i class="wdot"></i><i class="wdot"></i><i class="wdot"></i><span class="windowtitle">OPENROAD FLOW GUI — WORKSPACE</span></div>
+<div class="dash">
+<div class="dash-head"><div><div class="dash-label">ACTIVE DESIGN / ASAP7</div><div class="dash-title">alu4 · RTL to GDSII</div></div><span class="status">● FLOW READY</span></div>
+<div class="dash-panel"><div class="dash-label">Execution pipeline</div><div class="flowline">
+<div class="stage done"><div class="stage-icon">✓</div><span class="stage-name">SYNTH</span></div><div class="stage done"><div class="stage-icon">✓</div><span class="stage-name">FLOORPLAN</span></div><div class="stage done"><div class="stage-icon">✓</div><span class="stage-name">PLACE</span></div><div class="stage"><div class="stage-icon">04</div><span class="stage-name">CTS</span></div><div class="stage"><div class="stage-icon">05</div><span class="stage-name">ROUTE</span></div><div class="stage"><div class="stage-icon">06</div><span class="stage-name">GDSII</span></div>
+</div></div>
+<div class="dash-grid" style="margin-top:10px">
+<div class="dash-panel"><div class="dash-label">PPA overview · illustrative</div><div class="metric-row"><div class="metric"><b>—</b><small>WNS</small></div><div class="metric"><b>—</b><small>AREA</small></div><div class="metric"><b>—</b><small>POWER</small></div></div><div class="chart"><i style="height:28%"></i><i style="height:43%"></i><i style="height:35%"></i><i style="height:64%"></i><i style="height:51%"></i><i style="height:78%"></i><i style="height:59%"></i><i style="height:88%"></i><i style="height:70%"></i><i style="height:96%"></i></div></div>
+<div class="dash-panel"><div class="dash-label">Workspace explorer</div><div class="console" style="margin:9px 0 0;border:0;padding:0;background:transparent">▾ designs/<br>&nbsp;▾ asap7/<br>&nbsp;&nbsp;▾ alu4/<br>&nbsp;&nbsp;&nbsp;▸ config.mk<br>&nbsp;&nbsp;&nbsp;▸ constraint.sdc<br>&nbsp;&nbsp;&nbsp;▸ src/<br><span class="cyan">▾ results/alu4/base/</span><br>&nbsp;&nbsp; 6_final.gds</div></div></div>
+<div class="console"><span class="good">✓</span> Environment configured · ORFS detected<br><span class="cyan">›</span> Ready to launch selected flow stage<br><span style="color:#71859b">›</span> Logs stream live in the terminal panel<span class="good"> _</span></div><div class="scan"></div>
+</div></div>
+</div></section>
+<div class="stats"><div class="container stats-grid">
+<div class="stat"><strong>6 stages</strong><span>RTL → GDSII pipeline</span></div><div class="stat"><strong>Python 3.10+</strong><span>Desktop application</span></div><div class="stat"><strong>7 PDK targets</strong><span>Documented platform options</span></div><div class="stat"><strong>AI-assisted</strong><span>PPA & risk insights</span></div>
+</div></div>
+<section id="features"><div class="container">
+<div class="section-head"><div class="eyebrow">01 / CAPABILITIES</div><h2>Everything around your flow, <br class="d">in one desktop workspace.</h2><p>Move from setup to execution to physical-design inspection without juggling disconnected terminal commands and viewers.</p></div>
+<div class="feature-grid">
+<article class="feature"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5h16v14H4zM8 9h8M8 13h5M8 17h3"/></svg></div><h3>Guided flow execution</h3><p>Run the complete RTL-to-GDSII pipeline or launch individual stages. The runner sequences Make targets and streams stdout/stderr into the app.</p><span class="tag">THREADED SUBPROCESS RUNNER</span></article>
+<article class="feature"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v16H4zM8 8h3v3H8zm5 0h3v3h-3zM8 13h3v3H8zm5 0h3v3h-3z"/></svg></div><h3>Project & design explorer</h3><p>Browse ORFS design and result trees, select an active config.mk, and create starter design files using the built-in wizard and templates.</p><span class="tag">DESIGN WORKSPACE</span></article>
+<article class="feature"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 18V6m0 12h18M6 15l4-5 3 2 5-7 3 3"/></svg></div><h3>Layout & GDS inspection</h3><p>Preview GDS layouts in-app, open final layouts in KLayout, inspect GDS metadata, and launch OpenROAD GUI checkpoints for each flow stage.</p><span class="tag">KLAYOUT · OPENROAD GUI</span></article>
+<article class="feature"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h14v16H5zM8 8h8M8 12h5M8 16h8"/></svg></div><h3>Reports & signoff</h3><p>Access timing, area, power and routing reports, alongside DRC/LVS result parsing with clean, violation, unsupported and stale-result awareness.</p><span class="tag">PPA · DRC · LVS</span></article>
+<article class="feature"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="5"/></svg></div><h3>AI-assisted EDA intelligence</h3><p>Optional machine-learning modules estimate PPA metrics, flag potential flow failure risks, and surface parameter optimization ideas.</p><span class="tag">LIGHTGBM · MLP · ONNX</span></article>
+<article class="feature"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v12H4zM8 20h8m-4-4v4M7 8h10M7 12h6"/></svg></div><h3>Workbench experience</h3><p>Use a responsive multi-zone desktop layout with light/dark themes, pipeline status, task assistant, interactive terminal and optional resource monitoring.</p><span class="tag">TKINTER · CUSTOM THEMES</span></article>
+</div></div></section>
+<section class="pipeline" id="pipeline"><div class="container">
+<div class="section-head"><div class="eyebrow">02 / DESIGN FLOW</div><h2>A clear view of every implementation stage.</h2><p>Execute the ORFS stages in sequence, or run a specific step when you need to iterate on a design.</p></div>
+<div class="pipeline-wrap"><div class="pipeline-steps">
+<div class="pipe-step"><div class="pipe-node">01</div><h3>Synthesis</h3><p>Yosys</p></div><div class="pipe-step"><div class="pipe-node">02</div><h3>Floorplan</h3><p>Macros · PDN</p></div><div class="pipe-step"><div class="pipe-node">03</div><h3>Placement</h3><p>Global · Detailed</p></div><div class="pipe-step"><div class="pipe-node">04</div><h3>CTS</h3><p>Clock tree</p></div><div class="pipe-step"><div class="pipe-node">05</div><h3>Routing</h3><p>Global · Detailed</p></div><div class="pipe-step"><div class="pipe-node">06</div><h3>GDSII</h3><p>Final layout</p></div>
+</div><div class="pipe-note"><span>Pipeline control <strong>Full run or per-stage execution</strong></span><span>Live logs · Stage viewers · Stop control</span></div></div>
+</div></section>
+<section id="intelligence"><div class="container">
+<div class="section-head"><div class="eyebrow">03 / AI-ASSISTED INTELLIGENCE</div><h2>Bring predictive insight <br class="d">closer to physical design.</h2><p>Optional intelligence modules use collected flow data and trained models to provide early estimates and actionable context. Predictions complement — not replace — signoff analysis.</p></div>
+<div class="intelligence-grid">
+<article class="intel-card"><div class="intel-top"><span>MODEL / CLASSIFICATION</span><span>01 — RISK</span></div><h3>Failure risk prediction</h3><p>LightGBM-based classification estimates potential timing-closure and DRC-related risk from design and flow features, then presents severity and mitigation suggestions.</p><div class="bars"><div class="bar"><span>Timing risk</span><div class="track"><div class="fill" style="width:76%"></div></div><span>MODEL</span></div><div class="bar"><span>DRC risk</span><div class="track"><div class="fill" style="width:52%"></div></div><span>MODEL</span></div></div><p style="font:9px var(--mono);color:#72869a;margin-top:15px">Illustrative bars — not live model output.</p></article>
+<article class="intel-card"><div class="intel-top"><span>MODEL / REGRESSION</span><span>02 — PPA</span></div><h3>Surrogate PPA estimation</h3><p>Ensemble regression models estimate key physical-design metrics before a run completes. Compare predicted and actual results once reports are available.</p><table class="metric-table"><tr><td>Worst negative slack</td><td>WNS</td></tr><tr><td>Total negative slack</td><td>TNS</td></tr><tr><td>Cell / design area</td><td>AREA</td></tr><tr><td>Power estimate</td><td>POWER</td></tr></table></article>
+</div>
+</div></section>
+<section class="tech" id="technology"><div class="container tech-grid">
+<div class="section-head"><div class="eyebrow">04 / TECHNOLOGY STACK</div><h2>Lightweight at the core. <br class="d">Extensible where it matters.</h2><p>The desktop shell is built with Python's standard GUI toolkit. The heavy lifting remains with your installed EDA toolchain; machine-learning dependencies are optional.</p><p class="note">The app orchestrates external EDA tools; it does not bundle ORFS, OpenROAD, Yosys or KLayout.</p></div>
+<div class="tech-list">
+<div class="tech-item"><b>Python 3.10+</b><small>APPLICATION LANGUAGE</small></div><div class="tech-item"><b>Tkinter / ttk</b><small>DESKTOP UI · STANDARD LIBRARY</small></div><div class="tech-item"><b>OpenROAD Flow Scripts</b><small>RTL-TO-GDSII FLOW</small></div><div class="tech-item"><b>Yosys</b><small>LOGIC SYNTHESIS</small></div><div class="tech-item"><b>KLayout</b><small>GDS VIEWING · DRC / LVS</small></div><div class="tech-item"><b>LightGBM</b><small>ML CLASSIFICATION / REGRESSION</small></div><div class="tech-item"><b>PyTorch · scikit-learn</b><small>OPTIONAL MODEL TOOLING</small></div><div class="tech-item"><b>ONNX Runtime</b><small>MODEL EXPORT / INFERENCE</small></div><div class="tech-item"><b>pytest</b><small>UNIT TESTING</small></div><div class="tech-item"><b>psutil</b><small>OPTIONAL SYSTEM MONITORING</small></div>
+</div></div></section>
+<section><div class="container">
+<div class="section-head"><div class="eyebrow">05 / PLATFORM SUPPORT</div><h2>Designed around multiple PDK targets.</h2><p>Platform names documented in the application configuration. Actual flow availability depends on the ORFS checkout and the platform files you have installed.</p></div>
+<div class="tech-list">
+<div class="tech-item"><b>ASAP7</b><small>7 NM PREDICTIVE PLATFORM</small></div><div class="tech-item"><b>Nangate45</b><small>45 NM STANDARD-CELL PLATFORM</small></div><div class="tech-item"><b>Sky130HD</b><small>130 NM HIGH-DENSITY</small></div><div class="tech-item"><b>Sky130HS</b><small>130 NM HIGH-SPEED</small></div><div class="tech-item"><b>GF12</b><small>GLOBALFOUNDRIES PLATFORM</small></div><div class="tech-item"><b>GF180</b><small>180 NM MCU PLATFORM</small></div><div class="tech-item"><b>IHP SG13G2</b><small>130 NM BIPOLAR-CMOS-DMOS</small></div><div class="tech-item"><b>Extensible</b><small>ADD PLATFORMS IN CONFIGURATION</small></div>
+</div></div></section>
+<section id="setup"><div class="container">
+<div class="section-head"><div class="eyebrow">06 / QUICK START</div><h2>Get your workstation running.</h2><p>Install the Python application, point it to your ORFS checkout, and select a design configuration.</p></div>
+<div class="setup-grid"><div class="steps">
+<div class="setup-step"><span class="num">01</span><div><h3>Clone the project</h3><p>Download the source and enter the repository directory.</p></div></div>
+<div class="setup-step"><span class="num">02</span><div><h3>Prepare Python</h3><p>Use Python 3.10+ with Tkinter available. Create a virtual environment.</p></div></div>
+<div class="setup-step"><span class="num">03</span><div><h3>Configure ORFS</h3><p>In Settings → Paths, select the OpenROAD Flow Scripts root containing flow/ and use-openroad.sh.</p></div></div>
+<div class="setup-step"><span class="num">04</span><div><h3>Select a design and run</h3><p>Activate config.mk from the project tree, then run individual stages or the full pipeline.</p></div></div>
+</div>
+<div class="codebox"><div class="codehead"><span>TERMINAL / INSTALLATION</span><button class="copy" id="copy">COPY COMMANDS</button></div><pre id="commands"><span class="comment"># Clone the repository</span>
+<span class="cmd">git clone</span> https://github.com/Mihir-Mithani/OpenRoad_GUI.git
+<span class="cmd">cd</span> OpenRoad_GUI
+
+<span class="comment"># Create and activate a virtual environment</span>
+<span class="cmd">python3</span> -m venv .venv
+<span class="cmd">source</span> .venv/bin/activate
+
+<span class="comment"># Optional: install AI + monitoring dependencies</span>
+<span class="cmd">pip install</span> psutil lightgbm torch onnx onnxruntime scikit-learn pandas joblib
+
+<span class="comment"># Launch the desktop application</span>
+<span class="cmd">python3</span> main.py</pre></div></div>
+</div></section>
+<section class="faq" id="faq"><div class="container">
+<div class="section-head"><div class="eyebrow">07 / FAQ</div><h2>Good to know before you begin.</h2></div>
+<div class="faq-list">
+<details><summary>Does this application include OpenROAD or Yosys?</summary><p>No. It is a desktop interface and flow controller for an existing OpenROAD Flow Scripts installation. OpenROAD, Yosys, Make and related dependencies must be available through your ORFS environment.</p></details>
+<details><summary>Are AI features required?</summary><p>No. The base interface and flow execution are designed around Python and Tkinter. AI prediction and resource-monitoring features require optional dependencies and suitable trained models.</p></details>
+<details><summary>Can I run just one flow stage?</summary><p>Yes. The app documents per-stage execution as well as a full six-stage pipeline. Logs are streamed into the terminal/log panel.</p></details>
+<details><summary>How do I inspect the final GDS?</summary><p>Use the GDS preview or open the generated file in KLayout. The application also provides OpenROAD GUI viewers for intermediate database checkpoints.</p></details>
+<details><summary>Which operating systems are supported?</summary><p>The application uses Python and Tkinter, but the effective compatibility depends on your Python/Tk installation and the ORFS toolchain on the host operating system.</p></details>
+</div></div></section>
+<section class="cta"><div class="container"><div class="cta-box"><div><div class="eyebrow">BUILD · RUN · INSPECT · IMPROVE</div><h2>Your next RTL-to-GDSII run <br class="d">starts here.</h2><p>Explore the source, read the documentation, and contribute to the project.</p></div><div class="actions"><a class="btn btn-primary" href="https://github.com/Mihir-Mithani/OpenRoad_GUI" target="_blank">Explore on GitHub ↗</a><a class="btn btn-secondary" href="https://github.com/Mihir-Mithani/OpenRoad_GUI/issues" target="_blank">Report an issue</a></div></div></div></section>
+</main>
+<footer><div class="container footer-inner"><span>© 2026 OPENROAD FLOW GUI · BSD 3-CLAUSE</span><div class="footer-links"><a href="https://github.com/Mihir-Mithani/OpenRoad_GUI">GitHub</a><a href="https://openroad-flow-scripts.readthedocs.io/">ORFS Docs</a><a href="#features">Back to top ↑</a></div></div></footer>
+<script>
+const menu=document.getElementById('menu'),links=document.getElementById('navlinks');
+const setMenu=o=>{links.classList.toggle('open',o);menu.setAttribute('aria-expanded',o)};
+menu.addEventListener('click',()=>setMenu(!links.classList.contains('open')));
+links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&links.classList.contains('open')){setMenu(false);menu.focus()}});
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar'))setMenu(false)});
+matchMedia('(min-width:1001px)').addEventListener('change',e=>{if(e.matches)setMenu(false)});
+document.getElementById('copy').addEventListener('click',async()=>{const text=document.getElementById('commands').innerText.replace(/COPY COMMANDS/g,'');const btn=document.getElementById('copy');try{await navigator.clipboard.writeText(text);btn.textContent='COPIED ✓';}catch(e){btn.textContent='SELECT TO COPY';}setTimeout(()=>btn.textContent='COPY COMMANDS',1800);});
+</script>
+</body></html>
