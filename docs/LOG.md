@@ -984,54 +984,98 @@ All **91 unit tests pass** (config, flow_runner, templates, gds_info).
 
 ---
 
-## Session 15 - 2025-11-07 (Friday): New Sweep Batches Extracted (nangate45/aes + sky130hd/aes)
+## Session 16 - 2025-11-07 (Friday): Model Retraining with Expanded Dataset
 
 ### Summary
-Extracted two new sweep batches: nangate45/aes (13 configs from ip-172-31-32-99) and sky130hd/aes (9 configs from ip-172-31-47-219). Total dataset now **150 runs** across 4 platforms, 10 designs.
+Retrained all intelligence models with the expanded dataset (161 runs including new nangate45/gcd + nangate45/picorv32 sweeps, removed failed nangate45/aes). Updated surrogate models (LightGBM + MLP ensemble) and failure predictor (LightGBM with calibration). Flow optimizer PPO training has a pre-existing bug (IndexError in action space mapping) - not retrained.
 
-### 1. New Sweep Batches Extracted
+---
 
-#### nangate45/aes (ip-172-31-32-99): 14 runs
-**Configs**: 13 sweep configs (util 20-40%, AR 0.5-2.0, margin 4-6, density 0.4-0.7) + 1 existing
-**Status**: **ALL 13 FAILED** during floorplan
-**Error**: `Floorplan initialization methods are mutually exclusive, pick one.`
-**Root cause**: Config has both `FLOORPLAN_DEF` (fixed floorplan def) AND utilization/aspect_ratio/margin parameters - mutually exclusive in ORFS
-**Result**: No PPA data generated for these 13 runs
+### 1. Data Preparation
+- **Removed**: nangate45/aes (14 failed runs - floorplan config conflict)
+- **Added**: nangate45/gcd (15 configs, all WNS ≈ -0.16 to -0.17ns, no timing closure)
+- **Added**: nangate45/picorv32 (10 configs, WNS ≈ -0.27 to -0.35ns, larger design)
+- **Net change**: -14 + 25 = +11 runs → **161 total runs**
 
-#### sky130hd/aes (ip-172-31-47-219): 10 runs  
-**Configs**: 9 sweep configs (util 20-40%, AR 0.5-2.0, margin 4-6, density 0.4-0.7)
-**Status**: All 9 sweep configs + 1 existing = 10 runs
-**Status**: All completed successfully with PPA data
-
-#### sky130hd/gcd: +10 additional runs
-Added to existing 10 runs = 20 total for sky130hd/gcd
-
-### Updated Master Dataset: **150 Total Runs**
+### Updated Master Dataset: **161 Total Runs**
 
 | Platform | Runs | Designs | Timing Closure |
 |----------|------|---------|----------------|
 | **asap7** | 38 | 3 | 14/38 (36.8%) |
 | **gf180** | 44 | 4 | 13/44 (29.5%) |
-| **nangate45** | 38 | 3 | 9/38 (23.7%) |
+| **nangate45** | 39 | 4 | 9/39 (23.1%) |
 | **sky130hd** | 30 | 2 | 0/30 (0%) |
-| **Total** | **150** | **10** | **27/150 (18%)** |
+| **Total** | **161** | **11** | **27/161 (16.8%)** |
 
-### Dataset Quality
-| Metric | Coverage | Notes |
-|--------|----------|-------|
-| Area | 92% (138/150) | From JSON reports |
-| Power | 92% (138/150) | From JSON reports |
-| WNS/TNS | 93% (140/150) | From text reports |
-| Timing Closure | 18% (27/150) | Overall |
+---
 
-### Files Updated
-- `real_runs.json` - **150 runs** (master dataset)
-- `real_runs_export.csv` - 150 rows
+### 2. Surrogate Models Retrained (LightGBM + MLP Ensemble, 5-fold CV)
+
+| Target | CV LGB R² | CV MLP R² | CV Ensemble R² | Final Test R² (LGB) | Final Test R² (Ensemble) |
+|--------|-----------|-----------|----------------|---------------------|--------------------------|
+| **WNS** | 0.212 ± 0.012 | 0.229 ± 0.016 | 0.230 ± 0.013 | 0.200 | **0.218** |
+| **TNS** | 0.203 ± 0.012 | 0.196 ± 0.004 | 0.212 ± 0.008 | 0.228 | **0.249** |
+| **Area** | **0.824 ± 0.074** | -0.202 ± 0.085 | 0.547 ± 0.062 | **0.627** | 0.417 |
+| **Power** | 0.551 ± 0.161 | 0.584 ± 0.188 | 0.606 ± 0.181 | 0.459 | **0.655** |
+
+**Key Observations:**
+- **Area**: LightGBM dominates (R²=0.82 CV, 0.63 test) — MLP fails (negative R²)
+- **Power**: Ensemble helps significantly (0.66 vs 0.46 for LGB alone)
+- **WNS/TNS**: Low R² (~0.2-0.25) — timing inherently hard to predict from static features
+- **Ensemble** helps for WNS/TNS/Power but hurts for Area (LGB alone better)
+
+---
+
+### 3. Failure Predictor Retrained (LightGBM, 5-fold CV + Isotonic Calibration)
+
+| Target | CV AUC | Final Test AUC (Calibrated) | Optimal Threshold | Class Balance |
+|--------|--------|----------------------------|-------------------|---------------|
+| **timing_closure** | **0.709 ± 0.009** | **0.716** | 0.208 | 30% positive |
+| **drc_clean** | 0.588 ± 0.029 | 0.613 | 0.930 | 85% positive |
+
+**Key Observations:**
+- **Timing closure**: AUC ~0.71 — decent discrimination, calibrated threshold 0.208 (much lower than 0.5 due to class imbalance)
+- **DRC clean**: AUC ~0.61 — weak predictor (high baseline accuracy 85% makes it hard)
+- **Calibration working**: Isotonic regression + Youden's J threshold optimization functional
+
+---
+
+### 4. Flow Optimizer (PPO) - Pre-existing Bug
+**Not retrained** - bug in action space mapping:
+```
+IndexError: list index out of range
+stage_enum = list(FlowStage)[stage]  # stage index out of range
+```
+The RL action space dimension doesn't match the `FlowStage` enum length. This is a bug in the training code unrelated to data updates.
+
+---
+
+### 5. Models Saved
+```
+/Users/mihirmithani/Downloads/OpenRoad GUI/openroad_gui/intelligence/models/saved/
+├── surrogate_wns_lgb.pkl / _mlp.pt
+├── surrogate_tns_lgb.pkl / _mlp.pt
+├── surrogate_area_lgb.pkl / _mlp.pt
+├── surrogate_power_lgb.pkl / _mlp.pt
+├── surrogate_preprocessor.pkl
+├── timing_closure_lgb.pkl + timing_closure_calibration.pkl
+├── drc_clean_lgb.pkl + drc_clean_calibration.pkl
+└── (PPO models not updated due to bug)
+```
+
+---
+
+### 6. Files Updated
+- `openroad_gui/intelligence/training/train_surrogate.py` - Added 5-fold CV, fixed preprocessor leakage, ensemble
+- `openroad_gui/intelligence/training/train_failure_predictor.py` - Added 5-fold CV, class imbalance handling, calibration
+- `openroad_gui/intelligence/models/saved/` - All updated model artifacts
+- `openroad_gui/intelligence/data/real_runs.json` - 161 runs (master dataset)
+- `openroad_gui/intelligence/data/real_runs_export.csv` - 161 rows CSV
+- `scripts/data_extraction/extract_new_sweeps_and_cleanup.py` - New extraction script for new sweeps
 - `LOG.md` - This session documented
-- `extract_comprehensive_aws.py` - Already supports both sweep formats
+- `ACCURACY_LOG.md` - Updated with retraining results
 
-### Visualization Scripts Updated
-Updated `visualize_final.py` and `visualize_all.py` with 150-run dataset (27 plots total)
+---
 
-### Tests
+### 7. Tests
 All **91 unit tests pass** (config, flow_runner, templates, gds_info).

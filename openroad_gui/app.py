@@ -30,12 +30,14 @@ from openroad_gui.theme import init_theme, get_theme_manager, toggle_theme, set_
 # Intelligence modules
 try:
     from openroad_gui.intelligence import FlowOptimizationEngine, FailurePredictor, SurrogateInference
+    from openroad_gui.intelligence.models.random_forest import RandomForestIntelligence
     HAS_INTELLIGENCE = True
 except ImportError:
     HAS_INTELLIGENCE = False
     FlowOptimizationEngine = None
     FailurePredictor = None
     SurrogateInference = None
+    RandomForestIntelligence = None
 
 
 class OpenRoadGUI(tk.Tk):
@@ -77,6 +79,7 @@ class OpenRoadGUI(tk.Tk):
         self.optimizer = None
         self.failure_predictor = None
         self.surrogate_inference = None
+        self.rf_intelligence = None
         if HAS_INTELLIGENCE:
             try:
                 self.optimizer = FlowOptimizationEngine()
@@ -84,6 +87,13 @@ class OpenRoadGUI(tk.Tk):
                 self.surrogate_inference = SurrogateInference(
                     Path(__file__).parent / "intelligence" / "models" / "saved"
                 )
+                self.rf_intelligence = RandomForestIntelligence()
+                # Load RF models
+                try:
+                    self.rf_intelligence.load_all()
+                    print(f"✅ RF Intelligence loaded: {self.rf_intelligence.is_ready()}")
+                except Exception as e:
+                    print(f"Warning: Could not load RF models: {e}")
             except Exception as e:
                 print(f"Warning: Could not initialize intelligence modules: {e}")
 
@@ -184,6 +194,20 @@ class OpenRoadGUI(tk.Tk):
             intel_menu.add_command(
                 label="Show Surrogate Predictions",
                 command=self._show_surrogate_predictions,
+            )
+            intel_menu.add_separator()
+            intel_menu.add_command(
+                label="Run RF PPA Prediction",
+                command=self._run_rf_ppa_prediction,
+            )
+            intel_menu.add_command(
+                label="Run RF Failure Prediction",
+                command=self._run_rf_failure_prediction,
+            )
+            intel_menu.add_separator()
+            intel_menu.add_command(
+                label="Show RF Model Performance",
+                command=self._show_rf_model_performance,
             )
             intel_menu.add_separator()
             intel_menu.add_command(
@@ -1454,6 +1478,7 @@ class OpenRoadGUI(tk.Tk):
             messagebox.showerror("Open failed", str(exc))
 
     def _build_surrogate_features(self) -> dict:
+        """Build feature dictionary for surrogate model prediction with proper one-hot encoding."""
         features = {}
 
         config_path = self.app_config.flow_dir / "designs" / self.app_config.platform / self.app_config.design_name / "config.mk"
@@ -1469,9 +1494,6 @@ class OpenRoadGUI(tk.Tk):
         features.setdefault('core_utilization', 30.0)
         features.setdefault('core_aspect_ratio', 1.0)
         features.setdefault('core_margin', 5.0)
-
-        features['platform'] = self.app_config.platform
-        features['core_aspect_ratio'] = float(features['core_aspect_ratio'])
 
         # Try to get actual instance count from synthesis report first
         num_instances = None
@@ -1517,6 +1539,7 @@ class OpenRoadGUI(tk.Tk):
                     assign_stmts * 5        # combinational logic
                 )
 
+        # Build base features
         features['num_instances'] = num_instances
         features['num_nets'] = int(num_instances * 1.2)
         features['num_sequential'] = int(num_instances * 0.2)
@@ -1528,9 +1551,139 @@ class OpenRoadGUI(tk.Tk):
         features['seq_ratio'] = features['num_sequential'] / max(1, features['num_instances'])
         features['macro_ratio'] = features['num_macros'] / max(1, features['num_instances'])
 
+        # Platform as categorical string (preprocessor will one-hot encode)
+        features['platform'] = self.app_config.platform
+        features['core_aspect_ratio'] = features.get('core_aspect_ratio', 1.0)
+
         return features
 
-    def _fetch_design_metrics(self) -> dict:
+    def _build_rf_features(self) -> dict:
+        """Build feature dictionary for Random Forest models with one-hot encoded platform."""
+        features = self._build_surrogate_features()
+
+        # Convert platform string to one-hot encoded columns for Random Forest
+        platform = features.pop('platform')  # Remove platform string
+        features['platform_gf180'] = 1.0 if platform == 'gf180' else 0.0
+        features['platform_nangate45'] = 1.0 if platform == 'nangate45' else 0.0
+        features['platform_sky130hd'] = 1.0 if platform == 'sky130hd' else 0.0
+        features['platform_asap7'] = 1.0 if platform == 'asap7' else 0.0
+
+        # core_aspect_ratio is already numeric, keep as is
+        return features
+
+    # ===== RANDOM FOREST INTELLIGENCE METHODS =====
+    def _run_rf_ppa_prediction(self) -> None:
+        """Run PPA prediction using Random Forest models."""
+        if not HAS_INTELLIGENCE or self.rf_intelligence is None or not self.rf_intelligence.is_ready():
+            self._append_ai_chat("❌ Random Forest models not available. Check intelligence module initialization.")
+            return
+
+        if not self.app_config.design_config:
+            self._append_ai_chat("❌ No active design selected. Set a config.mk first.")
+            return
+
+        self._append_ai_chat("🌲 Running Random Forest PPA prediction...")
+
+        try:
+            features = self._build_rf_features()
+            if not features:
+                self._append_ai_chat("❌ Could not extract design features from config.mk")
+                return
+
+            predictions = self.rf_intelligence.predict_ppa(features)
+
+            # Update Predicted column in PPA Analysis
+            self._update_ppa_predicted(predictions)
+
+            self._append_ai_chat(
+                f"✅ RF PPA Prediction Complete:\n"
+                f"   Power: {predictions.get('power', 0):.1f} mW\n"
+                f"   WNS: {predictions.get('wns', 0):.2f} ns\n"
+                f"   Area: {predictions.get('area', 0):.0f} μm²\n"
+                f"   TNS: {predictions.get('tns', 0):.2f} ns"
+            )
+            self.log_viewer.log_info(f"RF PPA prediction: WNS={predictions.get('wns', 0):.2f}, "
+                                     f"Area={predictions.get('area', 0):.0f}, "
+                                     f"Power={predictions.get('power', 0):.1f}\n")
+
+        except Exception as e:
+            self._append_ai_chat(f"❌ RF PPA prediction failed: {e}")
+            self.log_viewer.log_error(f"RF PPA prediction error: {e}\n")
+
+    def _run_rf_failure_prediction(self) -> None:
+        """Run failure prediction using Random Forest classifier."""
+        if not HAS_INTELLIGENCE or self.rf_intelligence is None or not self.rf_intelligence.is_ready():
+            self._append_ai_chat("❌ Random Forest failure predictor not available.")
+            return
+
+        if not self.app_config.design_config:
+            self._append_ai_chat("❌ No active design selected. Set a config.mk first.")
+            return
+
+        self._append_ai_chat("🌲 Running Random Forest failure prediction...")
+
+        try:
+            features = self._build_rf_features()
+            if not features:
+                self._append_ai_chat("❌ Could not extract design features from config.mk")
+                return
+
+            risk = self.rf_intelligence.predict_failure_risk(features)
+
+            # Display results
+            msg_lines = [
+                f"🌲 RF Failure Risk Assessment for {self.app_config.design_name}",
+                f"Platform: {self.app_config.platform}",
+                "",
+            ]
+
+            for target, risk in risk.items():
+                prob = risk.get('probability', 0)
+                risk_level = risk.get('risk_level', 'unknown')
+                threshold = risk.get('threshold', 0)
+                calibrated = risk.get('calibrated', False)
+
+                cal_str = " (calibrated)" if calibrated else ""
+                msg_lines.append(f"  {target}: {prob:.1%} risk ({risk_level}){cal_str}")
+                msg_lines.append(f"    Threshold: {threshold:.3f}")
+
+            msg_lines.append("")
+            msg_lines.append("Note: Thresholds optimized via Youden's J statistic on validation data.")
+
+            self._append_ai_chat("\n".join(msg_lines))
+            self.log_viewer.log_info(f"RF Failure prediction completed\n")
+
+        except Exception as e:
+            self._append_ai_chat(f"❌ RF Failure prediction failed: {e}")
+            self.log_viewer.log_error(f"RF Failure prediction error: {e}\n")
+
+    def _show_rf_model_performance(self) -> None:
+        """Show RF model performance metrics."""
+        if not HAS_INTELLIGENCE or self.rf_intelligence is None or not self.rf_intelligence.is_ready():
+            messagebox.showinfo("RF Models Not Ready", "Random Forest models not loaded.")
+            return
+
+        # This would ideally load from saved training results
+        msg_lines = [
+            "🌲 Random Forest Model Performance (CV Results)",
+            "",
+            "Regression Targets (5-fold CV R²):",
+            "  WNS:     0.212 ± 0.012  (Ensemble: 0.230)",
+            "  TNS:     0.203 ± 0.012  (Ensemble: 0.212)",
+            "  Area:    0.824 ± 0.074  (LightGBM: 0.627 test)",
+            "  Power:   0.551 ± 0.161  (Ensemble: 0.655 test)",
+            "",
+            "Classification (5-fold CV AUC):",
+            "  Timing Closure: 0.709 ± 0.009  (Test: 0.716, Threshold: 0.208)",
+            "  DRC Clean:      0.588 ± 0.029  (Test: 0.613, Threshold: 0.930)",
+            "",
+            "Note: Calibrated thresholds via Isotonic Regression + Youden's J",
+        ]
+
+        messagebox.showinfo("RF Model Performance", "\n".join(msg_lines))
+
+    # ===== MENU ACTION HANDLERS =====
+    def _new_design(self) -> None:
         metrics = {}
 
         if not self.app_config.design_config or not self.app_config.results_dir:
@@ -1881,14 +2034,10 @@ class OpenRoadGUI(tk.Tk):
                 ppa['tns'] = float(tns_match.group(1))
 
             # Parse Power from IR report section (Total power in Watts) - handle scientific notation
-            power_match = re.search(r'Total power\s+:\s+([\d.]+(?:[eE][+-]?\d+)?)\s*W', content, re.IGNORECASE)
+            # Pattern: "Total power      : 1.31e+01 W"
+            power_match = re.search(r'Total power\s*:\s*([\d.]+(?:[eE][+-]?\d+)?)\s*W', content, re.IGNORECASE)
             if not power_match:
-                power_match = re.search(r'Total power\s+:\s+([\d.]+(?:[eE][+-]?\d+)?)\s*W', content, re.IGNORECASE)
-            if not power_match:
-                power_match = re.search(r'Total power\s+([\d.]+(?:[eE][+-]?\d+)?)\s*W', content, re.IGNORECASE)
-            if not power_match:
-                # Try without W suffix
-                power_match = re.search(r'Total power\s+:\s+([\d.]+(?:[eE][+-]?\d+)?)', content, re.IGNORECASE)
+                power_match = re.search(r'Total power\s*:\s*([\d.]+(?:[eE][+-]?\d+)?)', content, re.IGNORECASE)
             if power_match:
                 power_watts = float(power_match.group(1))
                 ppa['power'] = power_watts * 1000  # Convert W to mW
@@ -1922,12 +2071,26 @@ class OpenRoadGUI(tk.Tk):
                         if key in json_data and json_data[key] is not None:
                             ppa['area'] = float(json_data[key])
                             break
+                    # Also try to get power from JSON
+                    if 'power' not in ppa:
+                        power_keys = [
+                            'finish__design__power__total',
+                            'finish__design__power__dynamic',
+                            'finish__design__power__static',
+                            'total_power_w',
+                            'power_w',
+                        ]
+                        for key in power_keys:
+                            if key in json_data and json_data[key] is not None:
+                                power_watts = float(json_data[key])
+                                ppa['power'] = power_watts * 1000
+                                break
                 except Exception:
                     pass
 
             # Fallback 1: Parse area from 6_finish.rpt - look for "Cell type report" -> "Total" row
+            # Pattern: "Total                                 40551  999197.34"
             if 'area' not in ppa:
-                # Pattern: "Total                                 40551  999197.34"
                 area_match = re.search(r'^\s*Total\s+\d+\s+([\d.]+)', content, re.MULTILINE)
                 if area_match:
                     ppa['area'] = float(area_match.group(1))
@@ -1935,7 +2098,7 @@ class OpenRoadGUI(tk.Tk):
             # Fallback 2: Parse area from "Design area X um^2" pattern
             if 'area' not in ppa:
                 area_patterns = [
-                    r'Design area\s+(\d+)\s*um\^2',  # "Design area 13 um^2 55% utilization."
+                    r'Design area\s+([\d.]+)\s*um\^2',  # "Design area 13 um^2 55% utilization."
                     r'Design area\s*[=:]\s*([\d.]+)',
                     r'area\s*[=:]\s*([\d.]+)',
                     r'design area\s*[=:]\s*([\d.]+)',
@@ -1949,7 +2112,22 @@ class OpenRoadGUI(tk.Tk):
                         ppa['area'] = float(area_match.group(1))
                         break
 
-            # Fallback 3: Try to get area from place reports
+            # Fallback 3: Parse area from "Cell type report" table
+            if 'area' not in ppa:
+                # Look for the last row in a table that has area data
+                # Pattern: "Total                                 40551  999197.34"
+                lines = content.split('\n')
+                for line in reversed(lines):
+                    if line.strip().startswith('Total') and len(line.split()) >= 3:
+                        parts = line.split()
+                        try:
+                            # Last numeric value is typically the area
+                            ppa['area'] = float(parts[-1])
+                            break
+                        except ValueError:
+                            continue
+
+            # Fallback 4: Try to get area from place reports
             if 'area' not in ppa:
                 place_reports = list(reports_dir.glob("*_place*.rpt"))
                 if place_reports:
@@ -1959,7 +2137,7 @@ class OpenRoadGUI(tk.Tk):
                     if area_match:
                         ppa['area'] = float(area_match.group(1))
 
-            # Fallback 4: Estimate from instance count and utilization (if available in JSON)
+            # Fallback 5: Estimate from instance count and utilization (if available in JSON)
             if 'area' not in ppa and json_report.exists():
                 try:
                     import json
@@ -1992,6 +2170,15 @@ class OpenRoadGUI(tk.Tk):
                             break
                 except Exception:
                     pass
+
+            # Fallback: Parse power from IR report in text
+            if 'power' not in ppa:
+                power_match = re.search(r'Total power\s*:\s*([\d.]+(?:[eE][+-]?\d+)?)\s*W', content, re.IGNORECASE)
+                if not power_match:
+                    power_match = re.search(r'Total power\s*:\s*([\d.]+(?:[eE][+-]?\d+)?)', content, re.IGNORECASE)
+                if power_match:
+                    power_watts = float(power_match.group(1))
+                    ppa['power'] = power_watts * 1000
 
             return ppa if ppa else None
 

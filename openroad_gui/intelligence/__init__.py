@@ -11,6 +11,7 @@ from openroad_gui.intelligence.models.flow_optimizer import (
     FlowStage,
 )
 from openroad_gui.intelligence.models.failure_predictor import FailurePredictor
+from openroad_gui.intelligence.models.random_forest import RandomForestIntelligence
 from openroad_gui.intelligence.utils.onnx_export import (
     ONNXExporter,
     ONNXInferenceEngine,
@@ -27,6 +28,7 @@ __all__ = [
     "StageFeatures",
     "FlowStage",
     "FailurePredictor",
+    "RandomForestIntelligence",
     "ONNXExporter",
     "ONNXInferenceEngine",
     "SurrogateInference",
