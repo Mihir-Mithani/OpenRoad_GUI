@@ -132,6 +132,8 @@ class ORFSFlowEnv(gym.Env):
 
     def _action_to_stage_features(self, action: np.ndarray, stage: int) -> StageFeatures:
         """Convert action vector to StageFeatures for current stage."""
+        # Clamp stage to valid FlowStage enum range (0-5)
+        stage = min(stage, len(FlowStage) - 1)
         stage_enum = list(FlowStage)[stage]
 
         return StageFeatures(
