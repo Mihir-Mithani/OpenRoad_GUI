@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 """
-Surrogate Models Training Script v2 — Real + Synthetic Data
-Regression ensemble (LightGBM + PyTorch MLP) for PPA prediction with real ORFS data integration.
-
-Key improvements over v1:
-- Integrates real ORFS data from collect_real_data.py
-- Proper target normalization (log-transform area/power, clip WNS/TNS)
-- Better feature engineering matching real flow reports
-- Domain adaptation: real data weighted higher
-- Cross-validation with real-design holdout
+Surrogate Models Training Script v2 — Real Data Only
+Regression ensemble (LightGBM + PyTorch MLP) for PPA prediction with real ORFS data only.
 """
 
 import argparse
@@ -36,9 +29,8 @@ warnings.filterwarnings('ignore')
 os.environ['OMP_NUM_THREADS'] = '1'
 os.environ['LIGHTGBM_NUM_THREADS'] = '1'
 
-# ── Project paths ────────────────────────────────────────────────────────
+# Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-SYNTHETIC_DATA_PATH = PROJECT_ROOT / "dataset_genration" / "output" / "training_data.parquet"
 REAL_DATA_PATH = PROJECT_ROOT / "openroad_gui" / "intelligence" / "data" / "real_runs.json"
 MODEL_DIR = PROJECT_ROOT / "openroad_gui" / "intelligence" / "models" / "saved"
 CHECKPOINT_DIR = PROJECT_ROOT / "openroad_gui" / "intelligence" / "training" / "checkpoints"
@@ -47,7 +39,7 @@ LOG_DIR = PROJECT_ROOT / "openroad_gui" / "intelligence" / "training" / "logs"
 for d in (MODEL_DIR, CHECKPOINT_DIR, LOG_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
-# ── Feature / Target definitions ─────────────────────────────────────────
+# Feature / Target definitions
 CATEGORICAL_FEATURES = ['platform', 'core_aspect_ratio']
 NUMERIC_FEATURES = [
     'core_utilization', 'core_margin',
@@ -72,9 +64,7 @@ DROP_COLS = {
 }
 
 
-# ═══════════════════════════════════════════════════════════════════════════
 # PyTorch MLP Regressor
-# ═══════════════════════════════════════════════════════════════════════════
 class MLPRegressor(nn.Module):
     """Multi-layer perceptron for tabular regression."""
 
@@ -205,9 +195,7 @@ def save_residual_plot(y_true, y_pred, target_name, model_type, log_dir: Path):
         print(f"  Warning: Could not save residual plot: {e}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
 # Data Loading & Processing
-# ═══════════════════════════════════════════════════════════════════════════
 
 def load_real_data(real_data_path: Path) -> pd.DataFrame:
     """Load and process real ORFS data from collect_real_data.py output."""
@@ -291,72 +279,6 @@ def load_real_data(real_data_path: Path) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def load_synthetic_data(synthetic_path: Path) -> pd.DataFrame:
-    """Load synthetic training data."""
-    if not synthetic_path.exists():
-        print(f"  Synthetic data not found at {synthetic_path}")
-        return pd.DataFrame()
-
-    try:
-        df_syn = pl.read_parquet(synthetic_path).to_pandas()
-        print(f"  Loaded {len(df_syn)} synthetic samples")
-        return df_syn
-    except Exception as e:
-        print(f"  Error loading synthetic data: {e}")
-        return pd.DataFrame()
-
-
-def combine_datasets(df_real: pd.DataFrame, df_syn: pd.DataFrame, real_weight: float = 5.0) -> pd.DataFrame:
-    """
-    Combine real and synthetic datasets with domain adaptation weighting.
-
-    Args:
-        df_real: Real ORFS data
-        df_syn: Synthetic data
-        real_weight: Weight multiplier for real samples (higher = more important)
-
-    Returns:
-        Combined DataFrame with sample_weight column
-    """
-    if len(df_real) == 0:
-        print("  No real data, using synthetic only")
-        df_syn['sample_weight'] = 1.0
-        df_syn['data_source'] = 'synthetic'
-        return df_syn
-
-    if len(df_syn) == 0:
-        print("  No synthetic data, using real only")
-        df_real['sample_weight'] = real_weight
-        df_real['data_source'] = 'real'
-        return df_real
-
-    # Align columns
-    all_cols = set(df_real.columns) | set(df_syn.columns)
-    for df in [df_real, df_syn]:
-        for col in all_cols:
-            if col not in df.columns:
-                df[col] = np.nan
-
-    # Ensure consistent column order
-    df_real = df_real[sorted(all_cols)]
-    df_syn = df_syn[sorted(all_cols)]
-
-    # Add source and weight
-    df_real['data_source'] = 'real'
-    df_real['sample_weight'] = real_weight
-    df_syn['data_source'] = 'synthetic'
-    df_syn['sample_weight'] = 1.0
-
-    # Combine
-    df_combined = pd.concat([df_real, df_syn], ignore_index=True)
-    df_combined = df_combined.sample(frac=1, random_state=42).reset_index(drop=True)
-
-    print(f"  Combined: {len(df_real)} real (weight={real_weight}) + {len(df_syn)} synthetic (weight=1.0)")
-    print(f"  Total: {len(df_combined)} samples")
-
-    return df_combined
-
-
 def normalize_targets(df: pd.DataFrame) -> pd.DataFrame:
     """
     Apply target transformations for better regression:
@@ -402,17 +324,11 @@ def prepare_features_targets(df: pd.DataFrame, target_col: str):
     return X_df, y, weights, groups
 
 
-# ═══════════════════════════════════════════════════════════════════════════
 # Main training function
-# ═══════════════════════════════════════════════════════════════════════════
 def main():
-    parser = argparse.ArgumentParser(description="Train surrogate models for PPA prediction (v2: real + synthetic)")
-    parser.add_argument('--synthetic-data', type=Path, default=SYNTHETIC_DATA_PATH,
-                        help='Path to synthetic training_data.parquet')
-    parser.add_argument('--real-data', type=Path, default=REAL_DATA_PATH,
+    parser = argparse.ArgumentParser(description="Train surrogate models for PPA prediction (v2: real data only)")
+    parser.add_argument('--real-data', type=Path, default=None,
                         help='Path to real ORFS runs JSON')
-    parser.add_argument('--real-weight', type=float, default=5.0,
-                        help='Weight multiplier for real samples')
     parser.add_argument('--epochs', type=int, default=200, help='MLP training epochs')
     parser.add_argument('--lr', type=float, default=1e-3, help='MLP learning rate')
     parser.add_argument('--batch-size', type=int, default=64, help='MLP batch size')
@@ -422,26 +338,35 @@ def main():
     parser.add_argument('--cv-folds', type=int, default=5, help='CV folds for evaluation')
     args = parser.parse_args()
 
+    # Default to real data path
+    if args.real_data is None:
+        args.real_data = REAL_DATA_PATH
+
     print("=" * 70)
-    print("SURROGATE MODELS TRAINING v2 — Real + Synthetic Data")
+    print("SURROGATE MODELS TRAINING v2 — Real Data Only")
     print("=" * 70)
-    print(f"Synthetic data: {args.synthetic_data}")
     print(f"Real data:      {args.real_data}")
-    print(f"Real weight:    {args.real_weight}x")
     print(f"Device:         {args.device}")
     print(f"Ensemble:       {args.ensemble}")
     print(f"CV folds:       {args.cv_folds}")
     print("=" * 70)
 
-    # ── Load data ────────────────────────────────────────────────────────
+    # Load real data only
     df_real = load_real_data(args.real_data)
-    df_syn = load_synthetic_data(args.synthetic_data)
 
-    if len(df_real) == 0 and len(df_syn) == 0:
-        raise FileNotFoundError("No training data available!")
+    if len(df_real) == 0:
+        raise FileNotFoundError("No real training data available!")
 
-    # Combine datasets
-    df = combine_datasets(df_real, df_syn, args.real_weight)
+    df = df_real.copy()
+    print(f"Loaded {len(df_real)} real ORFS runs")
+
+    # Filter for regression-suitable data (complete runs with valid targets)
+    if 'suitable_for_regression' in df.columns:
+        df_reg = df[df['suitable_for_regression']].copy()
+        print(f"Regression-suitable runs: {len(df_reg)} (filtered from {len(df)})")
+        df = df_reg
+    else:
+        print("Warning: 'suitable_for_regression' column not found, using all data")
 
     # Normalize targets
     df = normalize_targets(df)
@@ -454,7 +379,10 @@ def main():
         if col in df.columns:
             df[col] = df[col].fillna(df[col].median())
 
-    # ── Preprocessor ────────────────────────────────────────────────────
+    # Add sample_weight for real data (weight=1.0)
+    df['sample_weight'] = 1.0
+
+    # Preprocessor
     preprocessor = ColumnTransformer(
         transformers=[
             ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), CATEGORICAL_FEATURES),
@@ -475,20 +403,19 @@ def main():
     X_processed = preprocessor.transform(X_all)
     print(f"Processed feature shape: {X_processed.shape}")
 
-    # ── Cross-validation with GroupKFold (by design) ────────────────────
+    # Cross-validation with GroupKFold (by design)
     groups = df['design_name'].values if 'design_name' in df.columns else None
 
     if args.cv_folds > 1 and groups is not None and len(np.unique(groups)) >= args.cv_folds:
         print(f"\nRunning {args.cv_folds}-fold GroupKFold CV (by design)...")
         gkf = GroupKFold(n_splits=args.cv_folds)
-        cv_results = {target: [] for target in REGRESSION_TARGETS}
     else:
         print("\nUsing simple train/test split (insufficient groups for GroupKFold)...")
         gkf = None
         indices = np.arange(len(df))
         train_idx, test_idx = train_test_split(indices, test_size=0.2, random_state=42)
 
-    # ── Train models per target ────────────────────────────────────────
+    # Train models per target
     all_results = {}
 
     for short_name, target_col in REGRESSION_TARGETS.items():
@@ -547,12 +474,12 @@ def main():
             )
             all_results[short_name] = res
 
-    # ── Save results summary ────────────────────────────────────────────
+    # Save results summary
     results_path = LOG_DIR / "surrogate_results_v2.json"
     with open(results_path, 'w') as f:
         json.dump(all_results, f, indent=2)
 
-    # ── Summary ─────────────────────────────────────────────────────────
+    # Summary
     print("\n" + "=" * 70)
     print("TRAINING COMPLETE — SUMMARY")
     print("=" * 70)
@@ -573,7 +500,7 @@ def train_target_fold(X_train, y_train, w_train, X_test, y_test,
     """Train models for a single target (and fold)."""
     target_results = {}
 
-    # ── LightGBM ────────────────────────────────────────────────────
+    # LightGBM
     print(f"\n--- LightGBM {'(Final)' if is_final else f'(Fold {fold+1})'} ---")
     lgb_train = lgb.Dataset(X_train, label=y_train, weight=w_train)
     lgb_val = lgb.Dataset(X_test, label=y_test, reference=lgb_train)
@@ -617,7 +544,7 @@ def train_target_fold(X_train, y_train, w_train, X_test, y_test,
     )
     target_results['lightgbm'] = lgb_metrics
 
-    # ── PyTorch MLP ─────────────────────────────────────────────────
+    # PyTorch MLP
     if args.ensemble:
         print(f"\n--- PyTorch MLP {'(Final)' if is_final else f'(Fold {fold+1})'} ---")
         device = args.device if torch.cuda.is_available() or args.device == 'cpu' else 'cpu'
@@ -648,7 +575,7 @@ def train_target_fold(X_train, y_train, w_train, X_test, y_test,
         }, MODEL_DIR / f"surrogate_{short_name}_mlp{model_suffix}.pt")
         target_results['mlp'] = mlp_metrics
 
-        # ── Ensemble (simple average) ───────────────────────────────────
+        # Ensemble (simple average)
         y_pred_ensemble = (y_pred_lgb + y_pred_mlp) / 2
         ens_metrics = evaluate_regression(y_test, y_pred_ensemble, f"{short_name.upper()} (Ensemble)")
         target_results['ensemble'] = ens_metrics

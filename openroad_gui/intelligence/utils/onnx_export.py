@@ -400,14 +400,23 @@ class SurrogateInference:
         if model_type == 'lgb':
             model = model_data['model'] if isinstance(model_data, dict) else model_data
             pred = model.predict(X, num_iteration=model.best_iteration)
-            return float(pred[0])
+            pred_value = float(pred[0])
         elif model_type == 'mlp' and TORCH_AVAILABLE:
             model = model_data
             with torch.no_grad():
                 pred = model(torch.FloatTensor(X))
-            return float(pred.item())
+            pred_value = float(pred.item())
+        else:
+            return None
 
-        return None
+        # Apply inverse transform for log-transformed targets
+        # Models for 'area' and 'power' predict log(area+1) and log(power+1)
+        if target == 'area':
+            return float(np.expm1(pred_value))
+        elif target == 'power':
+            return float(np.expm1(pred_value))
+
+        return pred_value
 
     def predict_all(self, features: Dict[str, Any], model_type: str = 'lgb') -> Dict[str, float]:
         """Predict all PPA targets."""

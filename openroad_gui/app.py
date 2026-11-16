@@ -1497,10 +1497,48 @@ class OpenRoadGUI(tk.Tk):
 
         # Try to get actual instance count from synthesis report first
         num_instances = None
+        num_nets = None
+        num_sequential = None
+
         reports_dir = self.app_config.flow_dir / "reports" / self.app_config.platform / self.app_config.design_name / "base"
-        if reports_dir.exists():
-            # Look for synthesis reports with various naming patterns
-            synth_patterns = ["1_*synth*.rpt", "1_*.rpt", "*synth*.rpt", "synth_stat.txt", "synth_check.txt"]
+        logs_dir = self.app_config.flow_dir / "logs" / self.app_config.platform / self.app_config.design_name / "base"
+
+        # Priority 1: Use 6_report.json (most accurate, from final flow)
+        json_report = logs_dir / "6_report.json"
+        if not json_report.exists():
+            json_report = reports_dir / "6_report.json"
+
+        if json_report.exists():
+            try:
+                import json
+                data = json.loads(json_report.read_text())
+                # Extract authoritative counts from JSON report
+                if 'finish__design__instance__count' in data:
+                    num_instances = int(data['finish__design__instance__count'])
+                if 'finish__design__nets' in data:
+                    num_nets = int(data['finish__design__nets'])
+                if 'finish__design__instance__count__class:sequential_cell' in data:
+                    num_sequential = int(data['finish__design__instance__count__class:sequential_cell'])
+            except Exception:
+                pass
+
+        # Priority 2: Parse synth_stat.txt (Yosys synthesis statistics)
+        if num_instances is None:
+            synth_stat = reports_dir / "synth_stat.txt"
+            if synth_stat.exists():
+                try:
+                    content = synth_stat.read_text()
+                    # Format: "    4616 1.69E+03     3478 1.32E+03 cells"
+                    # First number = count including submodules, third = local count
+                    match = re.search(r'^\s*(\d+)\s+[\d.E+-]+\s+(\d+)\s+[\d.E+-]+\s+cells', content, re.MULTILINE)
+                    if match:
+                        num_instances = int(match.group(1))  # Use count including submodules
+                except Exception:
+                    pass
+
+        # Priority 3: Parse synth report for "Number of cells:"
+        if num_instances is None:
+            synth_patterns = ["1_*synth*.rpt", "1_*.rpt", "*synth*.rpt", "synth_check.txt"]
             for pattern in synth_patterns:
                 synth_reports = list(reports_dir.glob(pattern))
                 for report_file in synth_reports:
@@ -1508,9 +1546,6 @@ class OpenRoadGUI(tk.Tk):
                         content = report_file.read_text()
                         # Yosys reports: "Number of cells: 123"
                         match = re.search(r'Number of cells:\s+(\d+)', content)
-                        if not match:
-                            # synth_stat.txt format: "18    2.858       18    2.858 cells"
-                            match = re.search(r'^\s*(\d+)\s+[\d.]+\s+\d+\s+[\d.]+\s+cells', content, re.MULTILINE)
                         if match:
                             num_instances = int(match.group(1))
                             break
@@ -1539,10 +1574,16 @@ class OpenRoadGUI(tk.Tk):
                     assign_stmts * 5        # combinational logic
                 )
 
+        # Derive num_nets and num_sequential if not from JSON
+        if num_nets is None:
+            num_nets = int(num_instances * 1.2)
+        if num_sequential is None:
+            num_sequential = int(num_instances * 0.2)
+
         # Build base features
         features['num_instances'] = num_instances
-        features['num_nets'] = int(num_instances * 1.2)
-        features['num_sequential'] = int(num_instances * 0.2)
+        features['num_nets'] = num_nets
+        features['num_sequential'] = num_sequential
         features['num_macros'] = 0
         features['macro_area_ratio'] = 0.0
 

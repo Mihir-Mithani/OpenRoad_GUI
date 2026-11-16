@@ -37,7 +37,7 @@ warnings.filterwarnings('ignore')
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-DATA_PATH = PROJECT_ROOT / "dataset_genration" / "output" / "training_data.parquet"
+DATA_PATH = PROJECT_ROOT / "openroad_gui" / "intelligence" / "data" / "real_runs_training.json"
 MODEL_DIR = PROJECT_ROOT / "openroad_gui" / "intelligence" / "models" / "saved"
 LOG_DIR = PROJECT_ROOT / "openroad_gui" / "intelligence" / "training" / "logs"
 
@@ -122,12 +122,22 @@ RF_CLF_SEARCH_SPACE = {
 
 # ── Utility Functions ─────────────────────────────────────────────────────────
 def load_data():
-    """Load and prepare training data."""
+    """Load and prepare training data from real AWS runs."""
     if not DATA_PATH.exists():
-        raise FileNotFoundError(f"Data not found: {DATA_PATH}. Run generate_dataset.py first.")
+        raise FileNotFoundError(f"Data not found: {DATA_PATH}. Run prepare_real_training_data.py first.")
 
-    df = pd.read_parquet(DATA_PATH)
+    # Load JSON data
+    import json
+    with open(DATA_PATH, 'r') as f:
+        records = json.load(f)
+
+    df = pd.DataFrame(records)
     print(f"Loaded {len(df)} samples, {df.shape[1]} columns")
+
+    # Filter for regression-suitable data (complete runs with valid targets)
+    if 'suitable_for_regression' in df.columns:
+        df = df[df['suitable_for_regression']].copy()
+        print(f"Using {len(df)} regression-suitable runs")
 
     # Prepare feature matrix
     drop_cols = [c for c in DROP_COLS if c in df.columns]
