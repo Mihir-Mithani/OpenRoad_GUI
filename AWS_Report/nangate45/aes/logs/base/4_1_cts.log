@@ -1,0 +1,102 @@
+OpenROAD unknown 
+Features included (+) or not (-): -GPU +GUI
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 2 thread(s).
+read_liberty /work/objects/binary_libs/nangate45/NangateOpenCellLibrary_typical@6692032-1794015536-5fd7c1ec.blib
+read_db -hier /work/results/nangate45/aes/base/3_place.odb
+[WARNING ORD-0012] Hierarchical flow (-hier) is currently in development and may cause multiple issues. Do not use in production environments.
+read_sdc /work/results/nangate45/aes/base/3_place.sdc
+source /OpenROAD-flow-scripts/flow/platforms/nangate45/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets
+[INFO CTS-0050] Root buffer is CLKBUF_X3.
+[INFO CTS-0051] Sink buffer is CLKBUF_X3.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    CLKBUF_X3
+[INFO CTS-0049] Characterization buffer is CLKBUF_X3.
+[INFO CTS-0007] Net "clk" found for clock "clk".
+[INFO CTS-0010]  Clock net "clk" has 562 sinks.
+[INFO CTS-0008] TritonCTS found 1 clock nets.
+[INFO CTS-0097] Characterization used 1 buffer(s) types.
+[INFO CTS-0201] 0 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 562.
+[INFO CTS-0090]  Sinks will be clustered based on buffer max cap.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 14000  dbu (7 um).
+[INFO CTS-0206] Best clustering solution was found from max clustering size of 8 and max clustering diameter of 66.
+[INFO CTS-0019]  Total number of sinks after clustering: 93.
+[INFO CTS-0024]  Normalized sink region: [(2.2199, 2.12684), (33.7576, 34.0561)].
+[INFO CTS-0025]     Width:  31.5377.
+[INFO CTS-0026]     Height: 31.9292.
+ Level 1
+    Direction: Vertical
+    Sinks per sub-region: 47
+    Sub-region size: 31.5377 X 15.9646
+[INFO CTS-0034]     Segment length (rounded): 8.
+ Level 2
+    Direction: Horizontal
+    Sinks per sub-region: 24
+    Sub-region size: 15.7688 X 15.9646
+[INFO CTS-0034]     Segment length (rounded): 8.
+ Level 3
+    Direction: Vertical
+    Sinks per sub-region: 12
+    Sub-region size: 15.7688 X 7.9823
+[INFO CTS-0034]     Segment length (rounded): 4.
+[INFO CTS-0038]  Stop criterion found. Sink region hpwl is smaller than max wirelength (591.189 um) and max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 93.
+[INFO CTS-0018]     Created 102 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 3.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 3.
+[INFO CTS-0015]     Created 102 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 2:1, 3:3, 4:11, 5:19, 6:19, 7:22, 8:19, 9:1, 10:1, 11:1, 12:2, 13:1, 18:1..
+[INFO CTS-0017]     Max level of the clock tree: 3.
+[INFO CTS-0098] Clock net "clk"
+[INFO CTS-0099]  Sinks 639
+[INFO CTS-0100]  Leaf buffers 93
+[INFO CTS-0101]  Average sink wire length 342.72 um
+[INFO CTS-0102]  Path depth 2 - 3
+[INFO CTS-0207]  Dummy loads inserted 77
+[INFO CTS-0500] Runtime: 1.38s
+detailed_placement -quiet
+[INFO DPL-0009] Utilization: 35.9%
+[INFO DPL-0501] Legalized with 3537 moves: displacement total 5445.1 u, max 3.9 u; HPWL 183050.3 -> 185528.3 u (+1.4 %).
+[INFO DPL-0500] Runtime: 0.10s
+estimate_parasitics
+repair_timing -setup_margin 0 -hold_margin 0 -phases PARALLEL_EVAL -repair_tns 100 -verbose
+[WARNING RSZ-2024] Experimental repair setup policy 'SetupParallelEvalPolicy' selected. Do not use this for production.
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |    TNS     |  Viol  |  Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpoint
+------------------------------------------------------------------------------------------------------------------------------
+       0* |       0 |       0 |        0 |      0 |     0 |    +0.0% |   -0.013 |       -0.0 |      9 | sa33_sr\[7\]$_DFF_P_/D
+       1* |       2 |      20 |       10 |      0 |     0 |    +0.1% |   -0.002 |       -0.0 |      1 | sa20_sr\[2\]$_DFF_P_/D
+    final |       5 |      21 |       10 |      0 |     0 |    +0.1% |    0.000 |        0.0 |      0 | sa33_sr\[4\]$_DFF_P_/D
+------------------------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0059] Removed 5 buffers.
+[INFO RSZ-0045] Inserted 10 buffers, 2 to split loads.
+[INFO RSZ-0051] Resized 21 instances: 21 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0505] Runtime: 1.32s
+[INFO RSZ-0033] No hold violations found.
+[INFO RSZ-0506] Runtime: 0.01s
+Elapsed time: 0:00.92[h:]min:sec. CPU time: user 0.96 sys 0.04 (108%). Peak memory: 89240KB.
+Repair timing output passed lec test
+detailed_placement -quiet
+[INFO DPL-0009] Utilization: 36.0%
+[INFO DPL-0501] Legalized with 985 moves: displacement total 34.4 u, max 4.9 u; HPWL 185660.6 -> 185687.4 u (+0.0 %).
+[INFO DPL-0500] Runtime: 0.08s
+check_placement -placeable -verbose
+estimate_parasitics
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 18982 um^2 36% utilization.
+write_sdc -no_timestamp /work/results/nangate45/aes/base/4_1_cts.sdc
+write_db /work/results/nangate45/aes/base/4_1_cts.odb
+Elapsed time: 0:09.67[h:]min:sec. CPU time: user 13.87 sys 0.23 (145%). Peak memory: 314240KB.
+Log                    Ext     Elapsed      CPU     CPU/ Peak Mem sha1sum
+                                     s        s  Elapsed       MB [0:10)
+4_1_cts                .odb          0        1     1.09       87 ba47371d45
+4_1_cts                .sdc                                       c4fc350a67

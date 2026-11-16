@@ -2053,7 +2053,13 @@ class OpenRoadGUI(tk.Tk):
                 ppa['lvs'] = int(lvs_match.group(1))
 
             # Parse Area from JSON report (most reliable)
+            # Check both reports_dir and logs_dir for 6_report.json
             json_report = reports_dir / "6_report.json"
+            if not json_report.exists():
+                # Try logs directory
+                logs_dir = self.app_config.flow_dir / "logs" / self.app_config.platform / self.app_config.design_name / "base"
+                json_report = logs_dir / "6_report.json"
+
             if json_report.exists():
                 import json
                 try:
@@ -2074,6 +2080,10 @@ class OpenRoadGUI(tk.Tk):
                     # Also try to get power from JSON
                     if 'power' not in ppa:
                         power_keys = [
+                            'finish__power__total',
+                            'finish__power__internal__total',
+                            'finish__power__switching__total',
+                            'finish__power__leakage__total',
                             'finish__design__power__total',
                             'finish__design__power__dynamic',
                             'finish__design__power__static',
@@ -2084,6 +2094,27 @@ class OpenRoadGUI(tk.Tk):
                             if key in json_data and json_data[key] is not None:
                                 power_watts = float(json_data[key])
                                 ppa['power'] = power_watts * 1000
+                                break
+                    # Also try to get WNS/TNS from JSON
+                    if 'wns' not in ppa:
+                        wns_keys = [
+                            'finish__timing__setup__ws',
+                            'finish__timing__ws',
+                            'wns_max',
+                        ]
+                        for key in wns_keys:
+                            if key in json_data and json_data[key] is not None:
+                                ppa['wns'] = float(json_data[key])
+                                break
+                    if 'tns' not in ppa:
+                        tns_keys = [
+                            'finish__timing__setup__tns',
+                            'finish__timing__tns',
+                            'tns_max',
+                        ]
+                        for key in tns_keys:
+                            if key in json_data and json_data[key] is not None:
+                                ppa['tns'] = float(json_data[key])
                                 break
                 except Exception:
                     pass
@@ -2157,6 +2188,10 @@ class OpenRoadGUI(tk.Tk):
                     json_data = json.loads(json_report.read_text())
                     # Look for power keys
                     power_keys = [
+                        'finish__power__total',
+                        'finish__power__internal__total',
+                        'finish__power__switching__total',
+                        'finish__power__leakage__total',
                         'finish__design__power__total',
                         'finish__design__power__dynamic',
                         'finish__design__power__static',
