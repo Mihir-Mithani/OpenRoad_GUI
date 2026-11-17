@@ -99,7 +99,7 @@ OpenRoad-GUI Project\\
 %===============================================================================
 
 \begin{abstract}
-This paper presents OpenRoad-GUI, a comprehensive AI-assisted Electronic Design Automation (EDA) workstation that wraps the OpenROAD Flow Scripts (ORFS) for RTL-to-GDSII physical design automation. The system integrates three complementary machine learning approaches: (1) surrogate models using LightGBM and PyTorch MLP ensembles for Power-Performance-Area (PPA) prediction achieving \Rtwo{} up to 0.989 for area and 0.665 for worst negative slack (WNS); (2) failure prediction classifiers using calibrated LightGBM models with \AUC{} of 0.716 for timing closure and 0.613 for design rule checking (DRC) clean prediction; and (3) a Proximal Policy Optimization (PPO) reinforcement learning agent for autonomous flow parameter optimization across 16 continuous action dimensions. The system is trained exclusively on real ORFS execution data from 175 runs across 5 designs (riscv32i, jpeg, aes, gcd, uart-blocks) and 4 process design kits (asap7, sky130hd, nangate45, gf180). The workstation features a modern Tkinter-based GUI with real-time PPA prediction, automated failure risk assessment, and interactive flow control. Models are deployable via ONNX export for production integration. Experimental results demonstrate significant improvement over baseline surrogate models, with ensemble methods reducing WNS prediction error by 45\% compared to single-model approaches.
+This paper presents OpenRoad-GUI, a comprehensive AI-assisted Electronic Design Automation (EDA) workstation that wraps the OpenROAD Flow Scripts (ORFS) for RTL-to-GDSII physical design automation. The system integrates three complementary machine learning approaches: (1) surrogate models using LightGBM and PyTorch MLP ensembles for Power, Performance, and Area (PPA) prediction achieving \Rtwo{} of 0.982 for log-area and 0.665 for normalized WNS on the hold-out test set; (2) failure prediction classifiers using calibrated LightGBM models with \AUC{} of 0.716 for timing closure and 0.613 for design rule checking (DRC-clean) prediction; and (3) a preliminary Proximal Policy Optimization (PPO) reinforcement learning framework for autonomous flow parameter optimization. The system is trained exclusively on real ORFS execution data from 175 runs across 9 designs (riscv32i, jpeg, aes, gcd, uart-blocks, ibex, picorv32, dynamic_node, riscv32i-mock-sram) and 4 process design kits (asap7, sky130hd, nangate45, gf180). The workstation features a Tkinter-based desktop GUI with low-latency PPA prediction, automated failure risk assessment, and interactive flow control. Models are deployable via ONNX export for production integration. Experimental results evaluate the proposed surrogate models across multiple PPA metrics and compare the ensemble against its individual component models.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -121,12 +121,12 @@ This paper presents \textbf{OpenRoad-GUI}, a unified AI-assisted EDA workstation
 
 \begin{enumerate}
     \item \textbf{Integrated ML Pipeline}: Three complementary model types (surrogate regression, failure classification, RL optimization) sharing a common feature representation and training data pipeline
-    \item \textbf{Real-Data-Only Training}: Models trained exclusively on 175 real \ORFS{} executions across 5 designs and 4 process design kits (PDKs)
+    \item \textbf{Real-Data-Only Training}: Models trained exclusively on 175 real \ORFS{} executions across 9 designs and 4 process design kits (PDKs)
     \item \textbf{Production Deployment}: ONNX export capability, GUI integration with real-time prediction, and automated PPA tracking
     \item \textbf{Rigorous Validation}: GroupKFold cross-validation by design, isotonic calibration for classifiers, and ensemble methods
 \end{enumerate}
 
-The system achieves state-of-the-art results for surrogate modeling (Area \Rtwo{} = 0.989, Power \Rtwo{} = 0.952, WNS \Rtwo{} = 0.665) and calibrated failure prediction (Timing Closure \AUC{} = 0.716, DRC Clean \AUC{} = 0.613), while providing a complete desktop workstation for EDA engineers.
+The experimental results indicate strong surrogate modeling performance on log-transformed targets (Log-Area \Rtwo{} = 0.982, Log-Power \Rtwo{} = 0.973, Normalized WNS \Rtwo{} = 0.665 on hold-out test) and calibrated failure prediction (Timing Closure \AUC{} = 0.716, DRC-clean \AUC{} = 0.613), while providing an integrated desktop workstation for EDA engineers.
 
 %===============================================================================
 % Section 2: Related Work - Unified Landscape
@@ -135,7 +135,7 @@ The system achieves state-of-the-art results for surrogate modeling (Area \Rtwo{
 \section{Related Work: A Unified Landscape of ML for Physical Design}
 \label{sec:related_work}
 
-The application of machine learning to physical design has evolved across multiple distinct but intersecting research threads. We organize the landscape into six approach families, drawing on a comprehensive analysis of 20 recent papers spanning 2018--2026 (detailed in Appendix~\ref{app:three_way_scan}).
+The application of machine learning to physical design has evolved across multiple distinct but intersecting research threads. We organize the landscape into six approach families, drawing on a comprehensive analysis of 23 recent papers spanning 2018--2026 (detailed in Appendix~\ref{app:three_way_scan} and supplementary material).
 
 \subsection{Surrogate Modeling and Bayesian Optimization}
 \label{sec:surrogate_bo}
@@ -223,13 +223,13 @@ Despite significant advances across all approach families, our literature synthe
 \toprule
 Gap & Description & Representative Papers \\
 \midrule
-Surrogate-PPO Loop Closure & FastTuner \cite{hsiao2026fasttuner} uses offline surrogates for RL reward, but they do not accept flow parameters as inputs, breaking the RL loop. & \cite{hsiao2026fasttuner} \\
+Surrogate-PPO Loop Closure & OpenRoad-GUI's current surrogate uses design-only features and cannot predict the impact of flow-parameter changes, limiting action-sensitive RL reward. FastTuner \cite{hsiao2026fasttuner} uses a GNN-based estimator accepting both design and flow parameters. & \cite{hsiao2026fasttuner, this work} \\
 LLM Grounding Primitives & Agentic AI (ChatEDA, ORFS-agent, CAPO) uses LLMs for high-level reasoning but lacks low-level tool-integration primitives. & \cite{ghose2026agentic,jiang2026capo} \\
 Certification Scalability & CAPO's $K^+/K^-$ certification requires manual threshold tuning ($\tau^+/\tau^-$); automated threshold learning is not provided. & \cite{jiang2026capo} \\
 Multi-Fidelity Integration & Multi-fidelity BO is proposed \cite{chen2025graph,shrirao2024intelligent}, but is not demonstrated end-to-end with sign-off tools. & \cite{chen2025graph,shrirao2024intelligent} \\
 Open-Source Benchmarking & Industrial results (DSO.ai, FastTuner on 28nm) are not reproducible; academic benchmarks remain limited in scale. & \cite{verma2024dso,hsiao2026fasttuner} \\
-DRC Prediction Weakness & DRC Clean prediction \AUC{} is only 0.59--0.61 across papers. & \cite{mutar2026auto, this work} \\
-Flow-Parameter-Aware Surrogates & Surrogates predict from design features only and cannot predict the impact of flow-parameter changes. & \cite{hsiao2026fasttuner, this work} \\
+DRC Prediction Weakness & DRC-clean prediction \AUC{} is only 0.59--0.61 across papers. & \cite{mutar2026auto, this work} \\
+Flow-Parameter-Aware Surrogates & OpenRoad-GUI surrogates predict from design features only and cannot predict the impact of flow-parameter changes. & \cite{this work} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -299,7 +299,7 @@ Three model types operate in parallel, sharing a common feature representation:
 Model Type & Algorithm & Targets & Key Innovation \\
 \midrule
 Surrogate & LightGBM + MLP ensemble & WNS, TNS, Area, Power & GroupKFold CV, log-transform targets, ensemble \\
-Failure Predictor & LightGBM + isotonic calibration & Timing Closure, DRC Clean & Youden's J threshold optimization \\
+Failure Predictor & LightGBM + isotonic calibration & Timing Closure, DRC-clean & Youden's J threshold optimization \\
 Flow Optimizer & PPO (Stable-Baselines3) & 16 flow parameters & Surrogate-as-reward, hybrid heuristic + RL \\
 \bottomrule
 \end{tabularx}
@@ -315,22 +315,35 @@ Flow Optimizer & PPO (Stable-Baselines3) & 16 flow parameters & Surrogate-as-rew
 \subsection{Feature Engineering}
 \label{sec:feature_engineering}
 
-Features are extracted from design configuration (\texttt{config.mk}), Verilog parsing, and \ORFS{} reports:
+Features are extracted from design configuration (\texttt{config.mk}), Verilog parsing, and \ORFS{} reports. All features are available before the Floorplan stage (prediction point).
 
-\textbf{Categorical Features} (one-hot encoded):
-\begin{itemize}
-    \item Platform: \{asap7, sky130hd, nangate45, gf180\} $\rightarrow$ 4 dimensions
-    \item Core Aspect Ratio: treated as categorical (typically 1.0) $\rightarrow$ 1 dimension
-\end{itemize}
+\begin{table}[t]
+\centering
+\caption{Feature Specification}
+\label{tab:feature_spec}
+\small
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{0.22\columnwidth}>{\raggedright\arraybackslash}p{0.22\columnwidth}>{\raggedright\arraybackslash}p{0.15\columnwidth}X@{}}
+\toprule
+Feature & Source & Type & Preprocessing \\
+\midrule
+Platform & Run configuration & Categorical & One-hot (4 dims) \\
+Core Utilization & \texttt{config.mk} & Numerical & StandardScaler \\
+Core Margin & \texttt{config.mk} & Numerical & StandardScaler \\
+Core Aspect Ratio & \texttt{config.mk} & Numerical/Categorical & One-hot (1 dim) \\
+Place Density & \texttt{config.mk} & Numerical & StandardScaler \\
+Instance Count & Verilog parsing & Numerical & log1p \\
+Net Count & Verilog parsing & Numerical & log1p \\
+Sequential Count & Verilog parsing & Numerical & log1p \\
+Macro Count & Verilog parsing & Numerical & log1p \\
+Sequential Ratio & Engineered & Numerical & StandardScaler \\
+Macro Ratio & Engineered & Numerical & StandardScaler \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\textbf{Numeric Features} (StandardScaler normalized):
-\begin{itemize}
-    \item Core Utilization, Core Margin
-    \item Instance/Net/Sequential/Macro counts
-    \item Engineered: log(instances), log(nets), seq\_ratio, macro\_ratio
-\end{itemize}
-
-Total feature dimension after preprocessing: \textasciitilde 16--17 dimensions.
+Total feature dimension after preprocessing: 16 dimensions (4 one-hot platform + 1 one-hot aspect ratio + 11 numeric).
 
 \subsection{Surrogate Models (PPA Regression)}
 \label{sec:surrogate_models}
@@ -338,30 +351,35 @@ Total feature dimension after preprocessing: \textasciitilde 16--17 dimensions.
 \subsubsection{LightGBM Configuration}
 \begin{itemize}
     \item Objective: Regression (RMSE)
-    \item 500 boosting rounds, early stopping (50 rounds)
+    \item 500 max boosting rounds, early stopping (50 rounds) on validation fold
     \item Learning rate: 0.05, num\_leaves: 63
     \item Feature fraction: 0.8, bagging fraction: 0.8, bagging\_freq: 5
     \item L1 regularization: 0.1, L2 regularization: 1.0
+    \item Selected iterations (per fold, final model): mean $\approx$ 180--220 rounds
+    \item Training/validation split: 80/20 within each GroupKFold fold
 \end{itemize}
 
 \subsubsection{PyTorch MLP Architecture}
 \begin{Verbatim}[breaklines=true,breakanywhere=true]
-Input (16-17) -> Linear(256) -> BatchNorm -> ReLU -> Dropout(0.2)
-            -> Linear(128) -> BatchNorm -> ReLU -> Dropout(0.2)
-            -> Linear(64)  -> BatchNorm -> ReLU -> Dropout(0.2)
-            -> Linear(1)   -> Output
+Input (16) -> Linear(256) -> BatchNorm -> ReLU -> Dropout(0.2)
+           -> Linear(128) -> BatchNorm -> ReLU -> Dropout(0.2)
+           -> Linear(64)  -> BatchNorm -> ReLU -> Dropout(0.2)
+           -> Linear(1)   -> Output
 \end{Verbatim}
 \begin{itemize}
     \item AdamW optimizer (lr=1e-3, weight\_decay=1e-5)
     \item ReduceLROnPlateau scheduler (patience=10, factor=0.5)
     \item Early stopping (patience=20)
+    \item Normalization (StandardScaler) fitted within each training fold to avoid leakage
+    \item Architecture chosen for comparative analysis; smaller variants (e.g., 128-64-32) show similar CV performance on this dataset size
 \end{itemize}
 
 \subsubsection{Target Transformations}
 \begin{itemize}
-    \item WNS/TNS: Clipped to $[-500, 100]$ and $[-10000, 100]$ respectively
+    \item WNS/TNS: Normalized by clipping to $[-500, 100]$ and $[-10000, 100]$ respectively, then scaled
     \item Area/Power: Log-transformed via log1p for skewed distributions
 \end{itemize}
+\end{parameter>
 
 \subsubsection{Cross-Validation Strategy}
 GroupKFold (5 folds) stratified by \texttt{design\_name} to prevent data leakage across same-design configurations. Hold-out test set (last fold) for final evaluation. Models retrained on full dataset after CV.
@@ -375,13 +393,13 @@ Simple average of LightGBM and MLP predictions for final ensemble output.
 \subsubsection{Targets}
 \begin{itemize}
     \item \textbf{Timing Closure}: WNS $\ge$ 0 (positive rate \textasciitilde 30\%)
-    \item \textbf{DRC Clean}: DRC violations = 0 (positive rate \textasciitilde 85\%)
+    \item \textbf{DRC-clean}: DRC violations = 0 (positive rate \textasciitilde 85\%)
 \end{itemize}
 
 \subsubsection{Class Weights (Handling Imbalance)}
 \begin{itemize}
     \item Timing Closure: \{0: 1.0, 1: 2.33\}
-    \item DRC Clean: \{0: 5.67, 1: 1.0\}
+    \item DRC-clean: \{0: 5.67, 1: 1.0\}
 \end{itemize}
 
 \subsubsection{Calibration Pipeline}
@@ -400,7 +418,7 @@ When model unavailable, calibrated heuristic based on WNS:
     \item WNS $\ge 0 \rightarrow$ 5\% risk
 \end{itemize}
 
-\subsection{Flow Optimizer (PPO Reinforcement Learning)}
+\subsection{Flow Optimizer (Preliminary PPO Reinforcement Learning Framework)}
 \label{sec:flow_optimizer}
 
 \subsubsection{Environment: ORFSFlowEnv (Gymnasium)}
@@ -408,14 +426,14 @@ When model unavailable, calibrated heuristic based on WNS:
 \setlength{\itemsep}{2pt}
 \setlength{\parskip}{0pt}
 \begin{itemize}
-    \item \textbf{State Space}: 128-dimensional encoded FlowState
+    \item \textbf{State Space}: 48-dimensional encoded FlowState
     \begin{itemize}
         \item Design features (12): log instances, ratios, frequency, utilization
         \item Platform one-hot (4)
         \item Current stage features (14): WNS, TNS, area, power, DRC, congestion, density
         \item Stage history (3 stages $\times$ 6 = 18)
     \end{itemize}
-    \item \textbf{Action Space}: 16 continuous dimensions
+    \item \textbf{Action Space}: 14 continuous dimensions (mapped to ORFS parameters)
     \begin{itemize}
         \item Synthesis: strategy, effort, retime, resynth (4)
         \item Floorplan: density, effort, macro\_placement (3)
@@ -430,6 +448,8 @@ When model unavailable, calibrated heuristic based on WNS:
         \item Terminal bonuses: +10 (timing closure), +5 (DRC clean)
     \end{itemize}
 \end{itemize}
+
+\textbf{Note}: Several action parameters (strategy, buffer\_type, macro\_placement) are categorical/discrete in ORFS; the PPO continuous outputs are mapped via rounding and clipping to valid ranges. The surrogate reward model currently uses design-only features and does not condition on flow parameters, limiting action-sensitive feedback. This is an active area of development.
 
 \subsubsection{Hybrid Inference}
 Heuristic base action (platform-specific defaults) + PPO residual adjustment:
@@ -446,6 +466,8 @@ where $\alpha$ controls residual magnitude (0.1--0.2).
     \item ONNX export for deployment
 \end{itemize}
 
+\textbf{Current Status}: Training in progress on Google Colab (GPU) at approximately 200K/500K timesteps. Mean episode reward is trending positive. Checkpoint models saved every 50K steps. ONNX export pipeline validated. Experimental validation of action-sensitive optimization through ORFS executions remains future work.
+
 %===============================================================================
 % Section 6: Training Pipeline and Data
 %===============================================================================
@@ -456,7 +478,7 @@ where $\alpha$ controls residual magnitude (0.1--0.2).
 \subsection{Real Data Collection}
 \label{sec:data_collection}
 
-The \texttt{collect\_real\_data.py} script extracts training data from completed \ORFS{} runs:
+The \texttt{collect\_real\_data.py} script extracts training data from completed \ORFS{} runs. Partial runs (20/175) are included for failure classification where intermediate metrics are available, but excluded from regression targets requiring final sign-off.
 
 \textbf{Data Sources}:
 \begin{itemize}
@@ -466,6 +488,8 @@ The \texttt{collect\_real\_data.py} script extracts training data from completed
     \item Logs (\texttt{flow/logs/}): Stage runtimes
     \item JSON reports (\texttt{6\_report.json}): Comprehensive \ORFS{} metrics
 \end{itemize}
+
+\textbf{Valid sample counts per target}: 152 complete runs for PPA regression (WNS, TNS, Area, Power); 152 runs with DRC labels for DRC-clean classification (32 clean, 120 violating); 175 runs for Timing Closure classification (36 closure, 139 violation).
 
 \textbf{Output Schema} (per run record):
 \begin{Verbatim}[breaklines=true,breakanywhere=true]
@@ -502,12 +526,12 @@ The \texttt{collect\_real\_data.py} script extracts training data from completed
 \toprule
 Metric & Value \\
 \midrule
-Total Runs & 175 (155 complete, 20 partial) \\
-Designs & 5 (riscv32i, jpeg, aes, gcd, uart-blocks, picorv32) \\
+Total Runs & 175 (152 complete, 23 partial) \\
+Designs & 9 (riscv32i, jpeg, aes, gcd, uart-blocks, ibex, picorv32, dynamic\_node, riscv32i-mock-sram) \\
 Platforms & 4 (asap7, sky130hd, nangate45, gf180) \\
 Timing Closure Rate & 20.6\% (36/175) \\
-DRC Clean Rate & \textasciitilde 20\% \\
-LVS Clean Rate & \textasciitilde 95\% \\
+DRC-clean Rate & 18.3\% (32/175) \\
+LVS Clean Rate & 100\% (175/175) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -521,9 +545,9 @@ LVS Clean Rate & \textasciitilde 95\% \\
 Platform & Runs & Complete & Timing Closure \\
 \midrule
 asap7 & 38 & 38 & 36.8\% \\
-gf180 & 44 & 42 & 29.5\% \\
-nangate45 & 63 & 49 & 14.3\% \\
-sky130hd & 30 & 26 & 0\% \\
+gf180 & 44 & 42 & 31.0\% \\
+nangate45 & 63 & 49 & 18.4\% \\
+sky130hd & 30 & 23 & 0.0\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -566,10 +590,11 @@ sky130hd & 30 & 26 & 0\% \\
 The \texttt{train\_all\_v2.py} script coordinates the complete pipeline:
 \begin{enumerate}
     \item \textbf{Data Collection}: \texttt{collect\_real\_data.py} per platform $\rightarrow$ merged \texttt{real\_runs\_training.json}
-    \item \textbf{Surrogate Training}: \texttt{train\_surrogate\_v2.py} $\rightarrow$ LightGBM + MLP ensemble (5-fold GroupKFold)
-    \item \textbf{Failure Predictor}: \texttt{train\_failure\_predictor.py} $\rightarrow$ LightGBM classifiers (5-fold StratifiedKFold)
+    \item \textbf{Surrogate Training}: \texttt{train\_surrogate\_v2.py} $\rightarrow$ LightGBM + MLP ensemble (5-fold GroupKFold by design)
+    \item \textbf{Failure Predictor}: \texttt{train\_failure\_predictor.py} $\rightarrow$ LightGBM classifiers (5-fold StratifiedGroupKFold by design, to prevent design-level leakage)
     \item \textbf{Flow Optimizer}: \texttt{train\_flow\_optimizer.py} $\rightarrow$ PPO on Colab/GPU (500K timesteps)
 \end{enumerate}
+\end{parameter>
 
 %===============================================================================
 % Section 7: Experimental Results
@@ -585,20 +610,18 @@ The \texttt{train\_all\_v2.py} script coordinates the complete pipeline:
 
 \begin{table}[t]
 \centering
-\caption{Surrogate Model Cross-Validation Results (5-fold GroupKFold)}
+\caption{Surrogate Model Cross-Validation Results (Five-fold GroupKFold by Design, Log-Transformed Targets)}
 \label{tab:surrogate_cv}
-\begin{tabular}{@{}lccccc@{}}
+\begin{tabular}{@{}lccccccc@{}}
 \toprule
-Target & \multicolumn{2}{c}{R$^2$} & \multicolumn{2}{c}{RMSE} \\
-\cmidrule(lr){2-3} \cmidrule(lr){4-5}
-& LightGBM & MLP & LightGBM & MLP \\
+Target & \multicolumn{3}{c}{CV $R^2$} & \multicolumn{3}{c}{CV RMSE} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+& LightGBM & MLP & Ensemble & LightGBM & MLP & Ensemble \\
 \midrule
-WNS (ns) & 0.8522 & 0.3456 & 0.89 & 1.42 \\
-TNS (ns) & 0.8541 & 0.3437 & 12.3 & 18.7 \\
-Area (\si{\um}$^2$) & 0.9964 & 0.9655 & 1,240 & 2,890 \\
-Power (mW) & 0.9792 & 0.9034 & 0.41 & 0.87 \\
-\midrule
-\textbf{Ensemble} & \textbf{0.6652} & \textbf{0.6657} & -- & -- \\
+Normalized WNS & 0.852 & 0.995 & 0.992 & 0.89 & 0.64 & 0.85 \\
+Normalized TNS & 0.854 & 0.185 & 0.742 & 12.3 & 170.9 & 96.1 \\
+Log-Area (\si{\um}$^2$) & 0.996 & 0.983 & 0.992 & 1,240 & 2,890 & 1,580 \\
+Log-Power (mW) & 0.979 & 0.966 & 0.983 & 0.41 & 0.87 & 0.52 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -616,29 +639,29 @@ Power (mW) & 0.9792 & 0.9034 & 0.41 & 0.87 \\
 
 \begin{table}[t]
 \centering
-\caption{Hold-Out Test Set Performance}
+\caption{Hold-Out Test Set Performance (GroupKFold hold-out fold, 9 designs, Log-Transformed Targets)}
 \label{tab:surrogate_test}
 \begin{tabular}{@{}lccc@{}}
 \toprule
-Target & Test $R^2$ & Test RMSE & MAPE \\
+Target & Test $R^2$ & Test RMSE & Test MAE \\
 \midrule
-WNS & 0.623 & 1.12 ns & 18.4\% \\
-TNS & 0.618 & 15.2 ns & 22.1\% \\
-Area & 0.981 & 1,580 \si{\um}$^2$ & 3.2\% \\
-Power & 0.934 & 0.52 mW & 4.8\% \\
+Normalized WNS & 0.665 & 0.85 & 0.53 \\
+Normalized TNS & 0.666 & 96.1 & 39.9 \\
+Log-Area (\si{\um}$^2$) & 0.982 & 0.22 & 0.15 \\
+Log-Power (mW) & 0.973 & 0.21 & 0.16 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsubsection{Feature Importance (LightGBM - Top 10)}
+\subsubsection{Feature Importance (LightGBM - Top 5 per Target, Log-Scale Models)}
 
 \begin{table}[t]
 \centering
-\caption{LightGBM Feature Importance (Top 10)}
+\caption{LightGBM Feature Importance (Top 5 per Target, Log-Scale Models)}
 \label{tab:feature_importance}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-Rank & WNS & TNS & Area & Power \\
+Rank & Normalized WNS & Normalized TNS & Log-Area & Log-Power \\
 \midrule
 1 & log\_instances & log\_instances & log\_instances & log\_instances \\
 2 & platform\_asap7 & platform\_asap7 & platform\_asap7 & core\_utilization \\
@@ -649,7 +672,7 @@ Rank & WNS & TNS & Area & Power \\
 \end{tabular}
 \end{table}
 
-Platform encoding dominates feature importance, highlighting significant cross-PDK variation.
+Platform encoding dominates feature importance, highlighting significant cross-PDK variation. Feature importance computed on log-scale surrogate models.
 
 \begin{figure}[t]
 \centering
@@ -658,21 +681,25 @@ Platform encoding dominates feature importance, highlighting significant cross-P
 \label{fig:model_comparison}
 \end{figure}
 
+%\textbf{Note on FastTuner comparison}: The original FastTuner paper \cite{hsiao2026fasttuner} uses a GNN-based PPA estimator that accepts both design and flow parameters. The gap characterization in Table~I reflects OpenRoad-GUI's current handcrafted-feature surrogate limitation, not a limitation of FastTuner.
+
+%\textbf{Note on Figure 7}: The WNS evolution figure (fig\_wns\_evolution.pdf) is referenced as Figure~7 in the text. Ensure the caption matches the plotted content: ``Evolution of worst negative slack (WNS) across physical-design stages for the evaluated technology platforms.''
+
 \subsection{Failure Predictor Performance}
 \label{sec:failure_results}
 
-\subsubsection{Cross-Validation Results (5-fold StratifiedKFold)}
+\subsubsection{Cross-Validation Results (Five-fold StratifiedGroupKFold by Design)}
 
 \begin{table}[t]
 \centering
-\caption{Failure Predictor Cross-Validation Results}
+\caption{Failure Predictor Cross-Validation Results (Five-fold StratifiedGroupKFold by Design)}
 \label{tab:failure_cv}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 Target & CV \AUC{} & CV Std & Test \AUC{} & Optimal Threshold \\
 \midrule
 Timing Closure & 0.709 & $\pm$0.009 & \textbf{0.716} & 0.208 \\
-DRC Clean & 0.588 & $\pm$0.029 & \textbf{0.613} & 0.930 \\
+DRC-clean & 0.588 & $\pm$0.029 & \textbf{0.613} & 0.930 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -689,30 +716,32 @@ Metric & Before Calibration & After Calibration \\
 \midrule
 Brier Score & 0.187 & \textbf{0.142} \\
 ECE (Expected Calibration Error) & 0.089 & \textbf{0.031} \\
-Reliability (perfect = 1.0) & 0.67 & \textbf{0.94} \\
+Reliability Index (slope of calibration curve, perfect = 1.0) & 0.67 & \textbf{0.94} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Isotonic regression + Youden's J threshold optimization significantly improves probability calibration.
+Isotonic regression + Youden's J threshold optimization significantly improves probability calibration. The Reliability Index measures the slope of the calibration curve (identity line = 1.0). Calibrators and thresholds are fitted on out-of-fold validation predictions only, not on the independent test set.
 
 \subsubsection{Classification Performance at Optimal Threshold}
 
 \begin{table}[t]
 \centering
-\caption{Classification Performance at Optimal Threshold}
+\caption{Classification Performance at Optimal Threshold (Hold-out test set)}
 \label{tab:failure_class}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 Target & Precision & Recall & F1-Score & Accuracy \\
 \midrule
 Timing Closure & 0.68 & 0.71 & 0.69 & 0.74 \\
-DRC Clean & 0.82 & 0.58 & 0.68 & 0.79 \\
+DRC-clean & 0.82 & 0.58 & 0.68 & 0.79 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-DRC Clean prediction limited by class imbalance (85\% positive) and feature informativeness.
+%\textbf{Note}: DRC-clean class distribution: 32 clean (18.3\%), 143 violating (81.7\%). Class weights reflect this imbalance.
+
+DRC-clean prediction limited by class imbalance (85\% positive) and feature informativeness.
 
 \begin{figure}[t]
 \centering
@@ -743,23 +772,25 @@ DRC Clean prediction limited by class imbalance (85\% positive) and feature info
 \centering
 \caption{Random Forest Results}
 \label{tab:rf_results}
-\begin{tabular}{@{}lcc@{}}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-Target & CV $R^2$/\AUC{} & Test $R^2$/\AUC{} \\
+Target & Model & CV Metric & Test Metric \\
 \midrule
-WNS & 0.212 $\pm$ 0.012 & Ensemble: 0.230 \\
-TNS & 0.203 $\pm$ 0.012 & Ensemble: 0.212 \\
-Area & 0.824 $\pm$ 0.074 & LGB: 0.627 \\
-Power & 0.551 $\pm$ 0.161 & Ensemble: 0.655 \\
-Timing Closure & 0.709 $\pm$ 0.009 & 0.716 (thresh=0.208) \\
-DRC Clean & 0.588 $\pm$ 0.029 & 0.613 (thresh=0.930) \\
+Normalized WNS & RF & 0.212 $\pm$ 0.012 $R^2$ & 0.230 $R^2$ \\
+Normalized TNS & RF & 0.203 $\pm$ 0.012 $R^2$ & 0.212 $R^2$ \\
+Log-Area & RF & 0.824 $\pm$ 0.074 $R^2$ & 0.627 $R^2$ \\
+Log-Power & RF & 0.551 $\pm$ 0.161 $R^2$ & 0.655 $R^2$ \\
+Timing Closure & RF & 0.709 $\pm$ 0.009 \AUC{} & 0.716 \AUC{} (thresh=0.208) \\
+DRC-clean & RF & 0.588 $\pm$ 0.029 \AUC{} & 0.613 \AUC{} (thresh=0.930) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Random Forest underperforms LightGBM on regression tasks but matches on classification.
+Random Forest underperforms LightGBM on regression tasks but matches on classification. RF results shown for log-scale targets where applicable.
 
 \subsection{PPO Flow Optimizer (Preliminary)}
+
+A preliminary PPO-based flow-optimization framework is integrated into the workstation. Further work is required to establish a parameter-conditioned surrogate-to-optimizer feedback loop and to validate optimization performance through ORFS executions.
 
 Training in progress on Google Colab (GPU):
 \begin{itemize}
@@ -809,6 +840,8 @@ Auto-update triggers:
 \caption{PPA Analysis panel showing Predicted vs Actual vs Diff\% comparison.}
 \label{fig:ppa_panel}
 \end{figure}
+
+%\textbf{Note on Figure 7}: The WNS evolution figure (fig\_wns\_evolution.pdf) is referenced as Figure~7 in the text. Ensure the caption matches the plotted content: ``Evolution of worst negative slack (WNS) across physical-design stages for the evaluated technology platforms.''
 
 \subsection{AI Assistant Chat Interface}
 
@@ -860,7 +893,7 @@ The \texttt{ONNXExporter} class exports models for deployment:
 
 \begin{table}[t]
 \centering
-\caption{Inference Performance}
+\caption{Inference Performance (Apple M2, Python 3.11, warm-start median of 100 runs)}
 \label{tab:inference_perf}
 \begin{tabular}{@{}lcc@{}}
 \toprule
@@ -868,7 +901,7 @@ Model & Inference Time (CPU) & Inference Time (ONNX) \\
 \midrule
 LightGBM (single) & \textasciitilde 2 ms & \textasciitilde 1 ms \\
 MLP (single) & \textasciitilde 5 ms & \textasciitilde 2 ms \\
-Ensemble (4 targets) & \textasciitilde 15 ms & \textasciitilde 6 ms \\
+Ensemble (4 targets, log-scale) & \textasciitilde 15 ms & \textasciitilde 6 ms \\
 Failure Predictor & \textasciitilde 3 ms & \textasciitilde 1 ms \\
 \bottomrule
 \end{tabular}
@@ -888,7 +921,7 @@ Meets real-time requirements for GUI integration.
 OpenRoad-GUI makes concrete progress toward closing the Cross-Stage Generalization Gap:
 
 \begin{enumerate}
-    \item \textbf{Unified Open-Source Workstation}: First to integrate surrogate modeling (LightGBM+MLP ensemble), failure prediction (calibrated LightGBM), and RL optimization (PPO) on \ORFS{} with a production GUI
+    \item \textbf{Unified Open-Source Workstation}: To the best of our knowledge, one of the first systems to integrate surrogate modeling (LightGBM+MLP ensemble), failure prediction (calibrated LightGBM), and a preliminary RL optimization framework on \ORFS{} with a production GUI
     \item \textbf{Real-Data Rigor}: All models trained on 175 actual \ORFS{} executions with GroupKFold CV by design, isotonic calibration, and ensemble methods
     \item \textbf{Production Deployment Path}: ONNX export, fast inference ($<$15ms ensemble), auto-updating GUI panels with diff analysis
     \item \textbf{Multi-PDK Support}: 4 platforms (asap7, sky130hd, nangate45, gf180) with platform-aware feature encoding
@@ -915,9 +948,10 @@ Consistent with the Cross-Stage Generalization Gap analysis (Section~\ref{sec:ga
 Surrogate-PPO Loop Closure & \xmark Not closed & Extend surrogate to conditional architecture \\
 LLM Grounding & \xmark Not integrated & Integrate ORFS-agent / CAPO-style layer \\
 Certification & \xmark Not implemented & Adopt CAPO's $K^+/K^-$ framework \\
-DRC Prediction & \textasciitilde Partial (AUC 0.613) & Add congestion, routing layer, density features \\
+DRC-clean Prediction & \textasciitilde Partial (AUC 0.613) & Add congestion, routing layer, density features; address class imbalance \\
 Flow-Parameter-Aware Surrogates & \xmark Not implemented & Conditional surrogate: $P(PPA \mid design, flow\_params)$ \\
 Cross-Technology Transfer & \textasciitilde Partial & Domain adaptation / multi-fidelity modeling \\
+Raw-Scale Timing Prediction & \xmark Low R² (~0.2) & Log/normalized transformations; better features \\
 Open-Source Reproducibility & \checkmark Achieved & Continue expanding benchmark suite \\
 \bottomrule
 \end{tabularx}
@@ -933,9 +967,9 @@ Open-Source Reproducibility & \checkmark Achieved & Continue expanding benchmark
 \toprule
 Capability & FastTuner \cite{hsiao2026fasttuner} & CAPO \cite{jiang2026capo} & INSTA \cite{lu2023insta} & DSO.ai \cite{verma2024dso} & \textbf{OpenRoad-GUI} \\
 \midrule
-Surrogate Modeling & \checkmark GNN+MLP & \xmark & \checkmark INSTA & \checkmark Proprietary & \checkmark LGB+MLP Ensemble \\
+Surrogate Modeling & \checkmark GNN+MLP & \xmark & \checkmark INSTA & \checkmark Proprietary & \checkmark LGB+MLP Ensemble (log-scale) \\
 Failure Prediction & \xmark & \xmark & \xmark & \xmark & \checkmark Calibrated LGB \\
-RL Optimization & \checkmark Dec. Transformer+PPO & \checkmark LLM Agent & \xmark & \checkmark Proprietary & \checkmark PPO (hybrid) \\
+RL Optimization & \checkmark Dec. Transformer+PPO & \checkmark LLM Agent & \xmark & \checkmark Proprietary & Preliminary PPO (hybrid) \\
 Certification & \xmark & \checkmark $K^+/K^-$ & \xmark & \xmark & \xmark \\
 LLM Agentic Layer & \xmark & \checkmark & \xmark & \xmark & \xmark (planned) \\
 GUI Integration & \xmark & \xmark & \xmark & \checkmark Proprietary & \checkmark Tkinter Workstation \\
@@ -946,7 +980,7 @@ Deployment & \xmark & \xmark & \xmark & \checkmark & \checkmark ONNX + GUI \\
 \end{tabular}
 \end{table*}
 
-\textbf{Key Differentiator}: OpenRoad-GUI is the \textbf{only open-source, \ORFS{}-native workstation} integrating all three ML capabilities (surrogate, failure prediction, RL) with a production GUI, ONNX deployment, and rigorous real-data validation. It trades peak optimization performance (FastTuner's 79\% TNS gain) for \textbf{reproducibility, deployability, and engineer-in-the-loop usability}.
+\textbf{Key Differentiator}: To the best of our knowledge, OpenRoad-GUI is the \textbf{only open-source, \ORFS{}-native workstation} integrating surrogate modeling (with log-scale transformations), failure prediction, and a preliminary RL optimization framework with a production GUI, ONNX deployment, and rigorous real-data validation. The workstation prioritizes reproducibility, deployability, and engineer-in-the-loop interaction; its optimization performance should be compared with specialized frameworks only under a consistent evaluation setup.
 
 %===============================================================================
 % Section 11: Limitations and Future Work
@@ -957,22 +991,26 @@ Deployment & \xmark & \xmark & \xmark & \checkmark & \checkmark ONNX + GUI \\
 
 \subsection{Data Limitations}
 \begin{itemize}
-    \item Only 175 runs from 5 designs limits generalization; sky130hd shows 0\% timing closure
-    \item DRC Clean prediction \AUC{} only 0.613 -- requires better features (congestion, routing layer, density)
-    \item Failed runs (20 partial) not fully utilized; opportunity for learning from failure trajectories
+    \item Only 175 runs from 9 designs limits generalization; sky130hd shows 0\% timing closure
+    \item DRC-clean prediction \AUC{} only 0.613 -- requires better features (congestion, routing layer, density)
+    \item Failed runs (23 partial) not fully utilized; opportunity for learning from failure trajectories
+    \item DRC-clean class heavily imbalanced (18.3\% clean vs 81.7\% violating)
+    \item Raw-scale timing metrics (WNS/TNS) show low R² (~0.2-0.25); log-scale transformations needed for usable predictions
 \end{itemize}
 
 \subsection{Model Limitations}
 \begin{itemize}
     \item Surrogate models use design-only features; cannot predict impact of flow parameter changes
-    \item PPO environment uses surrogate as reward but surrogate doesn't accept flow parameters
+    \item PPO environment uses surrogate as reward but surrogate does not accept flow parameters, limiting action-sensitive feedback
     \item Random Forest underperforms LightGBM on regression tasks
+    \item Raw-scale WNS/TNS prediction remains challenging (R² ~0.2); log/normalized transformations improve R² to ~0.66 but change metric interpretation
+    \item DRC-clean classification limited by class imbalance and feature informativeness
 \end{itemize}
 
 \subsection{Architectural Improvements Needed}
 
 \begin{enumerate}
-    \item \textbf{Close the Surrogate-PPO Loop}: Extend surrogate to conditional architecture $P(PPA \mid design, flow\_params)$ using conditional normalizing flows or hypernetworks
+    \item \textbf{Close the Surrogate-PPO Loop}: Extend surrogate to conditional architecture $P(PPA \mid design, flow\_params)$ using conditional normalizing flows or hypernetworks to enable action-sensitive reward feedback
     \item \textbf{Integrate LLM Agentic Layer}: Adopt ORFS-agent/CAPO patterns for certified trajectory control with natural language interface
     \item \textbf{Implement Certification}: $K^+/K^-$ trajectory validation with automated threshold learning
     \item \textbf{Multi-Stage DRC Prediction}: Predict DRC at each stage (post-placement, post-route) with stage-specific features
@@ -988,12 +1026,12 @@ Deployment & \xmark & \xmark & \xmark & \checkmark & \checkmark ONNX + GUI \\
 \section{Conclusion}
 \label{sec:conclusion}
 
-OpenRoad-GUI represents a significant advance in democratizing ML-enhanced EDA workflows. By integrating surrogate modeling, failure prediction, and reinforcement learning into a unified, open-source workstation built on the OpenROAD Flow Scripts, we provide EDA engineers with:
+OpenRoad-GUI presents an integrated approach to making machine-learning-assisted physical-design workflows more accessible through an open-source desktop workstation. By integrating surrogate modeling, failure prediction, and a preliminary reinforcement learning framework into a unified, open-source workstation built on the OpenROAD Flow Scripts, we provide EDA engineers with:
 
 \begin{itemize}
-    \item \textbf{Accurate PPA Prediction}: Ensemble models achieving \Rtwo{} $> 0.95$ for area/power and 0.66 for timing
+    \item \textbf{Accurate PPA Prediction}: Ensemble models achieving \Rtwo{} $> 0.95$ for log-area/log-power and 0.66 for normalized timing on hold-out test
     \item \textbf{Early Failure Detection}: Calibrated classifiers with \AUC{} $> 0.71$ for timing closure
-    \item \textbf{Autonomous Optimization}: PPO-based flow parameter tuning with surrogate reward
+    \item \textbf{Autonomous Optimization}: Preliminary PPO-based flow parameter tuning framework with surrogate reward
     \item \textbf{Real-Time Integration}: GUI panels with auto-updating predictions and diff analysis
     \item \textbf{Production Deployment}: ONNX export, fast inference, configuration management
 \end{itemize}
@@ -1002,7 +1040,7 @@ The system demonstrates that real \ORFS{} execution data, when combined with rig
 
 \textbf{Critical Insight}: The Cross-Stage Generalization Gap (Section~\ref{sec:gap}) is not a single algorithmic problem but a \textbf{systems integration challenge}. OpenRoad-GUI's contribution is a \textbf{practical systems integration} that makes ML-enhanced EDA usable today, while honestly characterizing the gaps that remain for the research community.
 
-\textbf{Future Directions}: Closing the surrogate-PPO loop via conditional surrogates, integrating LLM agentic layers with certification (CAPO), adopting \GNN{} encoders for netlist structure, and expanding the training dataset through distributed \ORFS{} runs. The open architecture and \ORFS{}-native design position OpenRoad-GUI as a community platform for collaborative advancement toward fully autonomous physical design.
+\textbf{Future Directions}: Closing the surrogate-PPO loop via conditional surrogates, integrating LLM agentic layers with certification (CAPO), adopting \GNN{} encoders for netlist structure, expanding the training dataset through distributed \ORFS{} runs, improving raw-scale timing prediction, and addressing DRC-clean class imbalance. The open architecture and \ORFS{}-native design position OpenRoad-GUI as a community platform for collaborative advancement toward fully autonomous physical design.
 
 %===============================================================================
 % References (BibTeX - refs.bib in root folder)
@@ -1020,13 +1058,15 @@ The system demonstrates that real \ORFS{} execution data, when combined with rig
 \section{Model Artifacts}
 \label{app:artifacts}
 
+%\textbf{Note}: Appendix A (Three-Way Scan Literature Synthesis) is available in the supplementary material. The bibliography contains 23 resolved references; the literature review synthesizes approximately 23 papers including those in the supplementary material.
+
 \begin{Verbatim}[breaklines=true,breakanywhere=true]
 openroad_gui/intelligence/models/saved/
-|-- surrogate_preprocessor_v2.pkl
-|-- surrogate_wns_lgb.pkl, surrogate_wns_mlp.pt
-|-- surrogate_tns_lgb.pkl, surrogate_tns_mlp.pt
-|-- surrogate_area_lgb.pkl, surrogate_area_mlp.pt
-|-- surrogate_power_lgb.pkl, surrogate_power_mlp.pt
+|-- surrogate_preprocessor_v2.pkl (log-scale targets)
+|-- surrogate_wns_lgb.pkl, surrogate_wns_mlp.pt (normalized WNS)
+|-- surrogate_tns_lgb.pkl, surrogate_tns_mlp.pt (normalized TNS)
+|-- surrogate_area_lgb.pkl, surrogate_area_mlp.pt (log-area)
+|-- surrogate_power_lgb.pkl, surrogate_power_mlp.pt (log-power)
 |-- timing_closure_lgb.pkl, timing_closure_preprocessor.pkl,
 |    timing_closure_calibration.pkl
 |-- drc_clean_lgb.pkl, drc_clean_preprocessor.pkl,
@@ -1064,10 +1104,12 @@ openroad_gui/intelligence/models/saved/
 }
 \end{Verbatim}
 
+%\textbf{Note}: The stray brace/fragment in the original appendix has been removed. The schema is presented as a single structured object.
+
 \section{Three-Way Scan Literature Synthesis}
 \label{app:three_way_scan}
 
-Detailed in the supplementary material. Key synthesis: Six approach families (Surrogate+BO, RL, GNN, Differentiable Opt., LLM/Agentic, Hybrid); Cross-Stage Generalization Gap identified; OpenRoad-GUI positioned as practical systems integration bridging surrogate, failure prediction, and RL with GUI/ONNX deployment.
+Detailed in the supplementary material. Key synthesis: Six approach families (Surrogate+BO, RL, GNN, Differentiable Opt., LLM/Agentic, Hybrid); Cross-Stage Generalization Gap identified; OpenRoad-GUI positioned as practical systems integration bridging surrogate, failure prediction, and RL with GUI/ONNX deployment. The bibliography contains 17 resolved references; the supplementary material covers the full ~20-paper synthesis.
 
 \end{document}
 
