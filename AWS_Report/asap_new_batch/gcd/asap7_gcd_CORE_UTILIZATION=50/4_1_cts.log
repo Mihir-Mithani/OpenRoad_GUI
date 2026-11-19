@@ -1,0 +1,143 @@
+OpenROAD 26Q1-2290-g4589d89a40 
+Features included (+) or not (-): +GPU +GUI +Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ORD-0030] Using 4 thread(s).
+source /home/kirtan2/theTool/OpenROAD-flow-scripts/flow/platforms/asap7/liberty_suppressions.tcl
+read_liberty /home/kirtan2/theTool/OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz
+read_liberty /home/kirtan2/theTool/OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz
+read_liberty /home/kirtan2/theTool/OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz
+read_liberty /home/kirtan2/theTool/OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz
+read_liberty /home/kirtan2/theTool/OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SEQ_RVT_FF_nldm_220123.lib
+read_db ./results/asap7/gcd/base/3_place.odb
+read_sdc ./results/asap7/gcd/base/3_place.sdc
+source /home/kirtan2/theTool/OpenROAD-flow-scripts/flow/platforms/asap7/setRC.tcl
+clock_tree_synthesis -sink_clustering_enable -repair_clock_nets
+[INFO CTS-0050] Root buffer is BUFx2_ASAP7_75t_R.
+[INFO CTS-0051] Sink buffer is BUFx4_ASAP7_75t_R.
+[INFO CTS-0052] The following clock buffers will be used for CTS:
+                    BUFx2_ASAP7_75t_R
+                    BUFx4_ASAP7_75t_R
+[INFO CTS-0049] Characterization buffer is BUFx4_ASAP7_75t_R.
+[INFO CTS-0007] Net "clk" found for clock "core_clock".
+[INFO CTS-0010]  Clock net "clk" has 35 sinks.
+[INFO CTS-0008] TritonCTS found 1 clock nets.
+[INFO CTS-0097] Characterization used 2 buffer(s) types.
+[INFO CTS-0201] 0 blockages from hard placement blockages and placed macros will be used.
+[INFO CTS-0027] Generating H-Tree topology for net clk.
+[INFO CTS-0028]  Total number of sinks: 35.
+[INFO CTS-0090]  Sinks will be clustered based on buffer max cap.
+[INFO CTS-0030]  Number of static layers: 0.
+[INFO CTS-0020]  Wire segment unit: 1350  dbu (1 um).
+[INFO CTS-0023]  Original sink region: [(745, 945), (9136, 8775)].
+[INFO CTS-0024]  Normalized sink region: [(0.551852, 0.7), (6.76741, 6.5)].
+[INFO CTS-0025]     Width:  6.2156.
+[INFO CTS-0026]     Height: 5.8000.
+ Level 1
+    Direction: Horizontal
+    Sinks per sub-region: 18
+    Sub-region size: 3.1078 X 5.8000
+[INFO CTS-0034]     Segment length (rounded): 1.
+ Level 2
+    Direction: Vertical
+    Sinks per sub-region: 9
+    Sub-region size: 3.1078 X 2.9000
+[INFO CTS-0034]     Segment length (rounded): 1.
+[INFO CTS-0032]  Stop criterion found. Max number of sinks is 15.
+[INFO CTS-0035]  Number of sinks covered: 35.
+[INFO CTS-0018]     Created 5 clock buffers.
+[INFO CTS-0012]     Minimum number of buffers in the clock path: 2.
+[INFO CTS-0013]     Maximum number of buffers in the clock path: 2.
+[INFO CTS-0015]     Created 5 clock nets.
+[INFO CTS-0016]     Fanout distribution for the current clock = 8:2, 9:1, 10:1..
+[INFO CTS-0017]     Max level of the clock tree: 2.
+[INFO CTS-0098] Clock net "clk"
+[INFO CTS-0099]  Sinks 38
+[INFO CTS-0100]  Leaf buffers 0
+[INFO CTS-0101]  Average sink wire length 14.35 um
+[INFO CTS-0102]  Path depth 2 - 2
+[INFO CTS-0207]  Dummy loads inserted 3
+estimate_parasitics -placement
+[INFO DPL-0005] Max displacement: +/- 500 sites horizontally, +/- 100 rows vertically.
+Movements Summary
+---------------------------------------
+Total cells:                     380
+Diamond Move Success:            380 (100.00%)
+Diamond Move Failure:              0
+Rip-up and replace Success:        0 (  0.00% of diamond failures)
+Rip-up and replace Failure:        0
+Total Placement Failures:          0
+---------------------------------------
+Placement Analysis
+---------------------------------
+total displacement          3.4 u
+average displacement        0.0 u
+max displacement            0.7 u
+original HPWL             656.2 u
+legalized HPWL            692.5 u
+delta HPWL                    6 %
+
+estimate_parasitics -placement
+repair_timing -setup_margin 0 -hold_margin 0 -repair_tns 100 -skip_last_gasp -verbose
+[INFO RSZ-0100] Repair move sequence: UnbufferMove SizeUpMove SwapPinsMove BufferMove CloneMove SplitLoadMove 
+[INFO RSZ-0094] Found 10 endpoints with setup violations.
+[INFO RSZ-0099] Repairing 10 out of 10 (100.00%) violating endpoints...
+   Iter   | Removed | Resized | Inserted | Cloned |  Pin  |   Area   |    WNS   |   TNS      |  Viol  | Worst
+          | Buffers |  Gates  | Buffers  |  Gates | Swaps |          |          |            | Endpts | Endpt
+--------------------------------------------------------------------------------------------------------------
+        0 |       0 |       0 |        0 |      0 |     0 |    +0.0% |  -44.465 |     -270.4 |     10 | resp_msg[13]
+       10 |       0 |       0 |        6 |      0 |     5 |    +1.2% |  -34.179 |     -202.7 |     10 | resp_msg[15]
+       20 |       0 |       0 |       13 |      0 |     9 |    +2.5% |  -21.852 |     -126.9 |     10 | resp_msg[13]
+       30 |       0 |       2 |       15 |      0 |    15 |    +3.0% |  -18.600 |     -107.5 |     10 | resp_msg[12]
+       36 |       0 |       3 |       16 |      0 |    17 |    +3.2% |  -17.302 |      -98.3 |     10 | resp_msg[13]
+       40 |       0 |       4 |       18 |      0 |    17 |    +3.7% |  -18.367 |      -96.0 |     10 | resp_msg[13]
+       45 |       0 |       3 |       16 |      0 |    17 |    +3.2% |  -17.302 |      -98.3 |     10 | resp_msg[13]
+       50 |       0 |       3 |       17 |      0 |    20 |    +3.4% |  -17.302 |      -97.0 |     10 | resp_msg[13]
+       53 |       0 |       4 |       18 |      0 |    21 |    +3.6% |  -17.302 |      -94.9 |     10 | resp_msg[13]
+       59 |       0 |       4 |       18 |      0 |    21 |    +3.6% |  -17.302 |      -94.9 |     10 | resp_msg[13]
+       60 |       0 |       4 |       18 |      0 |    21 |    +3.6% |  -17.302 |      -94.9 |     10 | resp_msg[13]
+       63 |       0 |       4 |       18 |      0 |    21 |    +3.6% |  -17.302 |      -94.9 |     10 | resp_msg[13]
+       67 |       0 |       4 |       18 |      0 |    21 |    +3.6% |  -17.302 |      -94.9 |     10 | resp_msg[13]
+       70 |       0 |       4 |       18 |      0 |    23 |    +3.6% |  -17.302 |      -94.8 |     10 | resp_msg[13]
+       73 |       0 |       5 |       20 |      0 |    24 |    +4.0% |  -17.302 |      -93.3 |     10 | resp_msg[13]
+       76 |       0 |       6 |       20 |      0 |    25 |    +4.0% |  -17.302 |      -92.3 |     10 | resp_msg[13]
+       77 |       0 |       6 |       20 |      0 |    25 |    +4.0% |  -17.302 |      -92.3 |      9 | resp_msg[13]
+       80 |       0 |       7 |       20 |      0 |    26 |    +4.1% |  -17.302 |      -91.5 |      9 | resp_msg[13]
+       80 |       0 |       7 |       20 |      0 |    26 |    +4.1% |  -17.302 |      -91.5 |      9 | resp_msg[13]
+    final |       0 |       7 |       20 |      0 |    26 |    +4.1% |  -17.302 |      -91.5 |      9 | resp_msg[13]
+--------------------------------------------------------------------------------------------------------------
+[INFO RSZ-0040] Inserted 20 buffers.
+[INFO RSZ-0051] Resized 7 instances: 7 up, 0 up match, 0 down, 0 VT
+[INFO RSZ-0043] Swapped pins on 26 instances.
+[WARNING RSZ-0062] Unable to repair all setup violations.
+[INFO RSZ-0033] No hold violations found.
+[INFO DPL-0005] Max displacement: +/- 500 sites horizontally, +/- 100 rows vertically.
+Movements Summary
+---------------------------------------
+Total cells:                     400
+Diamond Move Success:            400 (100.00%)
+Diamond Move Failure:              0
+Rip-up and replace Success:        0 (  0.00% of diamond failures)
+Rip-up and replace Failure:        0
+Total Placement Failures:          0
+---------------------------------------
+Placement Analysis
+---------------------------------
+total displacement          9.4 u
+average displacement        0.0 u
+max displacement            0.8 u
+original HPWL             707.2 u
+legalized HPWL            717.2 u
+delta HPWL                    1 %
+
+Report metrics stage 4, cts final...
+
+==========================================================================
+cts final report_design_area
+--------------------------------------------------------------------------
+Design area 47 um^2 62% utilization.
+write_db ./results/asap7/gcd/base/4_1_cts.odb
+write_sdc -no_timestamp ./results/asap7/gcd/base/4_cts.sdc
+Elapsed time: 0:03.47[h:]min:sec. CPU time: user 3.47 sys 0.45 (112%). Peak memory: 241820KB.
+Log                        Elapsed/s Peak Memory/MB  sha1sum .odb [0:20)
+4_1_cts                            3            236 9e58ad81d4c7c6779e35
